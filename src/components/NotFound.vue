@@ -1,8 +1,5 @@
 <template>
   <div class="error-page">
-    <!-- Заголовок -->
-    <HeaderService />
-
     <!-- Контент страницы ошибки -->
     <div class="error-content">
       <h1>400 — Ошибка запроса</h1>
@@ -14,7 +11,6 @@
 
 <script>
 import { useRouter } from 'vue-router';
-import HeaderService from '@/components/HeaderService.vue'; // Импортируем заголовок
 
 export default {
   name: 'RedirectError400',

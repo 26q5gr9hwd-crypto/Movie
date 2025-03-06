@@ -1,9 +1,19 @@
 <template>
   <div>
-    <!-- Фон с постером топ-1 фильма -->
-    <div v-if="!isMobile" class="background-container" :style="backgroundStyle">
-      <!-- Размытый и приглушённый фон -->
-      <div class="blur-overlay"></div>
+    <div class="background-container">
+      <!-- Фон по умолчанию -->
+      <div 
+        class="background-layer default-background"
+        :style="defaultBackgroundStyle"
+        :class="{ active: !isExternalBackgroundActive }"
+      ></div>
+      
+      <!-- Внешний фон -->
+      <div 
+        class="background-layer external-background"
+        :style="externalBackgroundStyle"
+        :class="{ active: isExternalBackgroundActive }"
+      ></div>
     </div>
   </div>
 </template>
@@ -11,68 +21,106 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 
-// Данные топ-1 фильма
-const topMovie = ref(null);
+const props = defineProps({
+  externalBackgroundUrl: {
+    type: String,
+    default: null,
+  },
+  isBackgroundActive: {
+    type: Boolean,
+    default: false,
+  },
+});
 
-// Стиль для фона
-const backgroundStyle = computed(() => ({
-  backgroundImage: `url(${topMovie.value?.cover})`,
+const topMovie = ref(null);
+const CACHE_KEY = 'topMovieCache';
+
+// Проверка, активирован ли внешний фон
+const isExternalBackgroundActive = computed(() => {
+  return props.isBackgroundActive && props.externalBackgroundUrl !== null;
+});
+
+// Стиль для фона по умолчанию
+const defaultBackgroundStyle = computed(() => ({
+  backgroundImage: topMovie.value ? `url(${topMovie.value.cover})` : 'none',
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
 }));
 
-// Загрузка данных топ-1 фильма
+// Стиль для внешнего фона
+const externalBackgroundStyle = computed(() => ({
+  backgroundImage: props.externalBackgroundUrl ? `url(${props.externalBackgroundUrl})` : 'none',
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+}));
+
 const fetchTopMovie = async () => {
+  const today = new Date().toISOString().split('T')[0];
+  const cached = localStorage.getItem(CACHE_KEY);
+  
+  if (cached) {
+    try {
+      const { date, data } = JSON.parse(cached);
+      if (date === today) {
+        topMovie.value = data;
+        return;
+      }
+    } catch (e) {
+      console.error('Ошибка кэша:', e);
+    }
+  }
+
   try {
-    // Запрос к API для получения топ-100 фильмов за 24 часа
-    const response = await fetch('https://rh.aukus.su/top/24h', { priority: 'high' });
+    const response = await fetch('https://rh.aukus.su/top/24h');
     const data = await response.json();
-    if (data && data.length > 0) {
-      // Берём первый фильм из списка (топ-1)
+    if (data?.[0]) {
       topMovie.value = data[0];
-      // Динамически добавляем preload для фонового изображения
-      const preloadLink = document.createElement('link');
-      preloadLink.rel = 'preload';
-      preloadLink.href = topMovie.value.cover;
-      preloadLink.as = 'image';
-      document.head.appendChild(preloadLink);
+      localStorage.setItem(CACHE_KEY, JSON.stringify({ 
+        date: today, 
+        data: topMovie.value 
+      }));
+      
+      // Предзагрузка изображения
+      const img = new Image();
+      img.src = topMovie.value.cover;
     }
   } catch (error) {
-    console.error('Ошибка при загрузке данных:', error);
+    console.error('Ошибка загрузки:', error);
   }
 };
 
-onMounted(() => {
-  fetchTopMovie(); // Загружаем данные топ-1 фильма
-});
+onMounted(fetchTopMovie);
 </script>
 
 <style scoped>
-/* Убираем отступы и полосы прокрутки */
-html, body {
-  margin: 0;
-  padding: 0;
-  overflow: hidden; /* Убираем полосы прокрутки */
-}
-
-/* Контейнер для фона */
 .background-container {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw; /* Ширина ровно по экрану */
-  height: 100vh; /* Высота ровно по экрану */
-  background-size: cover;
-  background-position: center;
+  width: 100vw;
+  height: 100vh;
+  z-index: -3;
+  overflow: hidden;
+}
+
+.background-layer {
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  opacity: 0;
+  transition: opacity 2s ease-in-out; /* Плавный переход */
+  pointer-events: none;
+  filter: brightness(20%) blur(20px);
+  z-index: -2;
+}
+
+.default-background.active {
+  opacity: 1;
   z-index: -1;
 }
 
-/* Размытый и приглушённый оверлей */
-.blur-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  backdrop-filter: blur(20px); /* Увеличиваем размытие */
-  background: rgba(0, 0, 0, 0.7); /* Усиливаем затемнение */
+.external-background.active {
+  opacity: 1;
+  z-index: -1; 
 }
 </style>
