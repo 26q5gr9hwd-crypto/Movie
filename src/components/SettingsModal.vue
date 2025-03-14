@@ -27,21 +27,31 @@
 
       <!-- Включение/выключение размытия -->
       <div class="setting-item">
-        <label class="toggle">
-          <input type="checkbox" v-model="isBlurEnabled" />
-          <span class="slider"></span>
-        </label>
-        <span>Включить размытие</span>
-      </div>
+        <div class="toggle">
+            <label class="switch">
+              <input 
+                type="checkbox" 
+                v-model="isBlurEnabled"
+              />
+              <span class="slider round"></span>
+            </label>
+            <span class="label-text">Включить размытие</span>
+          </div>
+        </div>
 
       <!-- Автоцентрирование плеера -->
       <div class="setting-item">
-        <label class="toggle">
-          <input type="checkbox" v-model="isCentered" />
-          <span class="slider"></span>
-        </label>
-        <span>Автоцентрировать плеер</span>
-      </div>
+        <div class="toggle">
+            <label class="switch">
+              <input 
+                type="checkbox" 
+                v-model="isCentered"
+              />
+              <span class="slider round"></span>
+            </label>
+            <span class="label-text">Автоцентрирование</span>
+          </div>
+        </div>
 
       <!-- Кнопка сброса фона -->
       <div class="settings-actions">
@@ -108,9 +118,9 @@ const resetBackground = () => {
 
 // Автоцентрирование плеера (из модуля player)
 const isCentered = computed({
-  get: () => store.state.player.isCentered,
+  get: () => store.getters['player/isCentered'],
   set: (value) => store.dispatch('player/updateCentering', value)
-})
+});
 
 // Список всех плееров (загружаем с API)
 const allPlayers = ref([])
@@ -173,6 +183,8 @@ const goBack = () => {
 </script>
 
 <style scoped>
+@import '@/assets/slider.css';
+
 .waaarn {
   color: #df0e0e;
 }
@@ -231,44 +243,6 @@ h2 {
 }
 .radio-label {
   cursor: pointer;
-}
-.toggle {
-  position: relative;
-  width: 40px;
-  height: 20px;
-  display: inline-block;
-}
-.toggle input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-.slider {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #444;
-  transition: 0.3s;
-  border-radius: 20px;
-}
-.toggle input:checked + .slider {
-  background-color: #4caf50;
-}
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 14px;
-  width: 14px;
-  left: 3px;
-  bottom: 3px;
-  background-color: white;
-  transition: 0.3s;
-  border-radius: 50%;
-}
-.toggle input:checked + .slider:before {
-  transform: translateX(20px);
 }
 .settings-actions {
   text-align: center;

@@ -77,11 +77,22 @@
     >
       Центр
     </button>
+    <!-- Переключатель автоцентрирования -->
+    <div class="toggle">
+      <label class="switch">
+        <input 
+          type="checkbox" 
+          v-model="isCentered"
+        />
+        <span class="slider round"></span>
+      </label>
+      <span class="label-text">Автоцентрирование</span>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue';
+import { ref, onMounted, onBeforeUnmount, computed, watch, nextTick } from 'vue';
 import axios from 'axios';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
@@ -115,7 +126,10 @@ const aspectRatio = computed({
 });
 
 // Используем геттер для получения isCentered из хранилища
-const isCentered = computed(() => store.getters['player/isCentered']);
+const isCentered = computed({
+  get: () => store.getters['player/isCentered'],
+  set: (value) => store.dispatch('player/updateCentering', value)
+});
 
 // Используем геттер для получения списка предпочтительных плееров из хранилища
 const preferredPlayers = computed(() => store.getters['player/preferredPlayers']);
@@ -161,10 +175,12 @@ const iframeWrapperStyle = computed(() => {
 const centerPlayer = () => {
   const container = containerRef.value;
   if (container) {
-    container.scrollIntoView({
-      behavior: 'smooth',
-      block: 'center',
-      inline: 'center'
+    nextTick(() => {
+      container.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+        inline: 'center'
+      });
     });
   }
 };
@@ -210,7 +226,7 @@ const fetchPlayers = async () => {
 
 const onIframeLoad = () => {
   iframeLoading.value = false;
-  if (isCentered.value) {
+  if (isCentered.value) {  // убедитесь, что isCentered используется здесь
     centerPlayer();
   }
 };
@@ -266,8 +282,9 @@ onBeforeUnmount(() => {
 });
 </script>
 
-
 <style scoped>
+@import '@/assets/slider.css';
+
 .players-list {
   width: 100%;
   max-width: 700px;
