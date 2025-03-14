@@ -26,7 +26,20 @@
       <nav class="side-nav">
         <ul class="nav-links">
           <li v-for="link in navLinks" :key="link.text">
-            <!-- Используем динамический компонент для поддержки router-link и обычного <a> -->
+            <!-- Если у ссылки есть action – рендерим кнопку -->
+            <template v-if="link.action">
+              <button class="link-btn" @click="() => { link.action(); closeSidebar(); }">
+                <template v-if="typeof link.icon === 'string' && link.icon.startsWith('fa')">
+                  <i :class="link.icon"></i>
+                </template>
+                <template v-else>
+                  <img src="@/assets/icon-donut.png" alt="icon" class="icon-donut" />
+                </template>
+                <span v-show="isSidebarOpen" class="menu-text">{{ link.text }}</span>
+              </button>
+            </template>
+            <!-- Обычные ссылки -->
+            <template v-else>
               <component
                 :is="link.to ? 'router-link' : 'a'"
                 v-bind="link.to ? { to: link.to, exact: link.exact } : { href: link.href, target: '_blank' }"
@@ -40,6 +53,7 @@
                 </template>
                 <span v-show="isSidebarOpen" class="menu-text">{{ link.text }}</span>
               </component>
+            </template>
           </li>
         </ul>
       </nav>
@@ -50,25 +64,39 @@
       <nav v-if="isNavbarVisible" class="mobile-navbar" @click.stop>
         <ul class="nav-links">
           <li v-for="link in navLinks" :key="link.text">
-            <component
-              :is="link.to ? 'router-link' : 'a'"
-              v-bind="link.to ? { to: link.to, exact: link.exact } : { href: link.href, target: '_blank' }"
-              @click="closeNavbar"
-            >
-            <template v-if="typeof link.icon === 'string' && link.icon.startsWith('fa')">
+            <template v-if="link.action">
+              <button class="link-btn" @click="() => { link.action(); closeNavbar(); }">
+                <template v-if="typeof link.icon === 'string' && link.icon.startsWith('fa')">
                   <i :class="link.icon"></i>
                 </template>
                 <template v-else>
                   <img src="@/assets/icon-donut.png" alt="icon" class="icon-donut" />
                 </template>
-                <span сlass="menu-text2">{{ link.text }}</span>
-            </component>
+                <span class="menu-text2">{{ link.text }}</span>
+              </button>
+            </template>
+            <template v-else>
+              <component
+                :is="link.to ? 'router-link' : 'a'"
+                v-bind="link.to ? { to: link.to, exact: link.exact } : { href: link.href, target: '_blank' }"
+                @click="closeNavbar"
+              >
+                <template v-if="typeof link.icon === 'string' && link.icon.startsWith('fa')">
+                  <i :class="link.icon"></i>
+                </template>
+                <template v-else>
+                  <img src="@/assets/icon-donut.png" alt="icon" class="icon-donut" />
+                </template>
+                <span class="menu-text2">{{ link.text }}</span>
+              </component>
+            </template>
           </li>
         </ul>
       </nav>
     </transition>
     <!-- Оверлей для закрытия мобильного меню при клике вне его -->
     <div v-if="isNavbarVisible" class="overlay" @click="closeNavbar"></div>
+
   </div>
 </template>
 
@@ -99,6 +127,7 @@ const navLinks = [
   { href: 'http://45.136.199.126:3001/status/reyohoho', icon: 'fas fa-tachometer-alt', text: 'Статус' },
   { to: '/contact', icon: 'fas fa-info-circle', text: 'Copyright' },
   { href: 'https://t.me/ReYohoho_Donut_Bot', icon: '', text: 'Поддержать' },
+  { to: '/setting', icon: 'fa-solid fa-gear', text: 'Настройки' },
 ];
 
 // Функции для управления состоянием меню
@@ -117,7 +146,6 @@ const toggleSidebar = () => {
 const closeSidebar = () => {
   isSidebarOpen.value = false;
 };
-
 
 // Обновляем состояние мобильного устройства при изменении размера окна
 const updateIsMobile = () => {
@@ -248,7 +276,7 @@ onBeforeUnmount(() => {
 }
 .nav-links li { width: 100%; }
 .nav-links a,
-.nav-links router-link {
+.nav-links button {
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -258,6 +286,7 @@ onBeforeUnmount(() => {
   transition: background 0.2s ease, color 0.2s ease;
   height: 20px;
 }
+
 .menu-text {
   white-space: nowrap;
   overflow: hidden;

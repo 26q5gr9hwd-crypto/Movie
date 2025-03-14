@@ -4,10 +4,10 @@
     <select v-model="selectedPlayerInternal" class="custom-select">
       <option 
         v-for="player in playersInternal" 
-        :key="player.id" 
+        :key="player.key" 
         :value="player"
       >
-        {{ player.translate.toUpperCase() }}
+        {{ player.key === player.translate ? player.translate.toUpperCase() : player.key + ' - ' + player.translate.toUpperCase() }}
       </option>
     </select>
   </div>
@@ -83,7 +83,12 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue';
 import axios from 'axios';
-import SpinnerLoading from '@/components/SpinnerLoading.vue';
+import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
+import SpinnerLoading from '@/components/SpinnerLoading.vue'
+
+const store = useStore();
+const router = useRouter();
 
 const props = defineProps({
   kp_id: String
@@ -99,10 +104,21 @@ const playerIframe = ref(null);
 const containerRef = ref(null);
 
 const apiUrl = import.meta.env.VITE_APP_API_URL;
-const aspectRatio = ref('16:9');
 const maxPlayerHeightValue = ref(window.innerHeight * 0.9); // 90% от высоты экрана
 const maxPlayerHeight = computed(() => `${maxPlayerHeightValue.value}px`);
-const isMobile = ref(window.innerWidth <= 600)
+const isMobile = ref(window.innerWidth <= 600);
+
+// Используем геттер для получения aspectRatio из хранилища
+const aspectRatio = computed({
+  get: () => store.getters['player/aspectRatio'],
+  set: (value) => store.dispatch('player/updateAspectRatio', value)
+});
+
+// Используем геттер для получения isCentered из хранилища
+const isCentered = computed(() => store.getters['player/isCentered']);
+
+// Используем геттер для получения списка предпочтительных плееров из хранилища
+const preferredPlayers = computed(() => store.getters['player/preferredPlayers']);
 
 // Естественная (рассчитанная) высота плеера исходя из текущей ширины контейнера
 const naturalHeight = ref(0);
@@ -118,8 +134,6 @@ const updateScaleFactor = () => {
   );
 };
 
-
-// Стиль контейнера: если масштабирование применяется, фиксируем высоту контейнера
 const containerStyle = computed(() => {
   if (theaterMode.value) return {};
   
@@ -135,7 +149,6 @@ const containerStyle = computed(() => {
   };
 });
 
-// Стиль обёртки iframe: сохраняем пропорции и применяем масштабирование
 const iframeWrapperStyle = computed(() => {
   const [w, h] = aspectRatio.value.split(':').map(Number);
   return {
@@ -166,9 +179,28 @@ const fetchPlayers = async () => {
       }),
       { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
     );
-    playersInternal.value = Object.values(response.data);
+
+    // Преобразуем объект с плеерами в массив объектов,
+    // где каждый объект содержит ключ (ключ плеера, приведённый к верхнему регистру) и остальные свойства.
+    playersInternal.value = Object.entries(response.data).map(([key, value]) => ({
+      key: key.toUpperCase(),
+      ...value
+    }));
+
+    // Выбираем плеер:
     if (playersInternal.value.length > 0) {
-      selectedPlayerInternal.value = playersInternal.value[0];
+      if (preferredPlayers.value.length > 0) {
+        // Приводим имя первого предпочтительного плеера к верхнему регистру
+        const firstPreferredPlayer = preferredPlayers.value[0].toUpperCase();
+
+        // Ищем плеера, чей ключ совпадает с первым предпочтительным плеером
+        const preferred = playersInternal.value.find(player => player.key === firstPreferredPlayer);
+
+        selectedPlayerInternal.value = preferred || playersInternal.value[0];
+      } else {
+        selectedPlayerInternal.value = playersInternal.value[0];
+      }
+
       emit('update:selectedPlayer', selectedPlayerInternal.value);
     }
   } catch (error) {
@@ -178,6 +210,9 @@ const fetchPlayers = async () => {
 
 const onIframeLoad = () => {
   iframeLoading.value = false;
+  if (isCentered.value) {
+    centerPlayer();
+  }
 };
 
 const toggleTheaterMode = () => {
@@ -213,16 +248,12 @@ watch(selectedPlayerInternal, (newVal) => {
   emit('update:selectedPlayer', newVal);
 });
 
-// Обновляем коэффициент масштабирования при загрузке и изменении окна
 onMounted(() => {
   iframeLoading.value = true;
   fetchPlayers();
-  
-  // Устанавливаем пропорции 4:3 по умолчанию для мобильных устройств
   if (isMobile.value) {
     aspectRatio.value = '4:3';
   }
-  
   updateScaleFactor();
   window.addEventListener('resize', updateScaleFactor);
 });
@@ -234,6 +265,7 @@ onBeforeUnmount(() => {
   document.body.classList.remove('no-scroll');
 });
 </script>
+
 
 <style scoped>
 .players-list {
@@ -247,6 +279,7 @@ onBeforeUnmount(() => {
 }
 
 .custom-select {
+  font-size: 16px;
   padding: 8px 16px;
   border: 1px solid #444;
   background-color: #1e1e1e;

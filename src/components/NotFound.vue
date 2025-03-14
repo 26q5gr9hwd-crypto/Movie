@@ -9,26 +9,13 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { useRouter } from 'vue-router';
 
-export default {
-  name: 'RedirectError400',
-  components: {
-    HeaderService, // Регистрируем заголовок
-  },
-  setup() {
-    const router = useRouter();
+const router = useRouter();
 
-    // Функция для перехода на главную страницу
-    const goToHome = () => {
-      router.push('/');
-    };
-
-    return {
-      goToHome,
-    };
-  },
+const goToHome = () => {
+  router.push('/');
 };
 </script>
 

@@ -46,9 +46,15 @@
     <div v-if="!searchTerm && history.length > 0">
       <h2>История просмотра
         <span>
-          <button @click="clearAllHistory" class="clear-history-button">
+          <button @click="showModal = true" class="clear-history-button">
             Очистить
           </button>
+          <BaseModal
+            :isOpen="showModal"
+            message="Вы уверены, что хотите очистить историю?"
+            @confirm="clearAllHistory"
+            @close="showModal = false"
+          />
         </span>
       </h2>
       <CardsMovie :moviesList="history" :isHistory="true" :loading="loading" />
@@ -81,6 +87,7 @@ import { useStore } from 'vuex';
 import CardsMovie from "@/components/CardsMovie.vue";
 import FooterDonaters from '@/components/FooterDonaters.vue';
 import debounce from 'lodash/debounce';
+import BaseModal from '@/components/BaseModal.vue';
 
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 const store = useStore();
@@ -93,6 +100,7 @@ const loading = ref(false);
 const searchPerformed = ref(false);
 
 const history = computed(() => store.state.history);
+const showModal = ref(false);
 
 const setSearchType = (type) => {
   searchType.value = type;
@@ -108,7 +116,7 @@ const getPlaceholder = () => {
 };
 
 onMounted(() => {
-  store.dispatch('loadHistory');
+
 });
 
 const performSearch = debounce(async () => {
@@ -165,9 +173,8 @@ const resetSearch = () => {
 };
 
 const clearAllHistory = () => {
-  if (confirm('Вы уверены, что хотите очистить историю?')) {
-    store.dispatch('clearAllHistory');
-  }
+  store.dispatch('clearAllHistory');
+  showModal.value = false;
 };
 </script>
 

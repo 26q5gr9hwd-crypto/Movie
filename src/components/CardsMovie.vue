@@ -90,7 +90,6 @@ const formatViews = (views) => {
 // Удаление фильма из истории
 const removeFromHistory = (kp_id) => {
   store.dispatch('removeFromHistory', kp_id);
-  store.dispatch('saveHistory');
 };
 
 // Открытие фильма в новой вкладке
@@ -164,10 +163,6 @@ watch(activeMovieIndex, (newIndex) => {
     movieRefs.value[newIndex].scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
     movieRefs.value[newIndex].focus();
   }
-});
-
-watch(() => props.loading, (newVal) => {
-  console.log('Loading state changed:', newVal);
 });
 
 // Добавляем обработчик событий клавиатуры

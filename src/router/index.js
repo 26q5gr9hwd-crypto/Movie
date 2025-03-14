@@ -4,6 +4,8 @@ const TopMovies = () => import(/* webpackChunkName: "top-movies" */ '../componen
 const MovieInfo = () => import(/* webpackChunkName: "movie-info" */ '../components/MovieInfo.vue');
 const NotFound = () => import(/* webpackChunkName: "not-found" */ '../components/NotFound.vue');
 const ContactsPage = () => import(/* webpackChunkName: "contacts-page" */ '../components/ContactsPage.vue');
+const SettingsModal = () => import(/* webpackChunkName: "settings-modal" */ '../components/SettingsModal.vue');
+
 
 const routes = [
   {
@@ -11,7 +13,7 @@ const routes = [
     component: MovieSearch,
     name: 'home',
     meta: {
-      title: 'Поиск фильмов',
+      title: 'Reyohoho - Поиск фильмов',
     },
   },
   {
@@ -19,7 +21,7 @@ const routes = [
     component: TopMovies,
     name: 'top-movies',
     meta: {
-      title: 'Топ фильмов',
+      title: 'Reyohoho - Популярное',
     },
   },
   {
@@ -28,7 +30,7 @@ const routes = [
     name: 'movie-info',
     props: true,
     meta: {
-      title: 'Просмотр фильма',
+      title: 'Reyohoho - Просмотр фильма',
     },
   },
   {
@@ -36,7 +38,15 @@ const routes = [
     name: 'ContactsPage',
     component: ContactsPage,
     meta: {
-      title: 'Контакты',
+      title: 'Reyohoho - Контакты',
+    },
+  },
+  {
+    path: '/setting',
+    name: 'SettingsModal',
+    component: SettingsModal,
+    meta: {
+      title: 'Reyohoho - Настройки',
     },
   },
   {
@@ -55,7 +65,7 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  const title = to.meta.title || 'Vue App';
+  const title = to.meta.title || 'Reyohoho';
   document.title = title;
   next();
 });
