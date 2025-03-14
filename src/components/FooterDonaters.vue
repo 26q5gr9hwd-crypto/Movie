@@ -88,7 +88,7 @@ onUnmounted(() => {
 .donater {
   font-family: Neucha, sans-serif;
   font-weight: bold;
-  color: #558839cb;
+  color: rgba(255, 255, 255, 0.945);
 }
 
 .fade-enter-active,
