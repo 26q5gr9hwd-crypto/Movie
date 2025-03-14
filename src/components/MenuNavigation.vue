@@ -214,6 +214,7 @@ onBeforeUnmount(() => {
   width: 250px;
   height: 100vh;
   background: rgba(23, 23, 23, 0.95);
+  -webkit-backdrop-filter: blur(10px); /* Для Safari 9+ */
   backdrop-filter: blur(10px);
   position: fixed;
   top: 0;

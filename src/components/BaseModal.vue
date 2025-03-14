@@ -58,6 +58,7 @@
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.5);
+    -webkit-backdrop-filter: blur(4px); /* Для Safari 9+ */
     backdrop-filter: blur(4px);
     display: flex;
     justify-content: center;
@@ -165,9 +166,11 @@
 
     @keyframes overlay-in {
     from {
+        -webkit-backdrop-filter: blur(0); /* Для Safari 9+ */
         backdrop-filter: blur(0);
     }
     to {
+        -webkit-backdrop-filter: blur(4px); /* Для Safari 9+ */
         backdrop-filter: blur(4px);
     }
     }
