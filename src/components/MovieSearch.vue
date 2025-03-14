@@ -1,85 +1,89 @@
 <template>
   <div class="wrapper">
-  <div class="mainpage">
-  <!-- Кнопки выбора типа поиска -->
-  <div class="search-type-buttons">
-    <button :class="{ active: searchType === 'title' }" @click="setSearchType('title')">
-      Название
-    </button>
-    <button :class="{ active: searchType === 'kinopoisk' }" @click="setSearchType('kinopoisk')">
-      ID Кинопоиск
-    </button>
-    <button :class="{ active: searchType === 'shikimori' }" @click="setSearchType('shikimori')">
-      ID Shikimori
-    </button>
-  </div>
+    <div class="mainpage">
+      <!-- Кнопки выбора типа поиска -->
+      <div class="search-type-buttons">
+        <button :class="{ active: searchType === 'title' }" @click="setSearchType('title')">
+          Название
+        </button>
+        <button :class="{ active: searchType === 'kinopoisk' }" @click="setSearchType('kinopoisk')">
+          ID Кинопоиск
+        </button>
+        <button :class="{ active: searchType === 'shikimori' }" @click="setSearchType('shikimori')">
+          ID Shikimori
+        </button>
+      </div>
 
-  <!-- Поиск -->
-  <div class="search-container">
-      <div class="input-wrapper">
-        <input
-          ref="searchInput"
-          v-model="searchTerm"
-          :placeholder="getPlaceholder()"
-          class="search-input"
-          @keydown.enter="search"
-        />
-        <div class="icons">
-          <button
-            v-if="searchTerm"
-            @click="resetSearch"
-            class="reset-button"
-          >
-            <i class="fas fa-times"></i>
-          </button>
-          <button @click="search" class="search-button">
-            <i class="fas fa-search"></i>
-          </button>
+      <!-- Поиск -->
+      <div class="search-container">
+        <div class="input-wrapper">
+          <input
+            ref="searchInput"
+            v-model="searchTerm"
+            :placeholder="getPlaceholder()"
+            class="search-input"
+            @keydown.enter="search"
+            @keydown="handleKeyDown"
+            @paste="handlePaste"
+          />
+          <div class="icons">
+            <button v-if="searchTerm" @click="resetSearch" class="reset-button">
+              <i class="fas fa-times"></i>
+            </button>
+            <button @click="search" class="search-button">
+              <i class="fas fa-search"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Контейнер для истории и результатов -->
+      <div class="content-container">
+        <!-- История просмотра -->
+        <div v-if="!searchTerm && history.length > 0">
+          <h2>История просмотра
+            <span>
+              <button @click="showModal = true" class="clear-history-button">
+                Очистить
+              </button>
+              <BaseModal
+                :isOpen="showModal"
+                message="Вы уверены, что хотите очистить историю?"
+                @confirm="clearAllHistory"
+                @close="showModal = false"
+              />
+            </span>
+          </h2>
+          <CardsMovie :moviesList="history" :isHistory="true" :loading="loading" />
+        </div>
+
+        <!-- Результаты поиска -->
+        <div v-if="searchPerformed">
+          <h2>Результаты поиска</h2>
+          <CardsMovie :moviesList="movies" :isHistory="false" :loading="loading" />
+          <div v-if="movies.length === 0 && !loading" class="no-results">
+            Ничего не найдено
+          </div>
+        </div>
+
+        <!-- Подсказка, когда ничего не введено в поиске -->
+        <div v-if="searchTerm && !searchPerformed && !loading" class="search-prompt">
+          Нажмите кнопку "Поиск" или Enter для поиска
         </div>
       </div>
     </div>
-
-  <!-- Контейнер для истории и результатов -->
-  <div class="content-container">
-
-    <!-- История просмотра -->
-    <div v-if="!searchTerm && history.length > 0">
-      <h2>История просмотра
-        <span>
-          <button @click="clearAllHistory" class="clear-history-button">
-            Очистить
-          </button>
-        </span>
-      </h2>
-      <CardsMovie :moviesList="history" :isHistory="true" :loading="loading" />
-    </div>
-
-    <!-- Результаты поиска -->
-    <div v-if="searchPerformed">
-      <h2>Результаты поиска</h2>
-      <CardsMovie :moviesList="movies" :isHistory="false" :loading="loading" />
-      <div v-if="movies.length === 0 && !loading" class="no-results">
-        Ничего не найдено
-      </div>
-    </div>
-
-    <!-- Подсказка, когда ничего не введено в поиске -->
-    <div v-if="searchTerm && !searchPerformed && !loading" class="search-prompt">
-      Нажмите кнопку "Поиск" или Enter для поиска
-    </div>
+    <FooterDonaters />
   </div>
-</div>
-<FooterDonaters />
-</div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, watch } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import CardsMovie from "@/components/CardsMovie.vue";
 import FooterDonaters from '@/components/FooterDonaters.vue';
+import BaseModal from '@/components/BaseModal.vue';
 import debounce from 'lodash/debounce';
 
 const apiUrl = import.meta.env.VITE_APP_API_URL;
@@ -91,14 +95,17 @@ const searchTerm = ref('');
 const movies = ref([]);
 const loading = ref(false);
 const searchPerformed = ref(false);
+const showModal = ref(false);
 
 const history = computed(() => store.state.history);
 
+// Установка типа поиска
 const setSearchType = (type) => {
   searchType.value = type;
   resetSearch();
 };
 
+// Получение placeholder для input
 const getPlaceholder = () => {
   return {
     title: 'Введите название фильма',
@@ -107,19 +114,62 @@ const getPlaceholder = () => {
   }[searchType.value] || 'Введите название фильма';
 };
 
-onMounted(() => {
-  store.dispatch('loadHistory');
-});
+// Обработка нажатия клавиш
+const handleKeyDown = (event) => {
+  if (['kinopoisk', 'shikimori'].includes(searchType.value)) {
+    const allowedKeys = [
+      'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight',
+      'Tab', 'Home', 'End'
+    ];
 
-const performSearch = debounce(async () => {
-  if (!searchTerm.value || searchTerm.value.length < 3) return;
+    if (!allowedKeys.includes(event.key) && !/\d/.test(event.key)) {
+      event.preventDefault();
+    }
+  }
+};
 
+const handlePaste = (event) => {
+  if (['kinopoisk', 'shikimori'].includes(searchType.value)) {
+    event.preventDefault();
+    const pasted = event.clipboardData.getData('text');
+    const digits = pasted.replace(/\D/g, '');
+    
+    if (digits) {
+      const start = event.target.selectionStart;
+      const end = event.target.selectionEnd;
+      searchTerm.value = 
+        searchTerm.value.slice(0, start) + 
+        digits + 
+        searchTerm.value.slice(end);
+    }
+  }
+};
+
+// Очистка поиска
+const resetSearch = () => {
+  searchTerm.value = '';
+  movies.value = [];
+  searchPerformed.value = false;
+};
+
+// Выполнение поиска
+const search = () => {
+  if (searchTerm.value) {
+    performSearch();
+  } else {
+    alert('Введите запрос для поиска');
+  }
+};
+
+// Основная функция поиска
+const performSearch = async () => {
   loading.value = true;
   searchPerformed.value = true;
   movies.value = [];
 
   try {
     if (searchType.value === 'kinopoisk' || searchType.value === 'shikimori') {
+      // Проверка, что введено число
       if (!/^\d+$/.test(searchTerm.value)) {
         alert(`Введите числовой ID ${searchType.value === 'kinopoisk' ? 'Кинопоиска' : 'Shikimori'}`);
         return;
@@ -128,7 +178,8 @@ const performSearch = debounce(async () => {
       router.push({ name: 'movie-info', params: { kp_id: `${idPrefix}${searchTerm.value}` } });
       return;
     }
-    
+
+    // Поиск по названию
     const response = await axios.get(`${apiUrl}/search/${searchTerm.value}`);
     movies.value = response.data.map(movie => ({ ...movie, kp_id: movie.id.toString() }));
   } catch (error) {
@@ -140,37 +191,34 @@ const performSearch = debounce(async () => {
   } finally {
     loading.value = false;
   }
-}, 300);
+};
 
-watch(searchTerm, (newVal, oldVal) => {
-  if (newVal.length >= 3) {
+// Очистка истории
+const clearAllHistory = () => {
+  store.dispatch('clearAllHistory');
+  showModal.value = false;
+};
+
+// Автопоиск с задержкой 700 мс
+const debouncedPerformSearch = debounce(() => {
+  if (searchTerm.value.length >= 3) {
     performSearch();
-  } else if (newVal.length < 3 && oldVal.length >= 3) {
-    // Очищаем результаты если текст стал короче 3 символов
+  } else if (searchTerm.value.length < 3) {
     movies.value = [];
     searchPerformed.value = false;
   }
+}, 700);
+
+// Отслеживание изменений searchTerm с debounce
+watch(searchTerm, (newVal, oldVal) => {
+  if (searchType.value === 'kinopoisk' || searchType.value === 'shikimori') {
+    // Для поиска по ID автопоиск отключен
+    return;
+  }
+
+  debouncedPerformSearch();
 });
-
-const search = () => {
-  if (searchTerm.value) {
-    performSearch.flush();
-  }
-};
-
-const resetSearch = () => {
-  searchTerm.value = '';
-  movies.value = [];
-  searchPerformed.value = false;
-};
-
-const clearAllHistory = () => {
-  if (confirm('Вы уверены, что хотите очистить историю?')) {
-    store.dispatch('clearAllHistory');
-  }
-};
 </script>
-
 
 <style scoped>
 .wrapper {

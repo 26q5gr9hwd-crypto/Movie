@@ -93,10 +93,6 @@
         </div>
       </div>
     </div>
-    <BackgroundComponent 
-      :external-background-url="movieInfo?.cover_url || movieInfo?.poster_url" 
-      :is-background-active="isBackgroundActive"
-    />
   </div>
 </template>
 
@@ -104,7 +100,6 @@
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
-import BackgroundComponent from "@/components/BackgroundSpace.vue";
 import PlayerComponent from '@/components/PlayerComponent.vue';
 import CardsMovie from "@/components/CardsMovie.vue";
 import { useStore } from 'vuex';
@@ -115,8 +110,15 @@ const kp_id = ref(route.params.kp_id);
 const errorMessage = ref('');
 const movieInfo = ref(null);
 const apiUrl = import.meta.env.VITE_APP_API_URL;
-const isBackgroundActive = ref(false);
 
+const setDocumentTitle = () => {
+  if (movieInfo.value) {
+    const title = movieInfo.value.name_ru 
+      || movieInfo.value.name_original 
+      || 'Информация о фильме';
+    document.title = title;
+  }
+};
 
 const transformMoviesData = (movies) => {
   return (movies || []).map(movie => ({
@@ -126,28 +128,22 @@ const transformMoviesData = (movies) => {
   }));
 };
 
-// Функция для загрузки информации о фильме
 const fetchMovieInfo = async () => {
   try {
     let response;
 
-    // Проверяем, начинается ли kp_id с "shiki"
     if (kp_id.value.startsWith('shiki')) {
-      // Если начинается с "shiki", делаем запрос по другому адресу
       response = await axios.get(`${apiUrl}/shiki_info/${kp_id.value}`);
     } else {
-      // Иначе делаем стандартный запрос
       response = await axios.get(`${apiUrl}/kp_info2/${kp_id.value}`);
     }
 
-    // Проверяем, является ли ответ пустым массивом
     if (Array.isArray(response.data) && response.data.length === 0) {
       throw new Error('Данные не найдены. Пожалуйста, повторите поиск.');
     }
 
     movieInfo.value = response.data;
 
-    // Если kp_id начинается с "shiki", переопределяем поля
     if (kp_id.value.startsWith('shiki')) {
       movieInfo.value = {
         ...movieInfo.value,
@@ -157,15 +153,20 @@ const fetchMovieInfo = async () => {
       };
     }
 
-    // Подготовка объекта для истории
+    setDocumentTitle();
+
     const movieToSave = {
       kp_id: kp_id.value,
       title: movieInfo.value?.name_ru,
       poster: movieInfo.value?.poster_url || movieInfo.value?.cover_url,
     };
 
+    if (movieToSave.poster) {
+      store.dispatch('background/updateMovieBackground', movieToSave.poster);
+    }
+
     if (movieToSave.kp_id && movieToSave.title) {
-      store.dispatch('addToHistory', { ...movieToSave }); // Копируем объект, чтобы Vuex видел изменение
+      store.dispatch('addToHistory', { ...movieToSave });
     }
   } catch (error) {
     console.error('Ошибка при загрузке информации о фильме:', error);
@@ -173,26 +174,27 @@ const fetchMovieInfo = async () => {
   }
 };
 
-// Преобразуем данные для компонентов
 const sequelsAndPrequels = computed(() => transformMoviesData(movieInfo.value?.sequels_and_prequels));
 const similars = computed(() => transformMoviesData(movieInfo.value?.similars));
 
 onMounted(async () => {
-  isBackgroundActive.value = true;
   await fetchMovieInfo();
 });
 
 onUnmounted(() => {
-  isBackgroundActive.value = false;
+  store.dispatch('background/updateMovieBackground', null);
 });
 
-// Следим за изменением ID фильма
 watch(() => route.params.kp_id, async (newKpId) => {
   if (newKpId && newKpId !== kp_id.value) {
     kp_id.value = newKpId;
     await fetchMovieInfo();
   }
 }, { immediate: true });
+
+watch(movieInfo, () => {
+  setDocumentTitle();
+}, { deep: true });
 </script>
 
 <style scoped>

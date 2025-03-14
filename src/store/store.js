@@ -1,78 +1,79 @@
 import { createStore } from 'vuex';
+import createPersistedState from 'vuex-persistedstate'; // Плагин для автоматического сохранения
+import background from './modules/background'; // Импортируем модуль фона
+import player from './modules/player'; // Импортируем модуль плеера
 
-export const store = createStore({
+const store = createStore({
+  modules: {
+    background, // Модуль фона
+    player, // Модуль плеера
+  },
   state() {
     return {
-      history: [],  // История фильмов
+      history: [], // История фильмов
     };
   },
   mutations: {
-    // Мутация для установки истории
     setHistory(state, history) {
       state.history = history;
     },
-    // Мутация для добавления фильма в историю
     addToHistory(state, movie) {
-      if (state.history.some(m => m.kp_id === movie.kp_id)) return; // Если фильм уже есть, выходим
-    
-      const movieWithDate = {
-        kp_id: movie.kp_id,
-        title: movie.title || '',
-        year: movie.year || '',
-        poster: movie.poster || movie.cover || './src/assets/image-no-poster.gif',
-        addedAt: new Date().toISOString()
-      };
-    
-      state.history.push(movieWithDate);
+      // Проверяем, есть ли у фильма kp_id
+      if (!movie.kp_id) return;
+  
+      // Находим индекс фильма в истории
+      const existingMovieIndex = state.history.findIndex(m => m.kp_id === movie.kp_id);
+  
+      if (existingMovieIndex !== -1) {
+        // Если фильм уже есть, обновляем его дату и ставим первым
+        state.history[existingMovieIndex].addedAt = new Date().toISOString();
+  
+        // Перемещаем фильм в начало списка
+        const updatedMovie = state.history.splice(existingMovieIndex, 1)[0];
+        state.history.unshift(updatedMovie);
+      } else {
+        // Если фильма нет, добавляем его в историю
+        const movieWithDate = {
+          kp_id: movie.kp_id,
+          title: movie.title || '',
+          year: movie.year || '',
+          poster: movie.poster || movie.cover || './src/assets/image-no-poster.gif',
+          addedAt: new Date().toISOString()
+        };
+  
+        state.history.unshift(movieWithDate);  // Добавляем новый фильм в начало
+      }
     },
-    
-    // Мутация для удаления фильма из истории
     removeFromHistory(state, kp_id) {
       state.history = state.history.filter(movie => movie.kp_id !== kp_id);
     },
-    // Мутация для очистки старых фильмов (старше 30 дней)
     cleanOldHistory(state) {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       state.history = state.history.filter(movie => new Date(movie.addedAt) > thirtyDaysAgo);
     },
-    // Мутация для очистки всей истории
     clearAllHistory(state) {
-      state.history = [];  // Очищаем всю историю
+      state.history = [];
     },
   },
+    
   actions: {
-    // Действие для загрузки истории из localStorage
-    loadHistory({ commit }) {
-      const savedHistory = localStorage.getItem('movie-history');
-      if (savedHistory) {
-        commit('setHistory', JSON.parse(savedHistory));
-      }
-    },
-    // Действие для сохранения истории в localStorage
-    saveHistory({ state }) {
-      localStorage.setItem('movie-history', JSON.stringify(state.history));
-    },
-    // Действие для добавления фильма в историю
-    addToHistory({ commit, state }, movie) {
+    addToHistory({ commit }, movie) {
       commit('addToHistory', movie);
-      localStorage.setItem('movie-history', JSON.stringify(state.history)); // Сохраняем сразу
-    },    
-    removeFromHistory({ commit, dispatch }, kp_id) {
+    },
+    removeFromHistory({ commit }, kp_id) {
       commit('removeFromHistory', kp_id);
-      dispatch('saveHistory');  // Сохраняем обновленную историю в localStorage
     },
-    // Очистка истории фильмов старше 30 дней
-    cleanOldHistory({ commit, dispatch }) {
+    cleanOldHistory({ commit }) {
       commit('cleanOldHistory');
-      dispatch('saveHistory');  // Сохраняем обновленную историю в localStorage
     },
-    // Очистка всей истории
-    clearAllHistory({ commit, dispatch }) {
+    clearAllHistory({ commit }) {
       commit('clearAllHistory');
-      dispatch('saveHistory');  // Сохраняем обновленную историю в localStorage
     },
   },
+  plugins: [createPersistedState({
+    paths: ['history', 'background', 'player'], // Указываем, какие данные сохранять в localStorage
+  })],
 });
 
-
+export default store;
