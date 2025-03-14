@@ -2,7 +2,7 @@ export default {
   namespaced: true,
   state: {
     aspectRatio: '16:9',
-    isCentered: true,
+    isCentered: false,
     preferredPlayers: [] // Массив строк, например: ['ALLOHA', 'TORRENTS', ...]
   },
   mutations: {
