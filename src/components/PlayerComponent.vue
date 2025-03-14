@@ -96,7 +96,7 @@ import { ref, onMounted, onBeforeUnmount, computed, watch, nextTick } from 'vue'
 import axios from 'axios';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
-import SpinnerLoading from '@/components/SpinnerLoading.vue'
+import SpinnerLoading from '@/components/SpinnerLoading.vue';
 
 const store = useStore();
 const router = useRouter();
@@ -131,11 +131,16 @@ const isCentered = computed({
   set: (value) => store.dispatch('player/updateCentering', value)
 });
 
-// Используем геттер для получения списка предпочтительных плееров из хранилища
-const preferredPlayers = computed(() => store.getters['player/preferredPlayers']);
+// Используем геттер для получения предпочтительного плеера из хранилища
+const preferredPlayer = computed(() => store.getters['player/preferredPlayer']);
 
 // Естественная (рассчитанная) высота плеера исходя из текущей ширины контейнера
 const naturalHeight = ref(0);
+
+// Функция приведения к верхнему регистру
+const normalizeKey = (key) => {
+  return key.toUpperCase();
+};
 
 const updateScaleFactor = () => {
   if (theaterMode.value || !containerRef.value) return;
@@ -196,8 +201,7 @@ const fetchPlayers = async () => {
       { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
     );
 
-    // Преобразуем объект с плеерами в массив объектов,
-    // где каждый объект содержит ключ (ключ плеера, приведённый к верхнему регистру) и остальные свойства.
+    // Преобразуем объект с плеерами в массив объектов
     playersInternal.value = Object.entries(response.data).map(([key, value]) => ({
       key: key.toUpperCase(),
       ...value
@@ -205,12 +209,14 @@ const fetchPlayers = async () => {
 
     // Выбираем плеер:
     if (playersInternal.value.length > 0) {
-      if (preferredPlayers.value.length > 0) {
-        // Приводим имя первого предпочтительного плеера к верхнему регистру
-        const firstPreferredPlayer = preferredPlayers.value[0].toUpperCase();
+      if (preferredPlayer.value) {
+        // Приводим preferredPlayer к верхнему регистру и удаляем цифры
+        const normalizedPreferredPlayer = normalizeKey(preferredPlayer.value);
 
-        // Ищем плеера, чей ключ совпадает с первым предпочтительным плеером
-        const preferred = playersInternal.value.find(player => player.key === firstPreferredPlayer);
+        // Ищем плеера, чей ключ совпадает с предпочтительным плеером
+        const preferred = playersInternal.value.find(player => 
+          normalizeKey(player.key) === normalizedPreferredPlayer
+        );
 
         selectedPlayerInternal.value = preferred || playersInternal.value[0];
       } else {
@@ -226,7 +232,7 @@ const fetchPlayers = async () => {
 
 const onIframeLoad = () => {
   iframeLoading.value = false;
-  if (isCentered.value) {  // убедитесь, что isCentered используется здесь
+  if (isCentered.value) {
     centerPlayer();
   }
 };
@@ -259,7 +265,12 @@ const setAspectRatio = (ratio) => {
   aspectRatio.value = ratio;
 };
 
+// При изменении выбранного плеера сохраняем его ключ в preferredPlayer
 watch(selectedPlayerInternal, (newVal) => {
+  if (newVal) {
+    const normalizedKey = normalizeKey(newVal.key);
+    store.dispatch('player/updatePreferredPlayer', normalizedKey);
+  }
   iframeLoading.value = true;
   emit('update:selectedPlayer', newVal);
 });

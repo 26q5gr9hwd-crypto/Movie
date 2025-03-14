@@ -3,7 +3,7 @@ export default {
   state: {
     aspectRatio: '16:9',
     isCentered: false,
-    preferredPlayers: [] // Массив строк, например: ['ALLOHA', 'TORRENTS', ...]
+    preferredPlayer: '' // Строка, например: 'ALLOHA' или 'TORRENTS'
   },
   mutations: {
     setAspectRatio(state, ratio) {
@@ -12,15 +12,11 @@ export default {
     setCentering(state, isCentered) {
       state.isCentered = isCentered;
     },
-    setPreferredPlayers(state, players) {
-      state.preferredPlayers = players;
+    setPreferredPlayer(state, player) {
+      state.preferredPlayer = player;
     },
-    addPreferredPlayer(state, player) {
-      state.preferredPlayers.push(player);
-    },
-    removePreferredPlayer(state, player) {
-      // Удаляем по значению, т.к. player – строка (например, 'ALLOHA')
-      state.preferredPlayers = state.preferredPlayers.filter(p => p !== player);
+    clearPreferredPlayer(state) {
+      state.preferredPlayer = '';
     }
   },
   actions: {
@@ -30,19 +26,16 @@ export default {
     updateCentering({ commit }, isCentered) {
       commit('setCentering', isCentered);
     },
-    updatePreferredPlayers({ commit }, players) {
-      commit('setPreferredPlayers', players);
+    updatePreferredPlayer({ commit }, player) {
+      commit('setPreferredPlayer', player);
     },
-    addPreferredPlayer({ commit }, player) {
-      commit('addPreferredPlayer', player);
-    },
-    removePreferredPlayer({ commit }, player) {
-      commit('removePreferredPlayer', player);
+    clearPreferredPlayer({ commit }) {
+      commit('clearPreferredPlayer');
     }
   },
   getters: {
     aspectRatio: (state) => state.aspectRatio,
     isCentered: (state) => state.isCentered,
-    preferredPlayers: (state) => state.preferredPlayers
+    preferredPlayer: (state) => state.preferredPlayer
   }
 };
