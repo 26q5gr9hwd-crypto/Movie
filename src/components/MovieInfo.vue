@@ -16,59 +16,46 @@
         </div>
 
         <div class="ratings-links" v-if="movieInfo.rating_kinopoisk || movieInfo.rating_imdb">
-          <a
-            :href="`https://www.kinopoisk.ru/film/${kp_id}`"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="rating-link"
-          >
+          <a :href="`https://www.kinopoisk.ru/film/${kp_id}`" target="_blank" rel="noopener noreferrer"
+            class="rating-link">
             <img src="/src/assets/icon-kp-logo.svg" alt="КП" class="rating-logo" />
             <span v-if="movieInfo.rating_kinopoisk">{{ movieInfo.rating_kinopoisk }}/10</span>
             <img src="/src/assets/icon-external-link.png" alt="Внешняя ссылка" class="external-link-icon" />
           </a>
-          <a
-            v-if="movieInfo.imdb_id && movieInfo.rating_imdb"
-            :href="`https://www.imdb.com/title/${movieInfo.imdb_id}`"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="rating-link"
-          >
+          <a v-if="movieInfo.imdb_id && movieInfo.rating_imdb" :href="`https://www.imdb.com/title/${movieInfo.imdb_id}`"
+            target="_blank" rel="noopener noreferrer" class="rating-link">
             <img src="/src/assets/icon-imdb-logo.svg" alt="IMDb" class="rating-logo" />
             <span>{{ movieInfo.rating_imdb }}/10</span>
             <img src="/src/assets/icon-external-link.png" alt="Внешняя ссылка" class="external-link-icon" />
           </a>
-          <a
-            v-if="movieInfo.imdb_id"
-            :href="`https://www.imdb.com/title/${movieInfo.imdb_id}/parentalguide`"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="rating-link"
-          >
+          <a v-if="movieInfo.imdb_id" :href="`https://www.imdb.com/title/${movieInfo.imdb_id}/parentalguide`"
+            target="_blank" rel="noopener noreferrer" class="rating-link">
             <span>Parents Guide</span>
             <img src="/src/assets/icon-external-link.png" alt="Внешняя ссылка" class="external-link-icon" />
           </a>
         </div>
 
         <!-- Интеграция компонента плеера -->
-        <PlayerComponent 
-          :kp_id="kp_id"
-          :key="kp_id"
-        />
+        <PlayerComponent :kp_id="kp_id" :key="kp_id" />
 
+        <meta name="title-and-year"
+          :content="movieInfo.year ? `${movieInfo.title} (${movieInfo.year})` : movieInfo.title">
         <div class="additional-info">
           <h2 class="additional-info-title">Подробнее</h2>
           <div class="info-content">
             <div class="details-container">
               <ul class="info-list">
                 <li v-if="movieInfo.year"><strong>Год выпуска:</strong> {{ movieInfo.year }}</li>
-                <li v-if="movieInfo.name_original"><strong>Оригинальное название:</strong> {{ movieInfo.name_original }}</li>
+                <li v-if="movieInfo.name_original"><strong>Оригинальное название:</strong> {{ movieInfo.name_original }}
+                </li>
                 <li v-if="movieInfo.countries?.length">
-                  <strong>Страна производства:</strong> {{ movieInfo.countries.map(item => item.country).join(', ') }}
+                  <strong>Страна производства:</strong> {{movieInfo.countries.map(item => item.country).join(', ')}}
                 </li>
                 <li v-if="movieInfo.genres?.length">
-                  <strong>Жанры:</strong> {{ movieInfo.genres.map(item => item.genre).join(', ') }}
+                  <strong>Жанры:</strong> {{movieInfo.genres.map(item => item.genre).join(', ')}}
                 </li>
-                <li v-if="movieInfo.film_length"><strong>Продолжительность:</strong> {{ movieInfo.film_length }} мин.</li>
+                <li v-if="movieInfo.film_length"><strong>Продолжительность:</strong> {{ movieInfo.film_length }} мин.
+                </li>
               </ul>
             </div>
           </div>
@@ -113,8 +100,8 @@ const apiUrl = import.meta.env.VITE_APP_API_URL;
 
 const setDocumentTitle = () => {
   if (movieInfo.value) {
-    const title = movieInfo.value.name_ru 
-      || movieInfo.value.name_original 
+    const title = movieInfo.value.name_ru
+      || movieInfo.value.name_original
       || 'Информация о фильме';
     document.title = title;
   }
@@ -151,13 +138,18 @@ const fetchMovieInfo = async () => {
         name_original: movieInfo.value.name_en,
         short_description: movieInfo.value.slogan,
       };
+    } else {
+      movieInfo.value = {
+        ...movieInfo.value,
+        title: movieInfo.value.name_ru || movieInfo.value.name_original
+      };
     }
 
     setDocumentTitle();
 
     const movieToSave = {
       kp_id: kp_id.value,
-      title: movieInfo.value?.name_ru,
+      title: movieInfo.value?.name_ru || movieInfo.value?.name_original,
       poster: movieInfo.value?.poster_url || movieInfo.value?.cover_url,
     };
 
@@ -321,15 +313,19 @@ watch(movieInfo, () => {
   .content-card {
     padding: 10px 2px;
   }
+
   .content-title {
     font-size: 28px;
   }
+
   .content-subtitle {
     font-size: 16px;
   }
+
   .additional-info-title {
     font-size: 20px;
   }
+
   .info-content {
     flex-direction: column;
   }

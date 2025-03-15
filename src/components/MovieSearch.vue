@@ -17,15 +17,8 @@
       <!-- Поиск -->
       <div class="search-container">
         <div class="input-wrapper">
-          <input
-            ref="searchInput"
-            v-model="searchTerm"
-            type="text"
-            :inputmode="inputMode"
-            :placeholder="getPlaceholder()"
-            class="search-input"
-            @keydown.enter="search"
-          />
+          <input ref="searchInput" v-model="searchTerm" :placeholder="getPlaceholder()" class="search-input"
+            :inputmode="searchType === 'title' ? 'text' : 'numeric'" @keydown.enter="search" @input="handleInput" />
           <div class="icons">
             <button v-if="searchTerm" @click="resetSearch" class="reset-button">
               <i class="fas fa-times"></i>
@@ -105,6 +98,14 @@ const setSearchType = (type) => {
   resetSearch();
 };
 
+const handleInput = (event) => {
+  if (searchType.value !== 'title') {
+    searchTerm.value = event.target.value.replace(/\D+/g, '');
+  } else {
+    searchTerm.value = event.target.value;
+  }
+}
+
 // Получение placeholder для input
 const getPlaceholder = () => {
   return {
@@ -119,16 +120,7 @@ const inputMode = computed(() => {
   return (searchType.value === 'kinopoisk' || searchType.value === 'shikimori') ? 'numeric' : 'text';
 });
 
-// Если выбран поиск по ID, разрешаем ввод только цифр
-watch(searchTerm, (newVal) => {
-  if (searchType.value === 'kinopoisk' || searchType.value === 'shikimori') {
-    const digits = newVal.replace(/\D/g, '');
-    if (digits !== newVal) {
-      searchTerm.value = digits;
-    }
-  }
-});
-
+// Очистка поиска
 const resetSearch = () => {
   searchTerm.value = '';
   movies.value = [];
@@ -337,12 +329,13 @@ h2 {
 }
 
 @media (max-width: 600px) {
-  .mainpage{
+  .mainpage {
     padding-top: 50px;
     height: calc(100vh - 30px - 63px);
   }
+
   .search-container {
     padding: 5px;
-}
+  }
 }
 </style>
