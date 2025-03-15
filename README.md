@@ -6,13 +6,13 @@
 
 [reyohoho-vue.vercel.app](https://reyohoho-vue.vercel.app)
 
-[reyohoho.vercel.app Старый фронтент](https://reyohoho.vercel.app)
+[reyohoho.vercel.app Старый фронтенд](https://reyohoho.vercel.app)
 
-[reyohoho.onrender.com Старый фронтент](https://reyohoho.onrender.com)
+[reyohoho.onrender.com Старый фронтенд](https://reyohoho.onrender.com)
 
-[reyohoho.serv00.net Старый фронтент](https://reyohoho.serv00.net)
+[reyohoho.serv00.net Старый фронтенд](https://reyohoho.serv00.net)
 
-[reyohoho.surge.sh Старый фронтент](https://reyohoho.surge.sh)
+[reyohoho.surge.sh Старый фронтенд](https://reyohoho.surge.sh)
 
 # reyohoho
 
