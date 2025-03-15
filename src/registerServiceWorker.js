@@ -1,32 +1,65 @@
-/* eslint-disable no-console */
-
 import { register } from 'register-service-worker'
 
-if (process.env.NODE_ENV === 'production') {
-  register(`${process.env.BASE_URL}service-worker.js`, {
-    ready () {
-      console.log(
-        'App is being served from cache by a service worker.\n' +
-        'For more details, visit https://goo.gl/AFskqB'
-      )
-    },
-    registered () {
-      console.log('Service worker has been registered.')
-    },
-    cached () {
-      console.log('Content has been cached for offline use.')
-    },
-    updatefound () {
-      console.log('New content is downloading.')
-    },
-    updated () {
-      console.log('New content is available; please refresh.')
-    },
-    offline () {
-      console.log('No internet connection found. App is running in offline mode.')
-    },
-    error (error) {
-      console.error('Error during service worker registration:', error)
-    }
-  })
+const SW_CONFIG = {
+  scope: process.env.BASE_URL,
+  updateViaCache: 'none',
+  reloadInterval: 3600000
+}
+
+function notifyUpdateAvailable(registration) {
+  const shouldReload = confirm('Доступно новое обновление! Нажмите OK для обновления.')
+  if (shouldReload) {
+    registration.waiting?.postMessage({ type: 'SKIP_WAITING' })
+  }
+}
+
+function trackError(error) {
+  if (navigator.onLine) {
+    navigator.sendBeacon('/api/sw-errors', JSON.stringify({
+      error: error.message,
+      stack: error.stack,
+      timestamp: Date.now()
+    }))
+  }
+}
+
+if ('serviceWorker' in navigator) {
+  if (process.env.NODE_ENV === 'production') {
+    register(`${process.env.BASE_URL}service-worker.js`, {
+      ...SW_CONFIG,
+      ready() {
+        console.log('App is served from cache by service worker')
+      },
+      registered(registration) {
+        console.log('Service worker registered')
+        setInterval(() => registration.update(), SW_CONFIG.reloadInterval)
+        
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          window.location.reload()
+        })
+      },
+      cached() {
+        console.log('Content cached for offline')
+      },
+      updatefound() {
+        console.log('Downloading new content')
+      },
+      updated(registration) {
+        console.log('New content available')
+        notifyUpdateAvailable(registration)
+      },
+      offline() {
+        console.log('App running in offline mode')
+      },
+      error(error) {
+        console.error('SW error:', error)
+        trackError(error)
+      }
+    })
+  } else {
+    navigator.serviceWorker.getRegistrations()
+      .then(registrations => {
+        registrations.forEach(registration => registration.unregister())
+      })
+  }
 }
