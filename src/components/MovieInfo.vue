@@ -48,6 +48,7 @@
                 <li v-if="movieInfo.year"><strong>Год выпуска:</strong> {{ movieInfo.year }}</li>
                 <li v-if="movieInfo.name_original"><strong>Оригинальное название:</strong> {{ movieInfo.name_original }}
                 </li>
+                <li v-if="movieInfo.slogan"><strong>Слоган:</strong> {{ movieInfo.slogan }}</li>
                 <li v-if="movieInfo.countries?.length">
                   <strong>Страна производства:</strong> {{movieInfo.countries.map(item => item.country).join(', ')}}
                 </li>
