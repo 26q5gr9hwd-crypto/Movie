@@ -1,4 +1,18 @@
-https://reyohoho-vue.vercel.app
+# ReYohoho
+[Desktop App](https://github.com/reyohoho/reyohoho-desktop)
+
+# Mirrors
+[reyohoho.github.io/reyohoho](https://reyohoho.github.io/reyohoho)
+
+[reyohoho-vue.vercel.app](https://reyohoho-vue.vercel.app)
+
+[reyohoho.vercel.app Старый фронтенд](https://reyohoho.vercel.app)
+
+[reyohoho.onrender.com Старый фронтенд](https://reyohoho.onrender.com)
+
+[reyohoho.serv00.net Старый фронтенд](https://reyohoho.serv00.net)
+
+[reyohoho.surge.sh Старый фронтенд](https://reyohoho.surge.sh)
 
 # reyohoho
 
