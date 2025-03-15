@@ -18,7 +18,7 @@
       <div class="search-container">
         <div class="input-wrapper">
           <input ref="searchInput" v-model="searchTerm" :placeholder="getPlaceholder()" class="search-input"
-            inputmode="numeric" @keydown.enter="search" />
+            :inputmode="searchType === 'title' ? 'text' : 'numeric'" @keydown.enter="search" @input="handleInput" />
           <div class="icons">
             <button v-if="searchTerm" @click="resetSearch" class="reset-button">
               <i class="fas fa-times"></i>
@@ -94,6 +94,14 @@ const setSearchType = (type) => {
   resetSearch();
 };
 
+const handleInput = (event) => {
+  if (searchType.value !== 'title') {
+    searchTerm.value = event.target.value.replace(/\D+/g, '');
+  } else {
+    searchTerm.value = event.target.value;
+  }
+}
+
 // Получение placeholder для input
 const getPlaceholder = () => {
   return {
@@ -116,23 +124,6 @@ const handleKeyDown = (event) => {
     }
   }
 };
-
-// const handlePaste = (event) => {
-//   if (['kinopoisk', 'shikimori'].includes(searchType.value)) {
-//     event.preventDefault();
-//     const pasted = event.clipboardData.getData('text');
-//     const digits = pasted.replace(/\D/g, '');
-
-//     if (digits) {
-//       const start = event.target.selectionStart;
-//       const end = event.target.selectionEnd;
-//       searchTerm.value = 
-//         searchTerm.value.slice(0, start) + 
-//         digits + 
-//         searchTerm.value.slice(end);
-//     }
-//   }
-// };
 
 // Очистка поиска
 const resetSearch = () => {
