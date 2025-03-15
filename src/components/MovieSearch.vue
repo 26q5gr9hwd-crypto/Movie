@@ -17,15 +17,8 @@
       <!-- Поиск -->
       <div class="search-container">
         <div class="input-wrapper">
-          <input
-            ref="searchInput"
-            v-model="searchTerm"
-            :placeholder="getPlaceholder()"
-            class="search-input"
-            @keydown.enter="search"
-            @keydown="handleKeyDown"
-            @paste="handlePaste"
-          />
+          <input ref="searchInput" v-model="searchTerm" :placeholder="getPlaceholder()" class="search-input"
+            inputmode="numeric" @keydown.enter="search" />
           <div class="icons">
             <button v-if="searchTerm" @click="resetSearch" class="reset-button">
               <i class="fas fa-times"></i>
@@ -46,12 +39,8 @@
               <button @click="showModal = true" class="clear-history-button">
                 Очистить
               </button>
-              <BaseModal
-                :isOpen="showModal"
-                message="Вы уверены, что хотите очистить историю?"
-                @confirm="clearAllHistory"
-                @close="showModal = false"
-              />
+              <BaseModal :isOpen="showModal" message="Вы уверены, что хотите очистить историю?"
+                @confirm="clearAllHistory" @close="showModal = false" />
             </span>
           </h2>
           <CardsMovie :moviesList="history" :isHistory="true" :loading="loading" />
@@ -128,22 +117,22 @@ const handleKeyDown = (event) => {
   }
 };
 
-const handlePaste = (event) => {
-  if (['kinopoisk', 'shikimori'].includes(searchType.value)) {
-    event.preventDefault();
-    const pasted = event.clipboardData.getData('text');
-    const digits = pasted.replace(/\D/g, '');
-    
-    if (digits) {
-      const start = event.target.selectionStart;
-      const end = event.target.selectionEnd;
-      searchTerm.value = 
-        searchTerm.value.slice(0, start) + 
-        digits + 
-        searchTerm.value.slice(end);
-    }
-  }
-};
+// const handlePaste = (event) => {
+//   if (['kinopoisk', 'shikimori'].includes(searchType.value)) {
+//     event.preventDefault();
+//     const pasted = event.clipboardData.getData('text');
+//     const digits = pasted.replace(/\D/g, '');
+
+//     if (digits) {
+//       const start = event.target.selectionStart;
+//       const end = event.target.selectionEnd;
+//       searchTerm.value = 
+//         searchTerm.value.slice(0, start) + 
+//         digits + 
+//         searchTerm.value.slice(end);
+//     }
+//   }
+// };
 
 // Очистка поиска
 const resetSearch = () => {
@@ -377,12 +366,13 @@ h2 {
 }
 
 @media (max-width: 600px) {
-  .mainpage{
+  .mainpage {
     padding-top: 50px;
     height: calc(100vh - 30px - 63px);
   }
+
   .search-container {
     padding: 5px;
-}
+  }
 }
 </style>
