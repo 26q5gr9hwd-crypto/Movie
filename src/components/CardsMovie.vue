@@ -32,11 +32,11 @@
             <h3>{{ removeYearFromTitle(movie.title) }}</h3>
             <span class="year" v-if="movie.year">{{ movie.year }}</span>
           </div>
-          
+
           <div v-if="!isHistory && movie.type" class="meta">
-            <span class="type">{{ movie.type.replace("🎬", "") }}</span> 
+            <span class="type">{{ movie.type.replace("🎬", "") }}</span>
           </div>
-          
+
           <div v-if="!isHistory && movie.views_count" class="views">
             <span class="eye-icon">👁️</span>
             <span>{{ formatViews(movie.views_count) }}</span>
@@ -116,7 +116,7 @@ const handleKeyDown = (event) => {
       if (event.ctrlKey || event.metaKey) {
         window.open(movieUrl(props.moviesList[activeMovieIndex.value]), '_blank');
       } else {
-        router.push({ name: "movie-info", params: { kp_id: props.moviesList[activeMovieIndex.value].kp_id } });
+        router.push({ name: "movie-info", params: { kp_id: props.moviesList[activeMovieIndex.value]?.kp_id } });
       }
       break;
   }
@@ -218,12 +218,12 @@ onUnmounted(() => {
     margin: 0;
     display: -webkit-box;
     display: box;
-    -webkit-line-clamp: 3; 
+    -webkit-line-clamp: 3;
     -moz-line-clamp: 3;
-    line-clamp: 3; 
+    line-clamp: 3;
     -webkit-box-orient: vertical;
-    -moz-box-orient: vertical; 
-    box-orient: vertical; 
+    -moz-box-orient: vertical;
+    box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
     line-height: 1.2;
@@ -308,7 +308,7 @@ onUnmounted(() => {
   .grid {
     grid-template-columns: 1fr;
     gap: 10px;
-    padding: 5px; 
+    padding: 5px;
   }
 
   .ratings-overlay {
@@ -326,7 +326,7 @@ onUnmounted(() => {
     width: 100%;
     max-width: none;
     border-radius: 15px;
-    }    
+    }
 
   .movie-poster-container {
     width: 120px; /* Ширина постера увеличена */
@@ -336,7 +336,7 @@ onUnmounted(() => {
     width: 120px;
     aspect-ratio: 2 / 3;
     border-radius: 10px 0 0 10px;
-    }  
+    }
 
   .movie-details {
     padding: 10px;
