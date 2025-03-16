@@ -1,24 +1,34 @@
 <template>
-  <div class="search" :class="{ 'search--bar-toggled': searchBarVisible }" ref="searchBar">
-    <!-- Поиск -->
-    <transition name="fade">
-      <div class="search__container" v-if="searchBarVisible">
-        <div class="input-wrapper">
-          <input
-            ref="searchInput"
-            v-model="searchTerm"
-            placeholder="Введите название фильма"
-            class="search-input"
-            @keydown.enter="search"
-          />
-          <button @click="search" class="search-button">
-            <i class="fas fa-search"></i>
-          </button>
-        </div>
+  <div class="search" @click="closeModal">
+    <div class="search__content" @click.stop>
+      <!-- Поиск -->
+      <div class="input-wrapper">
+        <input
+          ref="searchInput"
+          v-model="searchTerm"
+          placeholder="Введите название фильма"
+          class="search-input"
+          @keydown.enter="search"
+        />
+      </div>
 
-        <!-- Результаты поиска -->
+      <!-- Результаты поиска -->
+      <div class="search__results-wrapper">
         <div class="search__results">
-          <div v-if="!searchCounter" class="no-results">Здесь появятся результаты поиска</div>
+          <div v-if="searchTerm?.length < 3" class="no-results">Здесь появятся результаты поиска</div>
+
+          <template v-else-if="loading">
+            <div class="movie-skeleton" v-for="idx in [0, 1, 2, 3]" :key="idx">
+              <div class="movie-skeleton__poster"></div>
+              <div class="movie-skeleton__content">
+                <div class="movie-skeleton__title"></div>
+                <div class="movie-skeleton__meta">
+                  <div class="movie-skeleton__rating"></div>
+                </div>
+              </div>
+            </div>
+          </template>
+
           <div v-else-if="movies.length === 0 && !loading" class="no-results">
             Для просмотра ничего не найдено
           </div>
@@ -27,7 +37,7 @@
               v-for="movie in movies"
               class="search__movie movie"
               :to="{ name: 'movie-info', params: { kp_id: movie.kp_id } }"
-              @click="toggleSearchBar"
+              @click="closeModal"
             >
               <img :src="movie.poster" alt="poster" class="movie__poster" />
               <div class="movie__info">
@@ -48,11 +58,11 @@
           </div>
         </div>
       </div>
-    </transition>
 
-    <button class="search__toggle" @click="toggleSearchBar">
-      <i class="fa" :class="{ 'fa-search': !searchBarVisible, 'fa-close': searchBarVisible }"></i>
-    </button>
+      <button @click="closeModal" class="btn btn--close">
+        <i class="fas fa-close"></i>
+      </button>
+    </div>
   </div>
 </template>
 
@@ -63,16 +73,14 @@ import { useRouter } from 'vue-router'
 import debounce from 'lodash/debounce'
 import { inRange } from 'lodash'
 
+const emit = defineEmits(['closeModal'])
+
 const apiUrl = import.meta.env.VITE_APP_API_URL
 const router = useRouter()
 
 const searchTerm = ref('')
 const movies = ref([])
 const loading = ref(false)
-
-const searchBar = ref(null)
-// Каунтер чтобы показывать сообщение что ничего не найдено только после первого поиска
-const searchCounter = ref(0)
 
 const TYPES_ENUM = {
   FILM: 'фильм',
@@ -84,24 +92,6 @@ const TYPES_ENUM = {
 const resetSearch = () => {
   searchTerm.value = ''
   movies.value = []
-  searchCounter.value = 0
-}
-
-// Активация поля поиска в хэдере
-const searchBarVisible = ref(false)
-const toggleSearchBar = (event) => {
-  const isLeftClick = event.button === 0
-
-  // Проверяем, что не зажаты Ctrl или Cmd
-  const isNotModified = !event.ctrlKey && !event.metaKey
-
-  // Если это обычный клик, скрываем попап
-  if (isLeftClick && isNotModified) {
-    searchBarVisible.value = !searchBarVisible.value
-    if (!searchBarVisible.value) {
-      resetSearch()
-    }
-  }
 }
 
 const search = () => {
@@ -115,7 +105,6 @@ const search = () => {
 const performSearch = async () => {
   loading.value = true
   movies.value = []
-  searchCounter.value += 1
 
   try {
     // Поиск по названию
@@ -154,21 +143,20 @@ const getRatingColor = (rating) => {
   }
 }
 
-// Закрываем поиск, если кликнули вне его области
-const handleClickOutside = (event) => {
-  if (searchBar.value && !searchBar.value.contains(event.target)) {
-    searchBarVisible.value = false
+const closeModal = (event) => {
+  console.log(event)
+
+  const isLeftClick = event.button === 0
+
+  // Проверяем, что не зажаты Ctrl или Cmd
+  const isNotModified = !event.ctrlKey && !event.metaKey
+
+  // Если это обычный клик, скрываем попап
+  if ((isLeftClick && isNotModified) || !event) {
+    emit('closeModal')
+    resetSearch()
   }
 }
-
-// Добавляем и удаляем обработчики событий при монтировании/размонтировании компонента
-onMounted(() => {
-  document.addEventListener('click', handleClickOutside)
-})
-
-onBeforeUnmount(() => {
-  document.removeEventListener('click', handleClickOutside)
-})
 
 // Автопоиск с задержкой
 watch(searchTerm, () => {
@@ -178,51 +166,52 @@ watch(searchTerm, () => {
 
 <style lang="scss" scoped>
 .search {
-  width: auto;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
   display: flex;
-  flex-wrap: nowrap;
-  min-height: 50px;
-  position: relative;
+  justify-content: center;
   align-items: center;
-  justify-content: flex-end;
+  z-index: 1002;
 
-  &--bar-toggled {
-    /* padding: 4.5px 5px 4.5px 0; */
-    @media screen and (max-width: 600px) {
-      padding: 0;
-    }
-  }
-
-  &__toggle {
-    background: none;
-    border: 0;
-    color: #fff;
-    cursor: pointer;
-    margin: 0 20px;
-    width: 25px;
-  }
-
-  &__container {
-    display: flex;
-    width: 60%;
-    max-width: 600px;
+  &__content {
     position: relative;
+    display: flex;
+    flex-direction: column;
+    background: rgba(30, 30, 30, 0.96);
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 80%;
+    width: 100%;
+    max-height: 90vh;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 
     @media screen and (max-width: 600px) {
-      width: 100%;
-      max-width: calc(100% - 130px);
+      max-width: 400px;
     }
+
+    @media (min-width: 768px) {
+      max-width: 600px;
+    }
+
+    @media (min-width: 1200px) {
+      max-width: 800px;
+    }
+  }
+
+  &__results-wrapper {
+    flex: 1;
+    overflow-y: auto; // Прокрутка только для результатов
+    margin-top: 20px;
+    max-height: calc(90vh - 120px); // Ограничение высоты (учитывая высоту инпута и отступы)
   }
 
   &__results {
-    position: absolute;
-    background: rgba(30, 30, 30, 0.96);
     color: #fff;
-    border-radius: 10px;
     width: 100%;
-    top: 45px;
-    border: 1px solid #ccc;
-    z-index: 1000;
     box-sizing: border-box;
 
     /* Сообщение "Ничего не найдено" */
@@ -282,7 +271,7 @@ watch(searchTerm, () => {
 .input-wrapper {
   position: relative;
   width: 100%;
-  max-width: 800px;
+  margin-top: 20px;
 }
 
 .search-input {
@@ -302,10 +291,7 @@ watch(searchTerm, () => {
   }
 }
 
-.search-button {
-  position: absolute;
-  right: 5px;
-  top: 11px;
+.btn {
   background: none;
   border: none;
   color: #fff;
@@ -318,6 +304,18 @@ watch(searchTerm, () => {
     opacity: 1;
   }
 
+  &--search {
+    position: absolute;
+    right: 5px;
+    top: 11px;
+  }
+
+  &--close {
+    position: absolute;
+    top: 8px;
+    right: 6px;
+  }
+
   i {
     font-size: 18px;
     display: block;
@@ -326,20 +324,71 @@ watch(searchTerm, () => {
   }
 }
 
-/* Стили для анимации fade */
-.fade-enter-active {
-  transition: opacity 0.3s ease;
+.movie-skeleton {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 10px 16px;
+  gap: 12px;
+  border-radius: 10px;
+  background: rgba(34, 34, 34, 0.5); // Цвет фона, похожий на реальный элемент
+
+  &__poster {
+    width: 32px;
+    height: 48px; // Высота постерa
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    animation: shimmer 1.5s infinite linear;
+  }
+
+  &__content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__title {
+    width: 70%;
+    height: 18px; // Высота заголовка
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    animation: shimmer 1.5s infinite linear;
+  }
+
+  &__meta {
+    display: flex;
+    gap: 7px;
+  }
+
+  &__rating {
+    width: 40px;
+    height: 14px; // Высота рейтинга
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    animation: shimmer 1.5s infinite linear;
+  }
 }
 
-.fade-leave-active {
-  transition: all 0s;
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
-.fade-enter-from {
-  opacity: 0;
-}
-
-.fade-enter-to {
-  opacity: 1;
+.movie-skeleton__poster,
+.movie-skeleton__title,
+.movie-skeleton__rating {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.1) 25%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.1) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
 }
 </style>
