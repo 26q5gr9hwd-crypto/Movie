@@ -3,6 +3,9 @@
     <div class="content">
       <div v-if="errorMessage" class="error-message">
         {{ errorMessage }}
+        <div class="go-home">
+          <router-link to="/" class="home-button">На главную</router-link>
+        </div>
       </div>
 
       <div v-if="movieInfo" class="content-card">
@@ -162,9 +165,15 @@ const fetchMovieInfo = async () => {
     if (movieToSave.kp_id && movieToSave.title) {
       store.dispatch('addToHistory', { ...movieToSave });
     }
-  } catch (error) {
-    console.error('Ошибка при загрузке информации о фильме:', error);
-    errorMessage.value = error.message || 'Ошибка загрузки информации о фильме';
+    } catch (error) {
+    if (error.response?.status === 403) {
+      errorMessage.value = "Упс, у нас это недоступно";
+    } else if (error.response?.status === 404) {
+      errorMessage.value = "Такого не нашлось, повторите поиск";
+    } else {
+      errorMessage.value = "Ошибка загрузки информации о фильме";
+      console.error("Ошибка при загрузке плееров:", error);
+    }
   }
 };
 
@@ -298,6 +307,26 @@ watch(movieInfo, () => {
 .related-movies h2 {
   color: #fff;
   margin-bottom: 15px;
+}
+
+.go-home {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.home-button {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #72e944;
+  color: rgb(0, 0, 0);
+  text-decoration: none;
+  border-radius: 5px;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+.home-button:hover {
+  background-color: #f8f8f8;
 }
 
 @media (max-width: 600px) {

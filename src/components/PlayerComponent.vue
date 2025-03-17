@@ -1,4 +1,9 @@
 <template>
+  <div v-if="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+  <template v-else>
   <div class="players-list">
     <span>Плеер:</span>
     <select v-model="selectedPlayerInternal" class="custom-select">
@@ -81,6 +86,7 @@
     <SliderRound v-model="isCentered">Автоцентрирование плеера</SliderRound>
   </div>
 </template>
+</template>
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, computed, watch, nextTick } from 'vue';
@@ -105,6 +111,7 @@ const theaterMode = ref(false);
 const closeButtonVisible = ref(false);
 const playerIframe = ref(null);
 const containerRef = ref(null);
+const errorMessage = ref('');
 
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 const maxPlayerHeightValue = ref(window.innerHeight * 0.9); // 90% от высоты экрана
@@ -218,7 +225,11 @@ const fetchPlayers = async () => {
       emit('update:selectedPlayer', selectedPlayerInternal.value);
     }
   } catch (error) {
-    console.error('Ошибка при загрузке плееров:', error);
+    if (error.response?.status === 403) {
+      errorMessage.value = "Упс, у нас это недоступно";
+    } else {
+      console.error('Ошибка при загрузке плееров:', error);
+    }
   }
 };
 
@@ -454,4 +465,16 @@ html.no-scroll {
 .custom-select:focus {
   border-color: #558839;
   }
+
+.error-message {
+  color: #ff4444;
+  text-align: center;
+  padding: 20px;
+  font-size: 1.2rem;
+  border: 1px solid #ff4444;
+  border-radius: 5px;
+  margin: 20px auto;
+  max-width: 500px;
+  background: rgba(255, 68, 68, 0.1);
+}
 </style>
