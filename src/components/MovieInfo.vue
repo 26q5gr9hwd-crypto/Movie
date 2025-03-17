@@ -170,6 +170,8 @@ const fetchMovieInfo = async () => {
       errorMessage.value = "Упс, у нас это недоступно";
     } else if (error.response?.status === 404) {
       errorMessage.value = "Такого не нашлось, повторите поиск";
+    } else if (error.response.status === 500) {
+          errorMessage.value = "Ошибка на сервере. Пожалуйста, попробуйте позже";
     } else {
       errorMessage.value = "Ошибка загрузки информации о фильме";
       console.error("Ошибка при загрузке плееров:", error);
@@ -291,12 +293,14 @@ watch(movieInfo, () => {
 
 .error-message {
   color: #ff4444;
-  background-color: rgba(255, 230, 230, 0.1);
-  padding: 10px;
+  text-align: center;
+  padding: 20px;
+  font-size: 1.2rem;
+  border: 1px solid #ff4444;
   border-radius: 5px;
   margin: 20px auto;
-  max-width: 400px;
-  border: 1px solid #ff4444;
+  max-width: 500px;
+  background: rgba(255, 68, 68, 0.1);
 }
 
 /* Стили для секций с похожими фильмами */

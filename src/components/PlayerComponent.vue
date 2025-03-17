@@ -227,6 +227,9 @@ const fetchPlayers = async () => {
   } catch (error) {
     if (error.response?.status === 403) {
       errorMessage.value = "Упс, у нас это недоступно";
+    if (error.response.status === 500) {
+          errorMessage.value = "Ошибка на сервере. Пожалуйста, попробуйте позже";
+        }
     } else {
       console.error('Ошибка при загрузке плееров:', error);
     }
