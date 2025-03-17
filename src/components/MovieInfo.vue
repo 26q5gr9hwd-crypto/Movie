@@ -8,6 +8,9 @@
         </div>
       </div>
 
+      <!-- Интеграция компонента плеера -->
+      <PlayerComponent :kp_id="kp_id" :key="kp_id" />
+
       <div v-if="movieInfo" class="content-card">
         <div class="content-header">
           <div v-if="movieInfo.logo_url">
@@ -51,9 +54,6 @@
             <img src="/src/assets/icon-external-link.png" alt="Внешняя ссылка" class="external-link-icon" />
           </a>
         </div>
-
-        <!-- Интеграция компонента плеера -->
-        <PlayerComponent :kp_id="kp_id" :key="kp_id" />
 
         <meta name="title-and-year"
           :content="movieInfo.year ? `${movieInfo.title} (${movieInfo.year})` : movieInfo.title">
@@ -180,9 +180,7 @@ const fetchMovieInfo = async () => {
       store.dispatch('addToHistory', { ...movieToSave });
     }
     } catch (error) {
-    if (error.response?.status === 403) {
-      errorMessage.value = "Упс, у нас это недоступно";
-    } else if (error.response?.status === 404) {
+    if (error.response?.status === 404) {
       errorMessage.value = "Такого не нашлось, повторите поиск";
     } else if (error.response.status === 500) {
           errorMessage.value = "Ошибка на сервере. Пожалуйста, попробуйте позже";
