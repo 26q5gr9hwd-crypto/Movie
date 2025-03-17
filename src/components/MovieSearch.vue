@@ -59,8 +59,11 @@
         </div>
 
         <!-- Подсказка, когда ничего не введено в поиске -->
-        <div v-if="searchTerm && !searchPerformed && !loading" class="search-prompt">
+        <div v-if="searchTerm && !searchPerformed && !loading && !errorMessage" class="search-prompt">
           Нажмите кнопку "Поиск" или Enter для поиска
+        </div>
+        <div v-if="errorMessage" class="error-message">
+          {{ errorMessage }}
         </div>
       </div>
     </div>
@@ -89,6 +92,7 @@ const movies = ref([]);
 const loading = ref(false);
 const searchPerformed = ref(false);
 const showModal = ref(false);
+const errorMessage = ref('');
 
 const history = computed(() => store.state.history);
 
@@ -156,9 +160,11 @@ const performSearch = async () => {
     movies.value = response.data.map(movie => ({ ...movie, kp_id: movie.id.toString() }));
   } catch (error) {
     console.error('Ошибка:', error);
-    movies.value = [];
-    if (error.response?.status) {
-      router.push(`/${error.response.status}`);
+    if (error.response.status === 500) {
+            errorMessage.value = "Ошибка на сервере. Пожалуйста, попробуйте позже";
+          }
+    else {
+      errorMessage.value = "Произошла ошибка";
     }
   } finally {
     loading.value = false;
@@ -326,6 +332,18 @@ h2 {
   color: #fff;
   font-size: 18px;
   margin-top: 20px;
+}
+
+.error-message {
+  color: #ff4444;
+  text-align: center;
+  padding: 20px;
+  font-size: 1.2rem;
+  border: 1px solid #ff4444;
+  border-radius: 5px;
+  margin: 20px auto;
+  max-width: 500px;
+  background: rgba(255, 68, 68, 0.1);
 }
 
 @media (max-width: 600px) {

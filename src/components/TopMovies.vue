@@ -32,6 +32,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import CardsMovie from "@/components/CardsMovie.vue";
+import axios from 'axios';
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 
 // Состояния
@@ -50,12 +51,11 @@ const timeFilters = [
 
 // Функция для получения фильмов
 const fetchMovies = async () => {
+  let response;
   loading.value = true;
   try {
-    const url = `${apiUrl}/top/${activeTimeFilter.value}?type=${typeFilter.value}`;
-    const response = await fetch(url);
-    const data = await response.json();
-    movies.value = data;
+    response = await axios.get(`${apiUrl}/top/${activeTimeFilter.value}?type=${typeFilter.value}`);
+    movies.value = response.data;
   } catch (error) {
     console.error("Ошибка при загрузке фильмов:", error);
   } finally {

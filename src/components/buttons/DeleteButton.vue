@@ -15,9 +15,10 @@
     position: relative;
     overflow: hidden;
     background-color: rgba(0, 0, 0, 0.616);
+    border: 2px solid #ccc;
   }
   .deleteButton svg {
-    width: 44%;
+    width: 60%;
   }
   .deleteButton:hover {
     background-color: rgb(237, 56, 56);

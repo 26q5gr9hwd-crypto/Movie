@@ -3,6 +3,9 @@
     <div class="content">
       <div v-if="errorMessage" class="error-message">
         {{ errorMessage }}
+        <div class="go-home">
+          <router-link to="/" class="home-button">На главную</router-link>
+        </div>
       </div>
 
       <div v-if="movieInfo" class="content-card">
@@ -15,21 +18,35 @@
           </div>
         </div>
 
-        <div class="ratings-links" v-if="movieInfo.rating_kinopoisk || movieInfo.rating_imdb">
-          <a :href="`https://www.kinopoisk.ru/film/${kp_id}`" target="_blank" rel="noopener noreferrer"
+        <div class="ratings-links" v-if="kp_id || movieInfo.imdb_id">
+          <!-- Ссылка на Кинопоиск -->
+          <a v-if="kp_id" 
+            :href="`https://www.kinopoisk.ru/film/${kp_id}`"
+            target="_blank"
+            rel="noopener noreferrer"
             class="rating-link">
             <img src="/src/assets/icon-kp-logo.svg" alt="КП" class="rating-logo" />
             <span v-if="movieInfo.rating_kinopoisk">{{ movieInfo.rating_kinopoisk }}/10</span>
             <img src="/src/assets/icon-external-link.png" alt="Внешняя ссылка" class="external-link-icon" />
           </a>
-          <a v-if="movieInfo.imdb_id && movieInfo.rating_imdb" :href="`https://www.imdb.com/title/${movieInfo.imdb_id}`"
-            target="_blank" rel="noopener noreferrer" class="rating-link">
+
+          <!-- Ссылка на IMDb -->
+          <a v-if="movieInfo.imdb_id"
+            :href="`https://www.imdb.com/title/${movieInfo.imdb_id}`"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="rating-link">
             <img src="/src/assets/icon-imdb-logo.svg" alt="IMDb" class="rating-logo" />
-            <span>{{ movieInfo.rating_imdb }}/10</span>
+            <span v-if="movieInfo.rating_imdb">{{ movieInfo.rating_imdb }}/10</span>
             <img src="/src/assets/icon-external-link.png" alt="Внешняя ссылка" class="external-link-icon" />
           </a>
-          <a v-if="movieInfo.imdb_id" :href="`https://www.imdb.com/title/${movieInfo.imdb_id}/parentalguide`"
-            target="_blank" rel="noopener noreferrer" class="rating-link">
+
+          <!-- Parents Guide -->
+          <a v-if="movieInfo.imdb_id"
+            :href="`https://www.imdb.com/title/${movieInfo.imdb_id}/parentalguide`"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="rating-link">
             <span>Parents Guide</span>
             <img src="/src/assets/icon-external-link.png" alt="Внешняя ссылка" class="external-link-icon" />
           </a>
@@ -85,7 +102,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
 import PlayerComponent from '@/components/PlayerComponent.vue';
@@ -154,16 +171,25 @@ const fetchMovieInfo = async () => {
       poster: movieInfo.value?.poster_url || movieInfo.value?.cover_url,
     };
 
+    // Устанавливаем фон фильма через новый метод
     if (movieToSave.poster) {
-      store.dispatch('background/updateMovieBackground', movieToSave.poster);
+      store.dispatch('background/updateMoviePoster', movieToSave.poster);
     }
 
     if (movieToSave.kp_id && movieToSave.title) {
       store.dispatch('addToHistory', { ...movieToSave });
     }
-  } catch (error) {
-    console.error('Ошибка при загрузке информации о фильме:', error);
-    errorMessage.value = error.message || 'Ошибка загрузки информации о фильме';
+    } catch (error) {
+    if (error.response?.status === 403) {
+      errorMessage.value = "Упс, у нас это недоступно";
+    } else if (error.response?.status === 404) {
+      errorMessage.value = "Такого не нашлось, повторите поиск";
+    } else if (error.response.status === 500) {
+          errorMessage.value = "Ошибка на сервере. Пожалуйста, попробуйте позже";
+    } else {
+      errorMessage.value = "Ошибка загрузки информации о фильме";
+      console.error("Ошибка при загрузке плееров:", error);
+    }
   }
 };
 
@@ -174,20 +200,10 @@ onMounted(async () => {
   await fetchMovieInfo();
 });
 
-onUnmounted(() => {
-  store.dispatch('background/resetBackground');
-});
-
-watch(() => route.params.kp_id, async (newKpId) => {
-  if (newKpId && newKpId !== kp_id.value) {
-    kp_id.value = newKpId;
-    await fetchMovieInfo();
-  }
-}, { immediate: true });
-
 watch(movieInfo, () => {
   setDocumentTitle();
 }, { deep: true });
+
 </script>
 
 <style scoped>
@@ -291,12 +307,14 @@ watch(movieInfo, () => {
 
 .error-message {
   color: #ff4444;
-  background-color: rgba(255, 230, 230, 0.1);
-  padding: 10px;
+  text-align: center;
+  padding: 20px;
+  font-size: 1.2rem;
+  border: 1px solid #ff4444;
   border-radius: 5px;
   margin: 20px auto;
-  max-width: 400px;
-  border: 1px solid #ff4444;
+  max-width: 500px;
+  background: rgba(255, 68, 68, 0.1);
 }
 
 /* Стили для секций с похожими фильмами */
@@ -307,6 +325,26 @@ watch(movieInfo, () => {
 .related-movies h2 {
   color: #fff;
   margin-bottom: 15px;
+}
+
+.go-home {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.home-button {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #72e944;
+  color: rgb(0, 0, 0);
+  text-decoration: none;
+  border-radius: 5px;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+.home-button:hover {
+  background-color: #f8f8f8;
 }
 
 @media (max-width: 600px) {
