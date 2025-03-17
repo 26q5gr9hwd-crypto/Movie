@@ -18,21 +18,20 @@
           <span class="radio-label">Звездный фон</span>
         </label>
         <label class="radio">
-          <input type="radio" value="none" v-model="backgroundType" />
+          <input type="radio" value="disabled" v-model="backgroundType" />
           <span class="radio-label">Отключить фон</span>
         </label>
       </div>
-
-      <!-- Включение/выключение размытия -->
-      <SliderRound v-model="isBlurEnabled" :disabled="isBlurDisabled">Включить размытие</SliderRound>
         
       <!-- Автоцентрирование плеера -->
       <SliderRound v-model="isCentered">Автоцентрирование плеера</SliderRound>
 
+      <SliderRound v-model="isCardBorder">Окантовка вокруг карточек</SliderRound>
+
       <!-- Кнопка сброса фона -->
-      <div class="settings-actions">
+      <!-- <div class="settings-actions">
         <button @click="resetBackground" class="reset-button">Сбросить фон</button>
-      </div>
+      </div> -->
 
     </div>
   </div>
@@ -49,24 +48,18 @@ const router = useRouter()
 
 // Настройки фона (модуль background)
 const backgroundType = computed({
-  get: () => store.state.background.backgroundType,
-  set: (value) => store.dispatch('background/setBackgroundType', value)
+  get: () => store.getters['background/getBackgroundType'],
+  set: (value) => store.dispatch('background/updateBackgroundType', value)
 })
 
-const isBlurDisabled = computed(() => backgroundType.value === 'stars');
+// Вычисляемое свойство, определяющее, нужно ли отключать размытие
+const isBlurDisabled = computed(() => backgroundType.value === 'stars' || backgroundType.value === 'disable')
 watch(isBlurDisabled, (newValue) => {
   if (newValue) {
-    store.dispatch('background/setBlur', false);
+    // Отключаем размытие, если выбран звездный фон
+    store.dispatch('background/toggleBlur', false)
   }
-});
-
-const isBlurEnabled = computed({
-  get: () => store.state.background.isBlurEnabled,
-  set: (value) => store.dispatch('background/toggleBlur', value)
 })
-const resetBackground = () => {
-  store.dispatch('background/resetBackground')
-}
 
 // Автоцентрирование плеера (из модуля player)
 const isCentered = computed({
@@ -74,28 +67,22 @@ const isCentered = computed({
   set: (value) => store.dispatch('player/updateCentering', value)
 });
 
-// Список всех плееров (загружаем с API)
-const allPlayers = ref([])
-const fetchAllPlayers = async () => {
-  try {
-    const response = await fetch('https://rh.aukus.su/get_pl_list_1')
-    const data = await response.text() // получаем строку
-    allPlayers.value = data
-      .split(',')
-      .map(player => player.trim().toUpperCase())
-  } catch (err) {
-    console.error('Ошибка загрузки плееров:', err)
-  }
-}
-onMounted(() => {
-  fetchAllPlayers()
+const isCardBorder = computed({
+  get: () => store.getters['background/getCardBorder'],
+  set: (value) => store.dispatch('background/toggleCardBorder', value)
 })
 
 // Навигация
 const goBack = () => {
   router.go(-1)
 }
+
+// При необходимости можно реализовать сброс фона, добавив соответствующее действие в Vuex
+// const resetBackground = () => {
+//   store.dispatch('background/resetBackground')
+// }
 </script>
+
 
 <style scoped>
 .settings-page {

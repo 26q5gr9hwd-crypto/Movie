@@ -1,66 +1,110 @@
+import starsBackground from '@/assets/image-back-stars.png';
+
+const state = {
+  backgroundUrl: starsBackground,
+  topMoviePoster: '',
+  moviePoster: '',
+  isBlurActive: false,
+  backgroundType: 'stars',
+  defaultBackground: starsBackground,
+  isCardBorder: false,
+};
+
+const mutations = {
+  SET_TOP_MOVIE_POSTER(state, url) {
+    if (
+      state.backgroundType !== 'stars' &&
+      state.backgroundType !== 'disabled'
+    ) {
+      state.topMoviePoster = url;
+      if (state.backgroundUrl !== url) {
+        state.backgroundUrl = url;
+      }
+    }
+  },
+
+  SET_MOVIE_POSTER(state, url) {
+    if (
+      state.backgroundType !== 'stars' &&
+      state.backgroundType !== 'disabled'
+    ) {
+      state.moviePoster = url;
+      if (state.backgroundUrl !== url) {
+        state.backgroundUrl = url;
+      }
+    }
+  },
+
+  SET_BLUR(state, isActive) {
+    if (state.backgroundType !== 'stars' && state.backgroundType !== 'disabled') {
+      state.isBlurActive = isActive;
+    } else {
+      state.isBlurActive = false;
+    }
+  },
+
+  SET_BACKGROUND_TYPE(state, type) {
+    state.backgroundType = type;
+    if (type === 'dynamic') {
+      // Автовключение блюра для динамического фона
+      state.isBlurActive = true;
+      state.backgroundUrl = state.topMoviePoster;
+    } else if (type === 'disabled' || type === 'stars') {
+      state.isBlurActive = false;
+      if (type === 'disabled') {
+        state.backgroundUrl = '';
+      } else if (type === 'stars') {
+        state.backgroundUrl = starsBackground;
+      }
+    }
+  },
+
+  SET_CARD_BORDER(state, isBorder) {
+    state.isCardBorder = isBorder;
+  }
+};
+
+const actions = {
+  updateMoviePoster({ commit, state }, poster) {
+    if (state.backgroundType !== 'disabled') {
+      commit('SET_MOVIE_POSTER', poster || state.defaultBackground);
+    }
+  },
+
+  updateTopMoviePoster({ commit, state }, poster) {
+    if (state.backgroundType !== 'disabled') {
+      commit('SET_TOP_MOVIE_POSTER', poster || state.defaultBackground);
+    }
+  },
+
+  toggleBlur({ commit, state }, isActive) {
+    if (state.backgroundType !== 'stars' && state.backgroundType !== 'disabled') {
+      commit('SET_BLUR', isActive);
+    }
+  },
+
+  updateBackgroundType({ commit }, type) {
+    commit('SET_BACKGROUND_TYPE', type);
+  },
+
+  toggleCardBorder({ commit }, isBorder) {
+    commit('SET_CARD_BORDER', isBorder);
+  }
+};
+
+const getters = {
+  getBackgroundUrl: (state) => state.backgroundUrl,
+  getTopMoviePoster: (state) => state.topMoviePoster,
+  getMoviePoster: (state) => state.moviePoster,
+  isBlurActive: (state) => state.isBlurActive,
+  getBackgroundType: (state) => state.backgroundType,
+  getCardBorder: (state) => state.isCardBorder,
+};
+
 export default {
   namespaced: true,
-  state: () => ({
-    backgroundType: 'stars', // 'none', 'stars', 'dynamic'
-    isBlurEnabled: false,
-    starsBackground: new URL('/src/assets/image-back-stars.png', import.meta.url).href,
-    currentMovieBackground: null,
-  }),
-  mutations: {
-    SET_MOVIE_BACKGROUND(state, url) {
-      state.currentMovieBackground = url;
-    },
-    TOGGLE_BLUR(state) {
-      state.isBlurEnabled = !state.isBlurEnabled;
-    },
-    SET_BACKGROUND_TYPE(state, type) {
-      state.backgroundType = type;
-    },
-    CYCLE_BACKGROUND_TYPE(state) {
-      const types = ['none', 'stars', 'dynamic'];
-      const currentIndex = types.indexOf(state.backgroundType);
-      state.backgroundType = types[(currentIndex + 1) % types.length];
-    },
-    SET_BLUR(state, value) {
-      state.isBlurEnabled = value;
-    },
-  },
-  actions: {
-    async updateMovieBackground({ commit }, url) {
-      commit('SET_MOVIE_BACKGROUND', url);
-    },
-    resetBackground({ commit }) {
-      commit('SET_MOVIE_BACKGROUND', null);
-      commit('SET_BACKGROUND_TYPE', 'stars');
-      commit('SET_BLUR', false);
-    },
-    toggleBlur({ commit }) {
-      commit('TOGGLE_BLUR');
-    },
-    setBlur({ commit }, value) {
-      commit('SET_BLUR', value);
-    },
-    setBackgroundType({ commit }, type) {
-      commit('SET_BACKGROUND_TYPE', type);
-    },
-    cycleBackgroundType({ commit }) {
-      commit('CYCLE_BACKGROUND_TYPE');
-    },
-  },
-  getters: {
-    currentBackground: (state) => {
-      if (state.backgroundType === 'none') return null;
-      return state.backgroundType === 'stars'
-        ? state.starsBackground
-        : state.currentMovieBackground;
-    },
-    backgroundStyle: (_, getters) => {
-      const bg = getters.currentBackground;
-      return bg ? {
-        backgroundImage: `url(${bg})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      } : {};
-    },
-  },
+  state,
+  mutations,
+  actions,
+  getters
 };

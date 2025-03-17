@@ -85,7 +85,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
 import PlayerComponent from '@/components/PlayerComponent.vue';
@@ -154,8 +154,9 @@ const fetchMovieInfo = async () => {
       poster: movieInfo.value?.poster_url || movieInfo.value?.cover_url,
     };
 
+    // Устанавливаем фон фильма через новый метод
     if (movieToSave.poster) {
-      store.dispatch('background/updateMovieBackground', movieToSave.poster);
+      store.dispatch('background/updateMoviePoster', movieToSave.poster);
     }
 
     if (movieToSave.kp_id && movieToSave.title) {
@@ -174,21 +175,10 @@ onMounted(async () => {
   await fetchMovieInfo();
 });
 
-onUnmounted(() => {
-  store.dispatch('background/resetBackground');
-  fetchTopMovie();
-});
-
-watch(() => route.params.kp_id, async (newKpId) => {
-  if (newKpId && newKpId !== kp_id.value) {
-    kp_id.value = newKpId;
-    await fetchMovieInfo();
-  }
-}, { immediate: true });
-
 watch(movieInfo, () => {
   setDocumentTitle();
 }, { deep: true });
+
 </script>
 
 <style scoped>

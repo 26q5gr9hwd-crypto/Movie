@@ -5,7 +5,10 @@
         v-for="(movie, index) in moviesList"
         :key="movie.kp_id"
         class="movie-card"
-        :class="{ active: activeMovieIndex === index }"
+        :class="{ 
+          active: activeMovieIndex === index, 
+          'has-border': isCardBorder 
+        }"
         :href="movieUrl(movie)"
         :ref="(el) => (movieRefs[index] = el)"
         tabindex="0"
@@ -49,7 +52,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onUnmounted } from 'vue';
+import { ref, watch, onMounted, onUnmounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import Spinner from "@/components/SpinnerLoading.vue";
@@ -65,6 +68,9 @@ const router = useRouter();
 const movieRefs = ref([]);
 const activeMovieIndex = ref(null);
 const store = useStore();
+
+const isCardBorder = computed(() => store.getters['background/getCardBorder']);
+console.log(isCardBorder.value);
 
 const movieUrl = (movie) => {
   return router.resolve({ name: "movie-info", params: { kp_id: movie.kp_id } }).href;
@@ -171,9 +177,14 @@ onUnmounted(() => {
     cursor: pointer;
     display: flex;
     flex-direction: column;
-    justify-content: space-between; /* Разделяем контент внутри карточки */
+    justify-content: space-between;
     transition: transform 0.3s ease, box-shadow 0.3s ease, border 0.3s ease;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    border: none; /* Убедимся, что граница по умолчанию отсутствует */
+}
+
+.has-border {
+    border: 1px solid #ccc; /* Граница применяется только с этим классом */
 }
 
 /* Эффект при наведении: подъем и усиление тени */
@@ -251,7 +262,7 @@ onUnmounted(() => {
   top: 5px;
   right: 5px;
   opacity: 0;
-  }
+}
 
 .movie-card:hover .deleteButton {
   opacity: 1;
@@ -317,7 +328,7 @@ onUnmounted(() => {
     padding: 4px 8px;
     font-size: 0.8em;
     border-radius: 0;
-    }
+  }
 
   .movie-card {
     flex-direction: row;
@@ -326,17 +337,17 @@ onUnmounted(() => {
     width: 100%;
     max-width: none;
     border-radius: 15px;
-    }    
+  }    
 
   .movie-poster-container {
     width: 120px; /* Ширина постера увеличена */
-    }
+  }
 
   .movie-poster {
     width: 120px;
     aspect-ratio: 2 / 3;
     border-radius: 10px 0 0 10px;
-    }  
+  }  
 
   .movie-details {
     padding: 10px;
@@ -344,7 +355,7 @@ onUnmounted(() => {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    }
+  }
 
   .movie-header h3 {
     font-size: 1.2em;
@@ -352,7 +363,7 @@ onUnmounted(() => {
     -moz-line-clamp: 2;
     line-clamp: 2;
     max-height: 2.4em;
-    }
+  }
 
   .rating-logo {
     width: 15px; /* Размер иконок */

@@ -1,125 +1,126 @@
 <template>
-  <div v-if="backgroundType !== 'none'" class="background-container">
-    <!-- Динамический фон фильма - два слоя для плавного перехода -->
-    <div v-if="showDynamicBackground"
-      v-for="(bg, index) in dynamicBackgrounds"
-      :key="index"
-      class="background-layer dynamic-background"
-      :class="{ 
-        active: activeDynamicIndex === index,
-        next: nextDynamicIndex === index
-      }"
-      :style="getBackgroundStyle(bg)"
-    ></div>
-
-    <!-- Фон со звёздами -->
+  <div v-if="backgroundType !== 'disabled'" class="background-container">
     <div 
-      v-if="showStarsBackground"
-      class="background-layer stars-background"
-      :style="backgroundStyle"
+      v-for="(bg, index) in backgrounds" 
+      :key="index"
+      class="background-layer"
+      :class="{ active: activeIndex === index }"
+      :style="getLayerStyle(index)"
     ></div>
-
-    <!-- Сообщение об ошибке -->
-    <div v-if="error" class="error-message">
-      {{ error }}
-    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, watchEffect } from 'vue'
-import { useStore } from 'vuex'
+import { ref, computed, watch, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useStore } from 'vuex';
+import axios from 'axios';
 
-const store = useStore()
+const apiUrl = import.meta.env.VITE_APP_API_URL;
+const store = useStore();
+const route = useRoute();
+const router = useRouter();
 
-// Геттеры
-const currentBackground = computed(() => store.state.background.currentMovieBackground)
-const backgroundType = computed(() => store.state.background.backgroundType)
-const starsBg = computed(() => store.state.background.starsBackground)
-const error = computed(() => store.state.background.errorBackground)
+const backgrounds = ref(['', '']);
+const activeIndex = ref(0);
 
-// Логика отображения
-const showDynamicBackground = computed(() => 
-  backgroundType.value === 'dynamic' && currentBackground.value
-)
+const backgroundUrl = computed(() => store.getters['background/getBackgroundUrl']);
+const backgroundType = computed(() => store.getters['background/getBackgroundType']);
+const isBlurActive = computed(() => store.getters['background/isBlurActive']);
+console.log(backgroundUrl)
 
-const showStarsBackground = computed(() => backgroundType.value === 'stars')
+const CACHE_KEY = 'topMoviePoster';
 
-// Стили
-const backgroundStyle = computed(() => ({
-  backgroundImage: `url(${starsBg.value})`,
-  filter: `${store.state.background.isBlurEnabled ? 'blur(20px)' : ''}`,
-}))
-
-// Логика для плавного перехода динамического фона
-const dynamicBackgrounds = ref([currentBackground.value, null]) // Два слоя для плавного перехода
-const activeDynamicIndex = ref(0) // Индекс активного слоя
-const nextDynamicIndex = ref(-1) // Индекс следующего слоя
-const isTransitioning = ref(false) // Флаг для отслеживания перехода
-
-const getBackgroundStyle = (url) => ({
-  backgroundImage: `url(${url})`,
-  filter: `brightness(20%) ${store.state.background.isBlurEnabled ? 'blur(20px)' : ''}`,
-  transition: 'opacity 1.5s ease-in-out' // Увеличенное время
-});
-
-// Предзагрузка изображения
-const preloadImage = (url) => new Promise((resolve, reject) => {
-  const img = new Image()
-  img.src = url
-  img.onload = resolve
-  img.onerror = reject
-})
-
-// Обработка изменения currentBackground
-watch(currentBackground, async (newUrl) => {
-  if (!newUrl || isTransitioning.value || newUrl === dynamicBackgrounds.value[activeDynamicIndex.value]) {
-    return // Если фон не изменился или переход уже выполняется, ничего не делаем
+const getLayerStyle = (index) => {
+  // При типе 'stars' затемнение заменяется на brightness(100%) (то есть без затемнения)
+  const brightnessFilter = backgroundType.value === 'stars' ? 'brightness(100%)' : 'brightness(20%)';
+  // Используем blur(0px) вместо пустой строки для плавного перехода
+  const blurFilter = isBlurActive.value ? 'blur(20px)' : 'blur(0px)';
+  // Собираем строку фильтров
+  const filters = [brightnessFilter, blurFilter].join(' ');
+  
+  return {
+    backgroundImage: `url(${backgrounds.value[index]})`,
+    filter: filters,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center'
   }
+};
 
-  isTransitioning.value = true
-  nextDynamicIndex.value = (activeDynamicIndex.value + 1) % 2 // Переключаем на следующий слой
 
-  // Предзагрузка нового изображения
-  await preloadImage(newUrl)
-
-  // Устанавливаем новое изображение в неактивный слой
-  dynamicBackgrounds.value[nextDynamicIndex.value] = newUrl
-
-  // Активируем переход
-  activeDynamicIndex.value = nextDynamicIndex.value
-
-  // Завершаем переход через 1 секунду
-  setTimeout(() => {
-    isTransitioning.value = false
-  }, 1500)
-})
-
-// Загрузка данных
 const fetchTopMovie = async () => {
   try {
-    const response = await fetch('https://rh.aukus.su/top/24h')
-    const data = await response.json()
-    if (data?.[0]?.cover) {
-      store.dispatch('background/updateMovieBackground', data[0].cover)
+    const response =  await axios.get(`${apiUrl}/top/24h`);
+    
+    if (response?.[0]?.cover) {
+      const expiresAt = new Date().setHours(24, 0, 0, 0);
+      localStorage.setItem(CACHE_KEY, JSON.stringify({ url: response[0].cover, expiresAt }));
+      store.dispatch('background/updateTopMoviePoster', response[0].cover);
+      return response[0].cover;
     }
   } catch (err) {
-    store.commit('background/SET_BACKGROUND_ERROR', 'Ошибка загрузки')
+    console.error('Ошибка:', err);
   }
-}
+};
 
-// Инициализация
-onMounted(() => {
-  if (!currentBackground.value && backgroundType.value === 'dynamic') {
-    fetchTopMovie()
+const checkCachedTopMovie = () => {
+  const cached = localStorage.getItem(CACHE_KEY);
+  if (cached) {
+    const { url, expiresAt } = JSON.parse(cached);
+    if (Date.now() < expiresAt) {
+      store.dispatch('background/updateTopMoviePoster', url);
+      console.log('Используем кэшированный постер:', url);
+      return true;
+    }
+    localStorage.removeItem(CACHE_KEY);
+    console.log('Удален устаревший кэш');
   }
-})
+  return false;
+};
 
-watchEffect(() => {
-  if (currentBackground.value === null && backgroundType.value === 'dynamic') {
-    fetchTopMovie()
+onMounted(async () => {
+  // ждем
+  backgrounds.value = [backgroundUrl.value, backgroundUrl.value];
+  await router.isReady();
+  // Если путь роутинга содержит 'movie', не инициируем загрузку фона
+  if (route.path.includes('movie')) return;
+
+  if (backgroundType.value !== 'disabled') {
+    const hasValidCache = checkCachedTopMovie();
+    if (!hasValidCache) {
+      fetchTopMovie();
+    }
   }
-})
+});
+
+watch(route, (newRoute) => {
+  // Если новый путь содержит 'movie', не обновляем фон
+  if (newRoute.path.includes('movie')) return;
+  
+  if (backgroundType.value === 'dynamic') {
+    const hasValidCache = checkCachedTopMovie();
+    if (!hasValidCache) {
+      fetchTopMovie();
+    }
+  }
+});
+
+watch(backgroundUrl, (newUrl, oldUrl) => {
+  if (!newUrl) return;
+  console.log('Фон изменился:', oldUrl, '→', newUrl);
+  
+  // Создаем новый Image объект
+  const img = new Image();
+  img.src = newUrl;
+  img.onload = () => {
+    // Когда изображение загружено, меняем фон
+    const inactiveIndex = activeIndex.value === 0 ? 1 : 0;
+    backgrounds.value[inactiveIndex] = newUrl;
+    
+    // Активируем новый фон
+    activeIndex.value = inactiveIndex;
+  };
+});
 </script>
 
 <style scoped>
@@ -134,53 +135,17 @@ watchEffect(() => {
 }
 
 .background-layer {
-  position: fixed;
-  top: 0;
-  left: 0;
+  position: absolute;
   width: 100%;
   height: 100%;
   opacity: 0;
-  z-index: 1;
-  pointer-events: none;
+  transition: filter 0.6s ease-in-out, opacity 0.6s ease-in-out;
   background-size: cover;
   background-position: center;
+  will-change: opacity, filter;
 }
 
 .background-layer.active {
   opacity: 1;
-  z-index: 2;
-}
-
-.background-layer.next {
-  opacity: 0;
-  z-index: 3;
-}
-
-.background-layer.active.next {
-  opacity: 1;
-  z-index: 4;
-}
-
-.dynamic-background {
-  background-color: #000000;
-}
-
-.stars-background {
-  opacity: 1;
-  background: repeat top center;
-}
-
-.error-message {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: #ff4444;
-  font-size: 1rem;
-  z-index: 100;
-  text-align: center;
-  background: rgba(0, 0, 0, 0.7);
-  padding: 10px 20px;
-  border-radius: 5px;
 }
 </style>

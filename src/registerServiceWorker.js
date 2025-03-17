@@ -38,18 +38,8 @@ if ('serviceWorker' in navigator) {
           window.location.reload()
         })
       },
-      cached() {
-        console.log('Content cached for offline')
-      },
-      updatefound() {
-        console.log('Downloading new content')
-      },
       updated(registration) {
-        console.log('New content available')
         notifyUpdateAvailable(registration)
-      },
-      offline() {
-        console.log('App running in offline mode')
       },
       error(error) {
         console.error('SW error:', error)
