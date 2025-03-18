@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import { VitePWA } from 'vite-plugin-pwa';
+import legacy from '@vitejs/plugin-legacy';
 
 const base = process.env.VITE_BASE_URL || '/';
 
@@ -8,6 +9,10 @@ export default defineConfig({
   base: base,
   plugins: [
     vue(),
+    legacy({
+      targets: ['defaults', 'not IE 11'],
+      additionalLegacyPolyfills: ['regenerator-runtime/runtime']
+    }),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'robots.txt', 'icons/*'], // Указываем папку с иконками
@@ -41,4 +46,7 @@ export default defineConfig({
       '@': '/src',
     },
   },
+  build: {
+    target: 'es2015'
+  }
 });
