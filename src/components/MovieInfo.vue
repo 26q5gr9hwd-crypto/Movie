@@ -8,9 +8,6 @@
         </div>
       </div>
 
-      <!-- Интеграция компонента плеера -->
-      <PlayerComponent :kp_id="kp_id" :key="kp_id" />
-
       <div v-if="movieInfo" class="content-card">
         <div class="content-header">
           <div v-if="movieInfo.logo_url">
@@ -21,10 +18,10 @@
           </div>
         </div>
 
-        <div class="ratings-links" v-if="kp_id || movieInfo.imdb_id">
+        <div class="ratings-links" v-if="movieInfo.kinopoisk_id || movieInfo.imdb_id">
           <!-- Ссылка на Кинопоиск -->
-          <a v-if="kp_id" 
-            :href="`https://www.kinopoisk.ru/film/${kp_id}`"
+          <a v-if="movieInfo.kinopoisk_id" 
+            :href="`https://www.kinopoisk.ru/film/${movieInfo.kinopoisk_id}`"
             target="_blank"
             rel="noopener noreferrer"
             class="rating-link">
@@ -44,6 +41,16 @@
             <img src="/src/assets/icon-external-link.png" alt="Внешняя ссылка" class="external-link-icon" />
           </a>
 
+          <!-- Ссылка на Кинопоиск -->
+          <a v-if="movieInfo.shikimori_id" 
+            :href="`https://shikimori.one/animes/${movieInfo.shikimori_id}`"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="rating-link">
+          <img src="/src/assets/icon-shikimori.svg" alt="Shiki" class="rating-logo" />
+            <img src="/src/assets/icon-external-link.png" alt="Внешняя ссылка" class="external-link-icon" />
+          </a>
+
           <!-- Parents Guide -->
           <a v-if="movieInfo.imdb_id"
             :href="`https://www.imdb.com/title/${movieInfo.imdb_id}/parentalguide`"
@@ -54,6 +61,9 @@
             <img src="/src/assets/icon-external-link.png" alt="Внешняя ссылка" class="external-link-icon" />
           </a>
         </div>
+
+        <!-- Интеграция компонента плеера -->
+        <PlayerComponent :kp_id="kp_id" :key="kp_id" />
 
         <meta name="title-and-year"
           :content="movieInfo.year ? `${movieInfo.title} (${movieInfo.year})` : movieInfo.title">
@@ -113,6 +123,7 @@ const store = useStore();
 const route = useRoute();
 const kp_id = ref(route.params.kp_id);
 const errorMessage = ref('');
+const errorCode = ref(null); 
 const movieInfo = ref(null);
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 
@@ -132,8 +143,6 @@ const transformMoviesData = (movies) => {
     title: movie.name_ru,
   }));
 };
-
-const errorCode = ref(null); // Добавляем переменную для хранения кода ошибки
 
 const fetchMovieInfo = async () => {
   try {
@@ -161,7 +170,8 @@ const fetchMovieInfo = async () => {
     } else {
       movieInfo.value = {
         ...movieInfo.value,
-        title: movieInfo.value.name_ru || movieInfo.value.name_original
+        title: movieInfo.value.name_ru || movieInfo.value.name_original,
+        kinopoisk_id: kp_id.value,
       };
     }
 
@@ -170,12 +180,22 @@ const fetchMovieInfo = async () => {
     const movieToSave = {
       kp_id: kp_id.value,
       title: movieInfo.value?.name_ru || movieInfo.value?.name_original,
-      poster: movieInfo.value?.poster_url || movieInfo.value?.cover_url,
+      poster: movieInfo.value?.poster_url || movieInfo.value?.cover_url || movieInfo.value?.screenshots[0],
     };
 
     // Устанавливаем фон фильма через новый метод
-    if (movieToSave.poster) {
-      store.dispatch('background/updateMoviePoster', movieToSave.poster);
+    if (kp_id.value.startsWith('shiki')) {
+      if (movieInfo.value.screenshots && movieInfo.value.screenshots.length > 0) {
+        const randomIndex = Math.floor(Math.random() * movieInfo.value.screenshots.length);
+        const randomScreenshot = movieInfo.value.screenshots[randomIndex];
+        store.dispatch('background/updateMoviePoster', randomScreenshot);
+      } else if (movieToSave.poster) {
+        store.dispatch('background/updateMoviePoster', movieToSave.poster);
+      }
+    } else {
+      if (movieToSave.poster) {
+        store.dispatch('background/updateMoviePoster', movieToSave.poster);
+      }
     }
 
     if (movieToSave.kp_id && movieToSave.title) {
@@ -184,13 +204,13 @@ const fetchMovieInfo = async () => {
   } catch (error) {
     if (error.response?.status === 404) {
       errorMessage.value = "Такого не нашлось, повторите поиск";
-      errorCode.value = 404; // Сохраняем код ошибки
+      errorCode.value = 404;
     } else if (error.response?.status === 500) {
       errorMessage.value = "Ошибка на сервере. Пожалуйста, попробуйте позже";
-      errorCode.value = 500; // Сохраняем код ошибки
+      errorCode.value = 500;
     } else {
       errorMessage.value = "Ошибка загрузки информации о фильме";
-      errorCode.value = null; // Сбрасываем код ошибки
+      errorCode.value = null;
       console.error("Ошибка при загрузке плееров:", error);
     }
   }
