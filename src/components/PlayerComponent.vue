@@ -204,14 +204,23 @@ const fetchPlayers = async () => {
       emit('update:selectedPlayer', selectedPlayerInternal.value)
     }
   } catch (error) {
-    if (error.response?.status === 403) {
-      errorMessage.value = "Упс, недоступно по требованию правообладателя";
-      if (error.response.status === 500) {
-        errorMessage.value = "Ошибка на сервере. Пожалуйста, попробуйте позже";
+    // Если сервер ответил с ошибкой
+    if (error.response) {
+      switch (error.response.status) {
+        case 403:
+          errorMessage.value = "Упс, недоступно по требованию правообладателя";
+          break;
+        case 500:
+          errorMessage.value = "Ошибка на сервере. Пожалуйста, попробуйте позже";
+          break;
+        default:
+          errorMessage.value = `Произошла ошибка: ${error.response.status}`;
       }
     } else {
-      console.error('Ошибка при загрузке плееров:', error);
+      // Если произошла другая ошибка при настройке запроса
+      errorMessage.value = `Ошибка: ${error.message}`;
     }
+    console.error('Ошибка при загрузке плееров:', error);
   }
 }
 
