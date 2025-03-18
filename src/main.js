@@ -1,3 +1,5 @@
+import 'core-js/stable';
+import 'regenerator-runtime/runtime';
 import { createApp } from 'vue';  // Import createApp from Vue
 import App from './App.vue';
 import router from './router'; // Import the router
