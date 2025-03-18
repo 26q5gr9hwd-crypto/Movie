@@ -4,80 +4,67 @@
   </div>
 
   <template v-else>
-  <div class="players-list">
-    <span>Плеер:</span>
-    <select v-model="selectedPlayerInternal" class="custom-select">
-      <option v-for="player in playersInternal" :key="player.key" :value="player">
-        {{
-          player.key === player.translate
-            ? player.translate.toUpperCase()
-            : player.key + ' - ' + player.translate.toUpperCase()
-        }}
-      </option>
-    </select>
-  </div>
-
-  <!-- Единый контейнер плеера -->
-  <div
-    ref="containerRef"
-    :class="['player-container', { 'theater-mode': theaterMode }]"
-    :style="!theaterMode ? containerStyle : {}"
-  >
-    <div class="iframe-wrapper" :style="!theaterMode ? iframeWrapperStyle : {}">
-      <!-- <div class="fullscreen" @mousemove="showCloseButton"></div> -->
-
-      <iframe
-        ref="playerIframe"
-        :src="selectedPlayerInternal?.iframe"
-        frameborder="0"
-        @load="onIframeLoad"
-        allowfullscreen
-        class="responsive-iframe"
-        :class="{ 'theater-mode-unlock': closeButtonVisible, 'theater-mode-lock': theaterMode }"
-      ></iframe>
-      <SpinnerLoading v-if="iframeLoading" />
+    <div class="players-list">
+      <span>Плеер:</span>
+      <select v-model="selectedPlayerInternal" class="custom-select">
+        <option v-for="player in playersInternal" :key="player.key" :value="player">
+          {{
+            player.key === player.translate
+              ? player.translate.toUpperCase()
+              : player.key + ' - ' + player.translate.toUpperCase()
+          }}
+        </option>
+      </select>
     </div>
 
-    <!-- Кнопка закрытия в театральном режиме -->
-    <button
-      v-if="theaterMode"
-      @click="toggleTheaterMode"
-      class="close-theater-btn"
-      :class="{ visible: closeButtonVisible }"
-    >
-      ✖
-    </button>
-  </div>
+    <!-- Единый контейнер плеера -->
+    <div ref="containerRef" :class="['player-container', { 'theater-mode': theaterMode }]"
+      :style="!theaterMode ? containerStyle : {}">
+      <div class="iframe-wrapper" :style="!theaterMode ? iframeWrapperStyle : {}">
+        <!-- <div class="fullscreen" @mousemove="showCloseButton"></div> -->
 
-  <!-- Кнопки управления -->
-  <div v-if="!isMobile" class="controls">
-    <button @click="toggleTheaterMode" class="theater-mode-btn">
-      {{ theaterMode ? 'Выйти из театрального режима' : 'Включить театральный режим' }}
-    </button>
-    <button
-      @click="setAspectRatio('16:9')"
-      :class="['aspect-ratio-btn', { active: aspectRatio === '16:9' }]"
-    >
-      16:9
-    </button>
-    <button
-      @click="setAspectRatio('12:5')"
-      :class="['aspect-ratio-btn', { active: aspectRatio === '12:5' }]"
-    >
-      12:5
-    </button>
-    <button
-      @click="setAspectRatio('4:3')"
-      :class="['aspect-ratio-btn', { active: aspectRatio === '4:3' }]"
-    >
-      4:3
-    </button>
-    <!-- Новая кнопка "Центр" -->
-    <button @click="centerPlayer" class="center-btn">Центр</button>
-    <!-- Переключатель автоцентрирования -->
-    <SliderRound v-model="isCentered">Автоцентрирование плеера</SliderRound>
-  </div>
-</template>
+        <iframe ref="playerIframe" :src="selectedPlayerInternal?.iframe" frameborder="0" @load="onIframeLoad"
+          allowfullscreen class="responsive-iframe"
+          :class="{ 'theater-mode-unlock': closeButtonVisible, 'theater-mode-lock': theaterMode }"></iframe>
+        <SpinnerLoading v-if="iframeLoading" />
+      </div>
+
+      <!-- Кнопка закрытия в театральном режиме -->
+      <button v-if="theaterMode" @click="toggleTheaterMode" class="close-theater-btn"
+        :class="{ visible: closeButtonVisible }">
+        ✖
+      </button>
+    </div>
+
+    <!-- Кнопки управления -->
+    <div v-if="!isMobile" class="controls">
+      <button @click="toggleBlur" class="blur-btn">
+        Блюр
+      </button>
+      <button @click="toggleCompressor" class="compressor-btn">
+        Компрессор
+      </button>
+      <button @click="toggleMirror" class="mirror-btn">
+        Зеркало
+      </button>
+      <button @click="toggleTheaterMode" class="theater-mode-btn">
+        {{ theaterMode ? 'Выйти из театрального режима' : 'Включить театральный режим' }}
+      </button>
+      <button @click="setAspectRatio('16:9')" :class="['aspect-ratio-btn', { active: aspectRatio === '16:9' }]">
+        16:9
+      </button>
+      <button @click="setAspectRatio('12:5')" :class="['aspect-ratio-btn', { active: aspectRatio === '12:5' }]">
+        12:5
+      </button>
+      <button @click="setAspectRatio('4:3')" :class="['aspect-ratio-btn', { active: aspectRatio === '4:3' }]">
+        4:3
+      </button>
+      <!-- Новая кнопка "Центр" -->
+      <button @click="centerPlayer" class="center-btn">Центр</button>
+      <!-- Переключатель автоцентрирования -->
+      <SliderRound v-model="isCentered">Автоцентрирование плеера</SliderRound>
+    </div>
+  </template>
 </template>
 
 <script setup>
@@ -244,6 +231,52 @@ const onIframeLoad = () => {
   }
 }
 
+const showMessageToast = (message) => {
+  const messageElement = document.createElement('div');
+  messageElement.style.position = 'fixed';
+  messageElement.style.top = '0';
+  messageElement.style.left = '0';
+  messageElement.style.width = '100%';
+  messageElement.style.height = '100%';
+  messageElement.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+  messageElement.style.color = 'white';
+  messageElement.style.display = 'flex';
+  messageElement.style.justifyContent = 'center';
+  messageElement.style.alignItems = 'center';
+  messageElement.style.fontSize = '2rem';
+  messageElement.style.zIndex = '99000';
+  messageElement.textContent = message;
+  document.body.appendChild(messageElement);
+
+  setTimeout(() => {
+    document.body.removeChild(messageElement);
+  }, 2000);
+}
+
+const toggleBlur = () => {
+  if (window.electronAPI) {
+    window.electronAPI.sendHotKey("F2");
+  } else {
+    showMessageToast("Доступно только в приложении ReYohoho Desktop");
+  }
+}
+
+const toggleCompressor = () => {
+  if (window.electronAPI) {
+    window.electronAPI.sendHotKey("F3");
+  } else {
+    showMessageToast("Доступно только в приложении ReYohoho Desktop");
+  }
+}
+
+const toggleMirror = () => {
+  if (window.electronAPI) {
+    window.electronAPI.sendHotKey("F4");
+  } else {
+    showMessageToast("Доступно только в приложении ReYohoho Desktop");
+  }
+}
+
 const toggleTheaterMode = () => {
   theaterMode.value = !theaterMode.value
   if (theaterMode.value) {
@@ -387,7 +420,8 @@ onBeforeUnmount(() => {
   background: rgba(255, 0, 0, 0.7);
   color: white;
   border: none;
-  width: 50px; /* Увеличиваем размер кнопки */
+  width: 50px;
+  /* Увеличиваем размер кнопки */
   height: 50px;
   border-radius: 50%;
   cursor: pointer;
@@ -406,7 +440,8 @@ onBeforeUnmount(() => {
 .close-theater-btn::before {
   content: '';
   position: absolute;
-  width: 80px; /* Увеличиваем невидимую область вокруг кнопки */
+  width: 80px;
+  /* Увеличиваем невидимую область вокруг кнопки */
   height: 80px;
   top: 50%;
   left: 50%;
@@ -436,6 +471,9 @@ html.no-scroll {
   align-items: center;
 }
 
+.blur-btn,
+.mirror-btn,
+.compressor-btn,
 .theater-mode-btn,
 .aspect-ratio-btn,
 .center-btn {
@@ -449,6 +487,9 @@ html.no-scroll {
   z-index: 10;
 }
 
+.blur-btn:hover,
+.mirror-btn:hover,
+.compressor-btn:hover,
 .theater-mode-btn:hover,
 .aspect-ratio-btn:hover,
 .center-btn:hover {
@@ -479,7 +520,7 @@ html.no-scroll {
 
 .custom-select:focus {
   border-color: #558839;
-  }
+}
 
 .error-message {
   color: #ff4444;

@@ -14,7 +14,7 @@
             <img :src="movieInfo.logo_url" alt="Логотип фильма" class="content-logo" />
           </div>
           <div v-else>
-            <h1 class="content-title">{{ movieInfo.name_ru }}</h1>
+            <h1 class="content-title">{{ movieInfo.title }}</h1>
           </div>
         </div>
 
@@ -67,12 +67,17 @@
 
         <meta name="title-and-year"
           :content="movieInfo.year ? `${movieInfo.title} (${movieInfo.year})` : movieInfo.title">
+
+        <meta v-if="movieInfo.name_original" name="original-title"
+          :content="movieInfo.name_original">
         <div class="additional-info">
           <h2 class="additional-info-title">Подробнее</h2>
           <div class="info-content">
             <div class="details-container">
               <ul class="info-list">
                 <li v-if="movieInfo.year"><strong>Год выпуска:</strong> {{ movieInfo.year }}</li>
+                <li v-if="movieInfo.title"><strong>Название:</strong> {{ movieInfo.title }}
+                </li>
                 <li v-if="movieInfo.name_original"><strong>Оригинальное название:</strong> {{ movieInfo.name_original }}
                 </li>
                 <li v-if="movieInfo.slogan"><strong>Слоган:</strong> {{ movieInfo.slogan }}</li>
@@ -130,7 +135,7 @@ const apiUrl = import.meta.env.VITE_APP_API_URL;
 const setDocumentTitle = () => {
   if (movieInfo.value) {
     const title = movieInfo.value.name_ru
-      || movieInfo.value.name_original
+      || movieInfo.value.name_en || movieInfo.value.name_original
       || 'Информация о фильме';
     document.title = title;
   }
@@ -140,7 +145,7 @@ const transformMoviesData = (movies) => {
   return (movies || []).map(movie => ({
     kp_id: movie.film_id,
     poster: movie.poster_url_preview || movie.poster_url,
-    title: movie.name_ru,
+    title: movie.name_ru || movie.name_en || movie.name_original,
   }));
 };
 
@@ -163,14 +168,14 @@ const fetchMovieInfo = async () => {
     if (kp_id.value.startsWith('shiki')) {
       movieInfo.value = {
         ...movieInfo.value,
-        title: movieInfo.value.name_ru,
+        title: movieInfo.value.name_ru || movieInfo.value.name_en,
         name_original: movieInfo.value.name_en,
         short_description: movieInfo.value.slogan,
       };
     } else {
       movieInfo.value = {
         ...movieInfo.value,
-        title: movieInfo.value.name_ru || movieInfo.value.name_original,
+        title: movieInfo.value.name_ru || movieInfo.value.name_en || movieInfo.value.name_original,
         kinopoisk_id: kp_id.value,
       };
     }
@@ -179,7 +184,7 @@ const fetchMovieInfo = async () => {
 
     const movieToSave = {
       kp_id: kp_id.value,
-      title: movieInfo.value?.name_ru || movieInfo.value?.name_original,
+      title: movieInfo.value?.name_ru || movieInfo.value?.name_en || movieInfo.value?.name_original,
       poster: movieInfo.value?.poster_url || movieInfo.value?.cover_url || movieInfo.value?.screenshots[0],
     };
 
@@ -222,6 +227,13 @@ const similars = computed(() => transformMoviesData(movieInfo.value?.similars));
 onMounted(async () => {
   await fetchMovieInfo();
 });
+
+watch(() => route.params.kp_id, async (newKpId) => {
+  if (newKpId && newKpId !== kp_id.value) {
+    kp_id.value = newKpId;
+    await fetchMovieInfo();
+  }
+}, { immediate: true });
 
 watch(movieInfo, () => {
   setDocumentTitle();
