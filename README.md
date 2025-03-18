@@ -106,6 +106,12 @@ yarn
 ```bash
 yarn dev
 ```
+---
+## 💕 Участники
+
+<a href="https://github.com/reyohoho/reyohoho/contributors">
+  <img src="https://contrib.rocks/image?repo=reyohoho/reyohoho" />
+</a>
 
 ---
 ## 📬 Контакты
@@ -113,13 +119,6 @@ yarn dev
 - 📧 **Email:** [reyohoho@proton.me](mailto:reyohoho@proton.me)
 - 🐙 **GitHub Issues:** [Создать issue](https://github.com/reyohoho/reyohoho/issues)
 - ✍🏼 **Telegram:** [@ReYohoho](https://t.me/ReYohoho)
-
----
-## 💕 Участники
-
-<a href="https://github.com/reyohoho/reyohoho/contributors">
-  <img src="https://contrib.rocks/image?repo=reyohoho/reyohoho" />
-</a>
 
 ---
 ## 📜 Лицензия
