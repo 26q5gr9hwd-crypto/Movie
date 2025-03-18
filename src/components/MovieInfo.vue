@@ -18,7 +18,7 @@
           </div>
         </div>
 
-        <div class="ratings-links" v-if="movieInfo.kinopoisk_id || movieInfo.imdb_id">
+        <div class="ratings-links" v-if="movieInfo.kinopoisk_id || movieInfo.imdb_id || movieInfo.shikimori_id">
           <!-- Ссылка на Кинопоиск -->
           <a v-if="movieInfo.kinopoisk_id" 
             :href="`https://www.kinopoisk.ru/film/${movieInfo.kinopoisk_id}`"
@@ -31,11 +31,14 @@
           </a>
 
           <!-- Ссылка на IMDb -->
-          <a v-if="movieInfo.imdb_id"
-            :href="`https://www.imdb.com/title/${movieInfo.imdb_id}`"
+          <a v-if="movieInfo.imdb_id || movieInfo.title"
+            :href="movieInfo.imdb_id 
+              ? `https://www.imdb.com/title/${movieInfo.imdb_id}` 
+              : `https://www.imdb.com/find/?q=${movieInfo.title}%20${movieInfo?.year}`"
             target="_blank"
             rel="noopener noreferrer"
             class="rating-link">
+            
             <img src="/src/assets/icon-imdb-logo.svg" alt="IMDb" class="rating-logo" />
             <span v-if="movieInfo.rating_imdb">{{ movieInfo.rating_imdb }}/10</span>
             <img src="/src/assets/icon-external-link.png" alt="Внешняя ссылка" class="external-link-icon" />
