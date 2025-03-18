@@ -69,13 +69,6 @@
             </a>
           </div>
 
-          <div v-if="!movieInfo.imdb_id && movieInfo.rating_imdb">
-            <div class="rating-link">
-              <img src="/src/assets/icon-imdb-logo.svg" alt="IMDb" class="rating-logo" />
-              <span>{{ movieInfo.rating_imdb }}/10</span>
-            </div>
-          </div>
-
           <!-- Shikimori -->
           <div v-if="movieInfo.shikimori_id">
             <a :href="`https://shikimori.one/animes/${movieInfo.shikimori_id}`"
