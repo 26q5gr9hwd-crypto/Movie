@@ -93,10 +93,10 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, computed, watch, nextTick } from 'vue'
-import api from '@/api/axios'
 import { useStore } from 'vuex'
 import SpinnerLoading from '@/components/SpinnerLoading.vue'
 import SliderRound from '@/components/slider/SliderRound.vue'
+import { getPlayers } from '@/api/movies'
 
 const store = useStore()
 
@@ -114,7 +114,6 @@ const playerIframe = ref(null)
 const containerRef = ref(null)
 const errorMessage = ref('')
 
-const apiUrl = import.meta.env.VITE_APP_API_URL
 const maxPlayerHeightValue = ref(window.innerHeight * 0.9) // 90% от высоты экрана
 const maxPlayerHeight = computed(() => `${maxPlayerHeightValue.value}px`)
 const isMobile = computed(() => store.state.isMobile)
@@ -192,17 +191,10 @@ const centerPlayer = () => {
 
 const fetchPlayers = async () => {
   try {
-    const response = await api.post(
-      `/cache`,
-      new URLSearchParams({
-        kinopoisk: props.kp_id,
-        type: 'movie'
-      }),
-      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
-    )
+    const players = await getPlayers(props.kp_id)
 
     // Преобразуем объект с плеерами в массив объектов
-    playersInternal.value = Object.entries(response.data).map(([key, value]) => ({
+    playersInternal.value = Object.entries(players).map(([key, value]) => ({
       key: key.toUpperCase(),
       ...value
     }))

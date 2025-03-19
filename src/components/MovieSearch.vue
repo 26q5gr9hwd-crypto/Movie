@@ -73,7 +73,6 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
-import api from '@/api/axios';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import CardsMovie from "@/components/CardsMovie.vue";
@@ -81,6 +80,7 @@ import FooterDonaters from '@/components/FooterDonaters.vue';
 import BaseModal from '@/components/BaseModal.vue';
 import DeleteButton from "@/components/buttons/DeleteButton.vue";
 import debounce from 'lodash/debounce';
+import { apiSearch } from '@/api/movies';
 
 const store = useStore();
 const router = useRouter();
@@ -155,8 +155,8 @@ const performSearch = async () => {
     }
 
     // Поиск по названию
-    const response = await api.get(`/search/${searchTerm.value}`);
-    movies.value = response.data.map(movie => ({ ...movie, kp_id: movie.id.toString() }));
+    const response = await apiSearch(searchTerm.value);
+    movies.value = response.map(movie => ({ ...movie, kp_id: movie.id.toString() }));
   } catch (error) {
     console.error('Ошибка:', error);
     if (error.response.status === 500) {
