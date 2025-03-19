@@ -173,7 +173,6 @@ watch(searchTerm, () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1002;
 
   &__content {
     position: relative;

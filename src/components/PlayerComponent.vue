@@ -17,9 +17,6 @@
       </select>
     </div>
 
-    <!-- Затемняющий оверлей для обычного режима, включается тумблером -->
-    <div v-if="dimmingEnabled && !theaterMode" class="dimming-overlay"></div>
-
     <!-- Единый контейнер плеера -->
     <div
       ref="containerRef"
@@ -34,7 +31,11 @@
           @load="onIframeLoad"
           allowfullscreen
           class="responsive-iframe"
-          :class="{ 'theater-mode-unlock': closeButtonVisible, 'theater-mode-lock': theaterMode }"
+          :class="{
+            'theater-mode-unlock': closeButtonVisible,
+            'theater-mode-lock': theaterMode,
+            dimmed: dimmingEnabled
+          }"
         ></iframe>
         <SpinnerLoading v-if="iframeLoading" />
       </div>
@@ -52,11 +53,7 @@
 
     <!-- Кнопки управления -->
     <div v-if="!isMobile" class="controls">
-      <button
-        @click="toggleDimming"
-        class="dimming-btn"
-        :class="{ active: dimmingEnabled }"
-      >
+      <button @click="toggleDimming" class="dimming-btn" :class="{ active: dimmingEnabled }">
         {{ dimmingEnabled ? 'Отключить затемнение' : 'Включить затемнение' }}
       </button>
       <button @click="toggleBlur" class="blur-btn">Блюр</button>
@@ -102,23 +99,22 @@ const router = useRouter()
 
 const props = defineProps({
   kp_id: String
-});
-const emit = defineEmits(['update:selectedPlayer']);
+})
+const emit = defineEmits(['update:selectedPlayer'])
 
-const playersInternal = ref([]);
-const selectedPlayerInternal = ref(null);
-const iframeLoading = ref(true);
-const theaterMode = ref(false);
-const closeButtonVisible = ref(false);
-const playerIframe = ref(null);
-const containerRef = ref(null);
-const errorMessage = ref('');
-const dimmingEnabled = ref(false);
+const playersInternal = ref([])
+const selectedPlayerInternal = ref(null)
+const iframeLoading = ref(true)
+const theaterMode = ref(false)
+const closeButtonVisible = ref(false)
+const playerIframe = ref(null)
+const containerRef = ref(null)
+const errorMessage = ref('')
 
-const apiUrl = import.meta.env.VITE_APP_API_URL;
-const maxPlayerHeightValue = ref(window.innerHeight * 0.9); // 90% от высоты экрана
-const maxPlayerHeight = computed(() => `${maxPlayerHeightValue.value}px`);
-const isMobile = ref(window.innerWidth <= 600);
+const apiUrl = import.meta.env.VITE_APP_API_URL
+const maxPlayerHeightValue = ref(window.innerHeight * 0.9) // 90% от высоты экрана
+const maxPlayerHeight = computed(() => `${maxPlayerHeightValue.value}px`)
+const isMobile = computed(() => store.state.isMobile)
 
 // Используем геттер для получения aspectRatio из хранилища
 const aspectRatio = computed({
@@ -227,18 +223,18 @@ const fetchPlayers = async () => {
     if (error.response) {
       switch (error.response.status) {
         case 403:
-          errorMessage.value = "Упс, недоступно по требованию правообладателя";
-          break;
+          errorMessage.value = 'Упс, недоступно по требованию правообладателя'
+          break
         case 500:
-          errorMessage.value = "Ошибка на сервере. Пожалуйста, попробуйте позже";
-          break;
+          errorMessage.value = 'Ошибка на сервере. Пожалуйста, попробуйте позже'
+          break
         default:
-          errorMessage.value = `Произошла ошибка: ${error.response.status}`;
+          errorMessage.value = `Произошла ошибка: ${error.response.status}`
       }
     } else {
-      errorMessage.value = `Ошибка: ${error.message}`;
+      errorMessage.value = `Ошибка: ${error.message}`
     }
-    console.error('Ошибка при загрузке плееров:', error);
+    console.error('Ошибка при загрузке плееров:', error)
   }
 }
 
@@ -250,48 +246,48 @@ const onIframeLoad = () => {
 }
 
 const showMessageToast = (message) => {
-  const messageElement = document.createElement('div');
-  messageElement.style.position = 'fixed';
-  messageElement.style.top = '0';
-  messageElement.style.left = '0';
-  messageElement.style.width = '100%';
-  messageElement.style.height = '100%';
-  messageElement.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-  messageElement.style.color = 'white';
-  messageElement.style.display = 'flex';
-  messageElement.style.justifyContent = 'center';
-  messageElement.style.alignItems = 'center';
-  messageElement.style.fontSize = '2rem';
-  messageElement.style.zIndex = '99000';
-  messageElement.textContent = message;
-  document.body.appendChild(messageElement);
+  const messageElement = document.createElement('div')
+  messageElement.style.position = 'fixed'
+  messageElement.style.top = '0'
+  messageElement.style.left = '0'
+  messageElement.style.width = '100%'
+  messageElement.style.height = '100%'
+  messageElement.style.backgroundColor = 'rgba(0, 0, 0, 0.8)'
+  messageElement.style.color = 'white'
+  messageElement.style.display = 'flex'
+  messageElement.style.justifyContent = 'center'
+  messageElement.style.alignItems = 'center'
+  messageElement.style.fontSize = '2rem'
+  messageElement.style.zIndex = '99000'
+  messageElement.textContent = message
+  document.body.appendChild(messageElement)
 
   setTimeout(() => {
-    document.body.removeChild(messageElement);
-  }, 2000);
+    document.body.removeChild(messageElement)
+  }, 2000)
 }
 
 const toggleBlur = () => {
   if (window.electronAPI) {
-    window.electronAPI.sendHotKey("F2");
+    window.electronAPI.sendHotKey('F2')
   } else {
-    showMessageToast("Доступно только в приложении ReYohoho Desktop");
+    showMessageToast('Доступно только в приложении ReYohoho Desktop')
   }
 }
 
 const toggleCompressor = () => {
   if (window.electronAPI) {
-    window.electronAPI.sendHotKey("F3");
+    window.electronAPI.sendHotKey('F3')
   } else {
-    showMessageToast("Доступно только в приложении ReYohoho Desktop");
+    showMessageToast('Доступно только в приложении ReYohoho Desktop')
   }
 }
 
 const toggleMirror = () => {
   if (window.electronAPI) {
-    window.electronAPI.sendHotKey("F4");
+    window.electronAPI.sendHotKey('F4')
   } else {
-    showMessageToast("Доступно только в приложении ReYohoho Desktop");
+    showMessageToast('Доступно только в приложении ReYohoho Desktop')
   }
 }
 
@@ -307,8 +303,8 @@ const toggleTheaterMode = () => {
     document.body.classList.remove('no-scroll')
   }
   closeButtonVisible.value = theaterMode.value
-    // Вызываем центрирование после закрытия театрального режима. Возможно временное решение
-    nextTick(() => {
+  // Вызываем центрирование после закрытия театрального режима. Возможно временное решение
+  nextTick(() => {
     centerPlayer()
   })
 }
@@ -322,10 +318,11 @@ const showCloseButton = (event) => {
   closeButtonVisible.value = true
 }
 
+const dimmingEnabled = computed(() => store.state.dimmingEnabled)
 const toggleDimming = () => {
   // Затемнение включается только в обычном режиме
   if (!theaterMode.value) {
-    dimmingEnabled.value = !dimmingEnabled.value
+    store.commit('toggleDimming')
   }
 }
 
@@ -387,7 +384,9 @@ onBeforeUnmount(() => {
   color: #fff;
   border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.3s, border-color 0.3s;
+  transition:
+    background-color 0.3s,
+    border-color 0.3s;
   width: 100%;
 }
 .custom-select:hover {
@@ -412,19 +411,11 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   border: none;
-  z-index: 1001;
+  z-index: 4;
 }
 
-/* Затемняющий оверлей для обычного режима */
-.dimming-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.8);
-  z-index: 1000;
-  pointer-events: none;
+.responsive-iframe.dimmed {
+  z-index: 7;
 }
 
 /* Стили для театрального режима */
@@ -432,7 +423,6 @@ onBeforeUnmount(() => {
   position: fixed;
   top: 0 !important;
   left: 0 !important;
-  z-index: 2000;
   width: 100vw !important;
   height: 100vh !important;
   background: #000;
@@ -441,6 +431,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 7;
 }
 .player-container.theater-mode .iframe-wrapper {
   width: 100% !important;
@@ -459,13 +450,15 @@ onBeforeUnmount(() => {
   height: 50px;
   border-radius: 50%;
   cursor: pointer;
-  transition: background 0.3s, opacity 0.3s;
-  z-index: 2001;
+  transition:
+    background 0.3s,
+    opacity 0.3s;
   opacity: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 24px;
+  z-index: 8;
 }
 .close-theater-btn::before {
   content: '';
@@ -505,7 +498,10 @@ html.no-scroll {
   font-size: 14px;
   border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    transform 0.2s ease,
+    box-shadow 0.3s ease;
   outline: none;
 }
 .controls button:hover {
