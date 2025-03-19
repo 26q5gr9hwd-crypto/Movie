@@ -81,8 +81,6 @@ onMounted(() => {
 }
 
 .top-100-page {
-  font-family: Arial, sans-serif;
-  color: #ffffff;
   flex: 1;
   padding-top: 20px;
   padding-bottom: 40px;

@@ -27,17 +27,21 @@
                 {{ movie.rating_imdb }}
               </span>
             </div>
+            <!-- Добавлен блок для отображения типа (сериал/фильм) в правом верхнем углу постера -->
+            <div v-if="movie.type" class="poster-type">
+              {{ movie.type.replace("🎬", "") }}
+            </div>
           </div>
         </div>
 
         <div class="movie-details">
           <div class="movie-header">
             <h3>{{ removeYearFromTitle(movie.title) }}</h3>
-            <span class="year" v-if="movie.year">{{ movie.year }}</span>
           </div>
 
-          <div v-if="!isHistory && movie.type" class="meta">
-            <span class="type">{{ movie.type.replace("🎬", "") }}</span>
+          <!-- Вместо старого места для типа выводим год выпуска -->
+          <div v-if="!isHistory && movie.year" class="meta">
+            <span class="year">{{ movie.year }}</span>
           </div>
 
           <div v-if="!isHistory && movie.views_count" class="views">
@@ -148,8 +152,8 @@ onUnmounted(() => {
 .grid {
   display: grid;
   gap: 15px;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); /* Уменьшаем минимальную ширину */
-  justify-content: center; /* Центрируем сетку */
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  justify-content: center;
   margin: 0 auto;
   width: 100%;
   padding: 0 15px;
@@ -158,14 +162,6 @@ onUnmounted(() => {
   min-height: 300px;
 }
 
-/* Стили для контейнера карточек */
-.cards-container {
-  gap: 10px;
-  justify-content: center;
-  width: 100%;
-}
-
-/* Общие стили для карточек фильмов */
 .movie-card {
     text-decoration: none;
     color: inherit;
@@ -180,34 +176,30 @@ onUnmounted(() => {
     justify-content: space-between;
     transition: transform 0.3s ease, box-shadow 0.3s ease, border 0.3s ease;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-    border: none; /* Убедимся, что граница по умолчанию отсутствует */
+    border: none;
 }
 
 .has-border {
-    border: 1px solid #ccc; /* Граница применяется только с этим классом */
+    border: 1px solid #ccc;
 }
 
-/* Эффект при наведении: подъем и усиление тени */
 .movie-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
 }
 
-/* Стили для фокуса и активного состояния карточек фильмов */
 .movie-card:focus {
     outline: 2px solid white;
     outline-offset: 2px;
     box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
-    transition: border 0.2s ease; /* Плавное появление рамки */
+    transition: border 0.2s ease;
     cursor: pointer;
 }
 
-/* Контейнер для постера */
 .movie-poster-container {
     position: relative;
 }
 
-/* Контейнер для деталей фильма */
 .movie-details {
     padding: 15px;
     flex-grow: 1;
@@ -215,7 +207,6 @@ onUnmounted(() => {
     flex-direction: column;
 }
 
-/* Заголовок фильма */
 .movie-header {
     display: flex;
     justify-content: space-between;
@@ -223,7 +214,6 @@ onUnmounted(() => {
     margin-bottom: 10px;
 }
 
-/* Ограничение количества строк у заголовка и обрезка текста */
 .movie-header h3 {
     font-size: 1.1em;
     margin: 0;
@@ -241,22 +231,21 @@ onUnmounted(() => {
     max-height: 3.6em;
 }
 
-/* Стили для постера фильма */
 .movie-poster {
   width: 100%;
   aspect-ratio: 2 / 3;
   object-fit: cover;
 }
 
-/* Контейнер для всех карточек */
 .cards-container {
   display: flex;
   flex-wrap: wrap;
   gap: 15px;
-  align-items: stretch; /* Выравнивание по вертикали */
+  align-items: stretch;
   justify-content: center;
   width: 100%;
 }
+
 .deleteButton {
   position: absolute;
   top: 5px;
@@ -287,11 +276,11 @@ onUnmounted(() => {
   color: #fff;
   display: flex;
   align-items: center;
-  gap: 5px; /* Расстояние между иконкой и текстом */
+  gap: 5px;
 }
 
 .rating-logo {
-  width: 20px; /* Размер иконок */
+  width: 20px;
   height: auto;
   display: inline-block;
 }
@@ -314,8 +303,21 @@ onUnmounted(() => {
   gap: 5px;
 }
 
+/* Новый стиль для блока с типом, отображаемым в правом верхнем углу постера */
+.poster-type {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-size: 0.9em;
+  text-transform: uppercase;
+}
+
 /* Мобильная версия */
-@media (max-width: 600px) {
+@media (max-width: 620px) {
   .grid {
     grid-template-columns: 1fr;
     gap: 10px;
@@ -340,7 +342,7 @@ onUnmounted(() => {
   }    
 
   .movie-poster-container {
-    width: 120px; /* Ширина постера увеличена */
+    width: 120px;
   }
 
   .movie-poster {
@@ -371,7 +373,7 @@ onUnmounted(() => {
   }
 
   .rating-logo {
-    width: 15px; /* Размер иконок */
+    width: 15px;
     height: auto;
     display: inline-block;
   }
@@ -379,11 +381,11 @@ onUnmounted(() => {
   .year,
   .type,
   .views {
-    font-size: 1em; /* Увеличенный шрифт */
+    font-size: 1em;
   }
 
   .eye-icon {
-    font-size: 1.2em; /* Увеличенный шрифт */
+    font-size: 1.2em;
   }
 }
 </style>
