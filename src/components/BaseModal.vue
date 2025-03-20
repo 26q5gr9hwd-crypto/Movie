@@ -63,6 +63,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    z-index: 11;
     animation: overlay-in 0.3s;
     }
 
