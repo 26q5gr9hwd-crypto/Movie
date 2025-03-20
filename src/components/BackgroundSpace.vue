@@ -43,7 +43,7 @@ const getLayerStyle = (index) => {
 }
 
 const fetchTopMovie = async () => {
-  console.log('fetch');
+  console.log('fetch')
 
   if (isFetching.value) return
   isFetching.value = true
@@ -76,6 +76,7 @@ const checkCachedTopMovie = () => {
     localStorage.removeItem(CACHE_KEY)
   } catch (e) {
     localStorage.removeItem(CACHE_KEY)
+    throw new Error(e)
   }
   return false
 }
