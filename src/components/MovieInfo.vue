@@ -140,7 +140,7 @@
 
         <meta
           name="title-and-year"
-          :content="movieInfo.year ? `${movieInfo.title} (${movieInfo.year})` : movieInfo.title"
+          :content="movieInfo.type === 'FILM' && movieInfo.year ? `${movieInfo.title} (${movieInfo.year})` : movieInfo.title"
         />
 
         <meta
