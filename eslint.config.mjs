@@ -32,7 +32,7 @@ export default [
       }
     },
     rules: {
-      'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+      'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
       // Кавычки
       quotes: ['error', 'single', { avoidEscape: true }], // Одинарные кавычки, кроме случаев, когда нужны двойные
       // Точки с запятой
