@@ -223,8 +223,10 @@ const fetchPlayers = async () => {
         case 500:
           errorMessage.value = 'Ошибка на сервере. Пожалуйста, попробуйте позже'
           break
+        case 404:
+          errorMessage.value = 'Такого не нашлось, повторите поиск'
+          break
         default:
-          errorMessage.value = `Произошла ошибка: ${error.response.status}`
           errorMessage.value = `Произошла ошибка: ${error.response.status}`
       }
     } else {

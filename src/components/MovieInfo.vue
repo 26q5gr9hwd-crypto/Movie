@@ -8,6 +8,10 @@
         </div>
       </div>
 
+      <div v-if="!movieInfo" class="content-card">
+        <PlayerComponent :kp_id="kp_id" :key="kp_id" />
+      </div>
+
       <div v-if="movieInfo" class="content-card">
         <div class="content-header">
           <div v-if="movieInfo.logo_url">
@@ -292,8 +296,11 @@ const fetchMovieInfo = async () => {
       store.dispatch('addToHistory', { ...movieToSave })
     }
   } catch (error) {
+    console.log(error);
+    console.log(error.response?.status);
+    console.log(error.status);
     if (error.response?.status === 404) {
-      errorMessage.value = 'Такого не нашлось, повторите поиск'
+      errorMessage.value = 'Данные о фильме не найдены'
       errorCode.value = 404
     } else if (error.response?.status === 500) {
       errorMessage.value = 'Ошибка на сервере. Пожалуйста, попробуйте позже'

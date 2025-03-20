@@ -5,7 +5,7 @@ const apiSearch = async (searchTerm) => {
     const { data } = await api.get(`/search/${searchTerm}`)
     return data
   } catch (error) {
-    throw new Error(error)
+    throw error
   }
 }
 
@@ -14,7 +14,7 @@ const getShikiInfo = async (shikiId) => {
     const { data } = await api.get(`/shiki_info/${shikiId}`)
     return data
   } catch (error) {
-    throw new Error(error)
+    throw error
   }
 }
 
@@ -23,7 +23,7 @@ const getKpInfo = async (kpId) => {
     const { data } = await api.get(`/kp_info2/${kpId}`)
     return data
   } catch (error) {
-    throw new Error(error)
+    throw error
   }
 }
 
@@ -39,7 +39,7 @@ const getPlayers = async (kpId) => {
     )
     return data
   } catch (error) {
-    throw new Error(error)
+    throw error
   }
 }
 
@@ -48,7 +48,7 @@ const getMovies = async ({ activeTime = 'all', typeFilter = 'all' } = {}) => {
     const { data } = await api.get(`/top/${activeTime}?type=${typeFilter}`)
     return data
   } catch (error) {
-    throw new Error(error)
+    throw error
   }
 }
 
@@ -57,7 +57,7 @@ const getDons = async () => {
     const { data } = await api.get(`/get_dons`)
     return data
   } catch (error) {
-    throw new Error(error)
+    throw error
   }
 }
 
