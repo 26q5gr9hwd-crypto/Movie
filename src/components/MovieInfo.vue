@@ -192,7 +192,7 @@
 
         <!-- Секция с похожими фильмами -->
         <div v-if="similars.length" class="related-movies">
-          <h2>Похожие фильмы</h2>
+          <h2>Похожие</h2>
           <CardsMovie :moviesList="similars" :loading="false" :isHistory="false" />
         </div>
       </div>
