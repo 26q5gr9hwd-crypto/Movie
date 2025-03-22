@@ -9,7 +9,7 @@
     <nav v-if="isNavbarVisible" class="mobile-navbar" @click.stop>
       <div class="nav-links-wrapper">
         <ul class="nav-links">
-          <li v-for="link in links" :key="link.text">
+          <li v-for="link in props.links" :key="link.text">
             <component
               :is="link.to ? 'router-link' : 'a'"
               v-bind="
@@ -28,7 +28,7 @@
           </li>
 
           <li v-if="route.name !== 'home'">
-            <a @click="toggleSearch" class="btn btn-search">
+            <a class="btn btn-search" @click="toggleSearch">
               <i class="fas fa-search"></i>
               <span class="menu-text">Поиск</span>
             </a>

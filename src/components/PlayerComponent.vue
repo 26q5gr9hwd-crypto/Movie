@@ -30,7 +30,6 @@
           ref="playerIframe"
           :src="selectedPlayerInternal?.iframe"
           frameborder="0"
-          @load="onIframeLoad"
           allowfullscreen
           class="responsive-iframe"
           :class="{
@@ -38,6 +37,7 @@
             'theater-mode-lock': theaterMode,
             dimmed: dimmingEnabled
           }"
+          @load="onIframeLoad"
         ></iframe>
         <SpinnerLoading v-if="iframeLoading" />
       </div>
@@ -45,9 +45,9 @@
       <!-- Кнопка закрытия в театральном режиме -->
       <button
         v-if="theaterMode"
-        @click="toggleTheaterMode"
         class="close-theater-btn"
         :class="{ visible: closeButtonVisible }"
+        @click="toggleTheaterMode"
       >
         ✖
       </button>
@@ -55,37 +55,37 @@
 
     <!-- Кнопки управления -->
     <div v-if="!isMobile" class="controls">
-      <button @click="toggleDimming" class="dimming-btn" :class="{ active: dimmingEnabled }">
+      <button class="dimming-btn" :class="{ active: dimmingEnabled }" @click="toggleDimming">
         {{ dimmingEnabled ? 'Отключить затемнение' : 'Включить затемнение' }}
       </button>
 
-      <button @click="toggleBlur" class="blur-btn">Блюр</button>
-      <button @click="toggleCompressor" class="compressor-btn">Компрессор</button>
-      <button @click="toggleMirror" class="mirror-btn">Зеркало</button>
+      <button class="blur-btn" @click="toggleBlur">Блюр</button>
+      <button class="compressor-btn" @click="toggleCompressor">Компрессор</button>
+      <button class="mirror-btn" @click="toggleMirror">Зеркало</button>
 
-      <button @click="toggleTheaterMode" class="theater-mode-btn">
+      <button class="theater-mode-btn" @click="toggleTheaterMode">
         {{ theaterMode ? 'Выйти из театрального режима' : 'Включить театральный режим' }}
       </button>
 
       <button
-        @click="setAspectRatio('16:9')"
         :class="['aspect-ratio-btn', { active: aspectRatio === '16:9' }]"
+        @click="setAspectRatio('16:9')"
       >
         16:9
       </button>
       <button
-        @click="setAspectRatio('12:5')"
         :class="['aspect-ratio-btn', { active: aspectRatio === '12:5' }]"
+        @click="setAspectRatio('12:5')"
       >
         12:5
       </button>
       <button
-        @click="setAspectRatio('4:3')"
         :class="['aspect-ratio-btn', { active: aspectRatio === '4:3' }]"
+        @click="setAspectRatio('4:3')"
       >
         4:3
       </button>
-      <button @click="centerPlayer" class="center-btn">Центр</button>
+      <button class="center-btn" @click="centerPlayer">Центр</button>
       <SliderRound v-model="isCentered">Автоцентрирование плеера</SliderRound>
     </div>
   </template>
@@ -101,7 +101,7 @@ import { getPlayers } from '@/api/movies'
 const store = useStore()
 
 const props = defineProps({
-  kp_id: String
+  kpId: String
 })
 const emit = defineEmits(['update:selectedPlayer'])
 
@@ -191,7 +191,9 @@ const centerPlayer = () => {
 
 const fetchPlayers = async () => {
   try {
-    const players = await getPlayers(props.kp_id)
+    console.log(props.kpId)
+    
+    const players = await getPlayers(props.kpId)
 
     // Преобразуем объект с плеерами в массив объектов
     playersInternal.value = Object.entries(players).map(([key, value]) => ({
@@ -308,7 +310,7 @@ const toggleTheaterMode = () => {
 }
 
 const theaterModeCloseButtonTimeout = ref(null)
-const showCloseButton = (event) => {
+const showCloseButton = () => {
   theaterModeCloseButtonTimeout.value = setTimeout(() => {
     clearTimeout(theaterModeCloseButtonTimeout.value)
     closeButtonVisible.value = false
