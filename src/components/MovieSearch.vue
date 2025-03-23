@@ -361,12 +361,13 @@ h2 {
 
 @media (max-width: 600px) {
   .mainpage {
-    padding-top: 50px;
+    padding-top: 0;
     height: calc(100vh - 30px - 63px);
   }
 
-  .search-container {
-    padding: 5px;
+  .search-container,
+  .search-type-buttons {
+    padding: 0;
   }
 }
 </style>

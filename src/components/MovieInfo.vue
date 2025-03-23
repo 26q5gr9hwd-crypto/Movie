@@ -13,7 +13,7 @@
 
       <div v-if="movieInfo" class="content-card">
         <div class="content-header">
-          <div v-if="movieInfo.logo_url">
+          <div v-if="movieInfo.logo_url" class="content-logo">
             <img :src="movieInfo.logo_url" alt="Логотип фильма" class="content-logo" />
           </div>
           <div v-else>
@@ -208,13 +208,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import PlayerComponent from '@/components/PlayerComponent.vue'
 import CardsMovie from '@/components/CardsMovie.vue'
 import { useStore } from 'vuex'
 import { getKpInfo, getShikiInfo } from '@/api/movies'
 import { TYPES_ENUM } from '@/constants'
+import { useNavbarStore } from '@/store/navbar'
 
 const store = useStore()
 const route = useRoute()
@@ -222,6 +223,7 @@ const kp_id = ref(route.params.kp_id)
 const errorMessage = ref('')
 const errorCode = ref(null)
 const movieInfo = ref(null)
+const navbarStore = useNavbarStore()
 
 const setDocumentTitle = () => {
   if (movieInfo.value) {
@@ -272,6 +274,11 @@ const fetchMovieInfo = async () => {
         kinopoisk_id: kp_id.value
       }
     }
+
+    navbarStore.setHeaderContent({
+      text: movieInfo.value.title,
+      imageUrl: movieInfo.value.logo_url
+      })
 
     setDocumentTitle()
 
@@ -330,10 +337,15 @@ onMounted(async () => {
   await fetchMovieInfo()
 })
 
+onUnmounted(async () => {
+  navbarStore.clearHeaderContent()
+})
+
 watch(
   () => route.params.kp_id,
   async (newKpId) => {
     if (newKpId && newKpId !== kp_id.value) {
+      navbarStore.clearHeaderContent()
       kp_id.value = newKpId
       await fetchMovieInfo()
     }
@@ -359,19 +371,31 @@ watch(
 }
 
 .content-header {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.content-title {
-  font-size: 36px;
-  margin: 0 0 10px;
+  height: 80px;
+  width: 100%;
+  display: flex;
+  align-items: center; 
+  justify-content: center; 
+  overflow: hidden; 
 }
 
 .content-logo {
   max-height: 80px;
+  height: 80px;
+  width: auto; 
   object-fit: contain;
+  max-width: 100%;
+}
+
+.content-title {
+  font-size: 55px;
+  margin: 0;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
+  text-align: center;
 }
 
 .content-subtitle {
@@ -493,15 +517,21 @@ watch(
 
 @media (max-width: 600px) {
   .content-card {
-    padding: 10px 2px;
+    padding: 0 2px;
   }
 
+  .content-header,
+  .content-logo,
   .content-title {
-    font-size: 28px;
+    display: none; 
   }
 
   .content-subtitle {
     font-size: 16px;
+  }
+
+  .ratings-links {
+    margin: 5px 0;
   }
 
   .additional-info-title {

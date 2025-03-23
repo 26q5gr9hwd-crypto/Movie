@@ -23,12 +23,14 @@ defineProps({
   display: flex;
   justify-content: center;
   align-items: center;
+  pointer-events: none;
 }
 
 .spinner {
   width: 70px;
   height: 70px;
   animation: spin 1s linear infinite;
+  pointer-events: none;
 }
 
 @keyframes spin {

@@ -156,4 +156,10 @@ button.active {
 .custom-select:focus {
   border-color: #558839;
 }
+
+@media (max-width: 600px) {
+  .top-100-page {
+    padding-top: 0;
+  }
+}
 </style>

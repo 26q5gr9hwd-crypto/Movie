@@ -71,15 +71,16 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import debounce from 'lodash/debounce'
 import { inRange } from 'lodash'
 import { apiSearch } from '@/api/movies'
 import { TYPES_ENUM } from '@/constants'
+import { useNavbarStore } from '@/store/navbar'
 
-const emit = defineEmits(['closeModal'])
+const router = useRoute()
 
-const router = useRouter()
+const navbarStore = useNavbarStore()
 
 const searchTerm = ref('')
 const movies = ref([])
@@ -149,7 +150,7 @@ const closeModal = (event) => {
 
   // Если это обычный клик, скрываем попап
   if ((isLeftClick && isNotModified) || !event) {
-    emit('closeModal')
+    navbarStore.closeSearchModal() // Используем метод из хранилища для закрытия модалки
     resetSearch()
   }
 }

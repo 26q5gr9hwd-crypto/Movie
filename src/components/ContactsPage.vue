@@ -23,7 +23,6 @@
   
 <style scoped>
   .contact-text {
-  font-family: Arial, sans-serif;
   color: #ffffff;
   background-color: #333333;
   padding: 20px;

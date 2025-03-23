@@ -1,32 +1,31 @@
 <template>
   <div class="nav-component">
     <!-- Мобильное меню -->
-    <MobileMenu v-if="isMobile" :links="navLinks" @toggle-search="toggleModalSearch" />
+    <MobileMenu v-if="isMobile" :links="navLinks" />
 
     <!-- Десктопная боковая панель -->
-    <DesktopMenu v-else :links="navLinks" @toggle-search="toggleModalSearch" />
+    <DesktopMenu v-else :links="navLinks" />
 
     <!-- Модальное окно поиска -->
     <transition name="fade">
-      <ModalSearch v-if="isModalSearchVisible" @close-modal="toggleModalSearch" />
+      <ModalSearch v-if="navbarStore.isModalSearchVisible" />
     </transition>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-
+import { computed } from 'vue'
+import { useStore } from 'vuex'
+import { useNavbarStore } from '@/store/navbar'
 import MobileMenu from './MenuNavigation/MobileMenu.vue'
 import DesktopMenu from './MenuNavigation/DesktopMenu.vue'
 import ModalSearch from './ModalSearch.vue'
-import { useStore } from 'vuex'
 
 const store = useStore()
+const navbarStore = useNavbarStore()
 
-// Определяем, мобильное ли устройство (ширина окна меньше 600px)
 const isMobile = computed(() => store.state.isMobile)
 
-// Массив навигационных ссылок
 const navLinks = [
   { to: '/', exact: true, icon: 'fas fa-home', text: 'Главная' },
   { to: '/top', icon: 'fa-solid fa-trophy', text: 'Популярное' },
@@ -52,12 +51,6 @@ const navLinks = [
   { href: 'https://t.me/ReYohoho_Donut_Bot', icon: '', text: 'Поддержать' },
   { to: '/setting', icon: 'fa-solid fa-gear', text: 'Настройки' }
 ]
-
-// Поиск в модальном окне
-const isModalSearchVisible = ref(false)
-const toggleModalSearch = () => {
-  isModalSearchVisible.value = !isModalSearchVisible.value
-}
 </script>
 
 <style scoped>

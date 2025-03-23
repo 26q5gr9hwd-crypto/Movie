@@ -1,7 +1,9 @@
 <template>
   <BackgroundSpace />
+  <MobileHeader v-if="isMobile"/>
   <MenuNavigation />
-  <div class="router-view-container">
+  
+  <div :class="['router-view-container', { 'router-view-container--with-mobile-header': isMobile }]">
     <router-view v-slot="{ Component }">
       <component :is="Component" />
     </router-view>
@@ -14,10 +16,13 @@
 <script setup>
 import BackgroundSpace from '@/components/BackgroundSpace.vue'
 import MenuNavigation from '@/components/MenuNavigation.vue'
+import MobileHeader from '@/components/MobileHeader.vue'
 import { computed, onMounted, onUnmounted } from 'vue'
 import { useStore } from 'vuex'
 
 const store = useStore()
+
+const isMobile = computed(() => store.state.isMobile)
 
 // Реактивное состояние для ширины окна
 const updateIsMobile = () => {
@@ -64,5 +69,15 @@ const toggleDimming = () => {
   height: 100vh;
   background: rgba(0, 0, 0, 0.8);
   z-index: 5;
+}
+
+/* Стиль для страницы с учетом мобильного хедера */
+.router-view-container {
+  padding-top: 0; /* По умолчанию без отступа */
+}
+
+/* Отступ сверху для мобильного хедера */
+.router-view-container--with-mobile-header {
+  padding-top: 60px; /* Здесь height хедера */
 }
 </style>

@@ -6,6 +6,7 @@
         :checked="modelValue" 
         :disabled="disabled"
         @change="onChange"
+        @keydown.enter.prevent="toggle"
       />
       <span class="slider"></span>
     </label>
@@ -33,6 +34,12 @@ function onChange(event) {
     emit('update:modelValue', event.target.checked)
   }
 }
+
+function toggle() {
+  if (!props.disabled) {
+    emit('update:modelValue', !props.modelValue)
+  }
+}
 </script>
 
 <style scoped>
@@ -41,20 +48,20 @@ function onChange(event) {
     align-items: center;
     gap: 8px;
   }
-  
+
   .switch {
     position: relative;
     display: inline-block;
     width: 48px;
     height: 24px;
   }
-  
+
   .switch input {
     opacity: 0;
     width: 0;
     height: 0;
   }
-  
+
   .slider {
     position: absolute;
     cursor: pointer;
@@ -66,7 +73,7 @@ function onChange(event) {
     transition: .3s;
     border-radius: 24px;
   }
-  
+
   .slider:before {
     position: absolute;
     content: "";
@@ -78,16 +85,22 @@ function onChange(event) {
     transition: .3s;
     border-radius: 50%;
   }
-  
+
   input:checked + .slider {
     background-color: #4caf50;
   }
-  
+
   input:checked + .slider:before {
     transform: translateX(24px);
   }
-  
+
   .label-text {
     color: #fff;
+  }
+
+  /* Стили для фокуса при навигации с клавиатуры */
+  input:focus-visible + .slider {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
   }
 </style>

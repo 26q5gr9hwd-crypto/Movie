@@ -5,6 +5,7 @@ import App from './App.vue'
 import router from './router' // Import the router
 import VueCookies from 'vue3-cookies'
 import store from './store/store'
+import { createPinia } from 'pinia'
 import jQuery from 'jquery'
 import { initYandexMetrika } from 'yandex-metrika-vue3'
 const $ = jQuery
@@ -12,10 +13,13 @@ window.$ = $
 
 const app = createApp(App)
 
+const pinia = createPinia()
+
 app
   .use(VueCookies)
   .use(router)
   .use(store)
+  .use(pinia)
   .use(initYandexMetrika, {
     id: 94822173,
     router: router,
