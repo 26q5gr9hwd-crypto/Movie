@@ -4,7 +4,8 @@
         <ToggleMenu @toggle-navbar="toggleNavbar" />
         <div class="header-content">
             <!-- Если есть изображение, показываем его -->
-            <img v-if="navbarStore.headerContent && navbarStore.headerContent.imageUrl"
+            <img
+                v-if="navbarStore.headerContent && navbarStore.headerContent.imageUrl"
                 :src="navbarStore.headerContent.imageUrl" alt="Логотип" />
 
             <!-- Если изображения нет, но есть текст, показываем текст -->
