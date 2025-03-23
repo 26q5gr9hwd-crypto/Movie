@@ -6,7 +6,7 @@
   <template v-else>
     <div class="players-list">
       <span>Плеер:</span>
-      <select v-model="selectedPlayerInternal" class="custom-select">
+      <select v-model="selectedPlayerInternal" class="custom-select" tabindex="0">
         <option v-for="player in playersInternal" :key="player.key" :value="player">
           {{
             player.key === player.translate
@@ -38,6 +38,7 @@
             'theater-mode-lock': theaterMode,
             dimmed: dimmingEnabled
           }"
+          tabindex="0"
         ></iframe>
         <SpinnerLoading v-if="iframeLoading" />
       </div>
@@ -55,37 +56,40 @@
 
     <!-- Кнопки управления -->
     <div v-if="!isMobile" class="controls">
-      <button @click="toggleDimming" class="dimming-btn" :class="{ active: dimmingEnabled }">
-        {{ dimmingEnabled ? 'Отключить затемнение' : 'Включить затемнение' }}
+      <button @click="toggleDimming" class="dimming-btn" :class="{ active: dimmingEnabled }" tabindex="0">
+        {{ dimmingEnabled ? 'Отменить' : 'Затемнение' }}
       </button>
 
-      <button @click="toggleBlur" class="blur-btn">Блюр</button>
-      <button @click="toggleCompressor" class="compressor-btn">Компрессор</button>
-      <button @click="toggleMirror" class="mirror-btn">Зеркало</button>
+      <button @click="toggleBlur" class="blur-btn" tabindex="-1">Блюр</button>
+      <button @click="toggleCompressor" class="compressor-btn" tabindex="-1">Компрессор</button>
+      <button @click="toggleMirror" class="mirror-btn" tabindex="-1">Зеркало</button>
 
       <button @click="toggleTheaterMode" class="theater-mode-btn">
-        {{ theaterMode ? 'Выйти из театрального режима' : 'Включить театральный режим' }}
+        {{ theaterMode ? 'Отменить' : 'Театральный режим' }}
       </button>
 
       <button
         @click="setAspectRatio('16:9')"
         :class="['aspect-ratio-btn', { active: aspectRatio === '16:9' }]"
+        tabindex="0"
       >
         16:9
       </button>
       <button
         @click="setAspectRatio('12:5')"
         :class="['aspect-ratio-btn', { active: aspectRatio === '12:5' }]"
+        tabindex="0"
       >
         12:5
       </button>
       <button
         @click="setAspectRatio('4:3')"
         :class="['aspect-ratio-btn', { active: aspectRatio === '4:3' }]"
+        tabindex="0"
       >
         4:3
       </button>
-      <button @click="centerPlayer" class="center-btn">Центр</button>
+      <button @click="centerPlayer" class="center-btn" tabindex="0">Центр</button>
       <SliderRound v-model="isCentered">Автоцентрирование плеера</SliderRound>
     </div>
   </template>
@@ -497,7 +501,6 @@ html.no-scroll {
     background-color 0.3s ease,
     transform 0.2s ease,
     box-shadow 0.3s ease;
-  outline: none;
   z-index: 4;
 }
 .controls button:hover {

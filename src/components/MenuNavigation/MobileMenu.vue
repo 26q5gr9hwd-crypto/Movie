@@ -1,10 +1,7 @@
 <template>
   <!-- Мобильный бургер для открытия/закрытия мобильного меню -->
-  <button class="mobile-burger" @click.stop="toggleNavbar">
-    <div>
-      {{ isNavbarVisible ? '&#10005;' : '&#9776;' }}
-    </div>
-  </button>
+  <ToggleMenu @toggleNavbar="toggleNavbar" />
+
   <transition name="slide">
     <nav v-if="isNavbarVisible" class="mobile-navbar" @click.stop>
       <div class="nav-links-wrapper">
@@ -44,6 +41,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
+import ToggleMenu from '@/components/buttons/ToggleMenu.vue'
 
 const props = defineProps({
   links: Array
@@ -88,21 +86,6 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.mobile-burger {
-  position: fixed;
-  top: 6px;
-  left: 10px;
-  background: rgba(61, 61, 61, 0.96);
-  border: none;
-  color: #fff;
-  font-size: 1.4rem;
-  cursor: pointer;
-  padding: 0;
-  width: 40px;
-  height: 40px;
-  z-index: 6;
-}
-
 .nav-links-wrapper {
   flex: 1;
   overflow-y: auto;
@@ -174,7 +157,4 @@ onBeforeUnmount(() => {
   object-fit: contain;
 }
 
-.btn {
-  cursor: pointer;
-}
 </style>

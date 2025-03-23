@@ -4,20 +4,20 @@
     align-items: center;
     gap: 8px;
   }
-  
+
   .switch {
     position: relative;
     display: inline-block;
     width: 48px;
     height: 24px;
   }
-  
+
   .switch input {
     opacity: 0;
     width: 0;
     height: 0;
   }
-  
+
   .slider {
     position: absolute;
     cursor: pointer;
@@ -29,7 +29,7 @@
     transition: .3s;
     border-radius: 24px;
   }
-  
+
   .slider:before {
     position: absolute;
     content: "";
@@ -41,17 +41,23 @@
     transition: .3s;
     border-radius: 50%;
   }
-  
+
   input:checked + .slider {
     background-color: #4caf50;
   }
-  
+
   input:checked + .slider:before {
     transform: translateX(24px);
   }
-  
+
   .label-text {
     color: #fff;
+  }
+
+  /* Стили для фокуса при навигации с клавиатуры */
+  input:focus-visible + .slider {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
   }
 </style>
 
@@ -63,6 +69,9 @@
         :checked="modelValue" 
         :disabled="disabled"
         @change="onChange"
+        @keydown.space.prevent="toggle"
+        @keydown.enter.prevent="toggle"
+        tabindex="0"
       >
       <span class="slider"></span>
     </label>
@@ -85,9 +94,14 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 function onChange(event) {
-  // Эмитируем событие только если компонент не заблокирован
   if (!props.disabled) {
     emit('update:modelValue', event.target.checked)
+  }
+}
+
+function toggle() {
+  if (!props.disabled) {
+    emit('update:modelValue', !props.modelValue)
   }
 }
 </script>
