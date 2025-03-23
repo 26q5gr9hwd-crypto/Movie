@@ -6,6 +6,7 @@
         :checked="modelValue" 
         :disabled="disabled"
         @change="onChange"
+        @keydown.enter.prevent="toggle"
       />
       <span class="slider"></span>
     </label>
@@ -31,6 +32,12 @@ function onChange(event) {
   // Эмитируем событие только если компонент не заблокирован
   if (!props.disabled) {
     emit('update:modelValue', event.target.checked)
+  }
+}
+
+function toggle() {
+  if (!props.disabled) {
+    emit('update:modelValue', !props.modelValue)
   }
 }
 </script>

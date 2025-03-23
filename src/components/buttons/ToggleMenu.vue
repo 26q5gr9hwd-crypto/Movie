@@ -1,65 +1,52 @@
-<script setup>
-const emit = defineEmits(['toggleNavbar']);
-</script>
-
 <template>
-  <input type="checkbox" id="checkbox" @change="emit('toggleNavbar')">
-  <label for="checkbox" class="toggle">
-      <div class="bars" id="bar1"></div>
-      <div class="bars" id="bar2"></div>
-      <div class="bars" id="bar3"></div>
-  </label>
+  <button class="toggle" @click="toggle">
+    <i :class="['fas', navbarStore.isNavbarVisible ? 'fa-times' : 'fa-bars', { 'animate': animate }]" ></i>
+  </button>
 </template>
 
+<script setup>
+import { ref } from 'vue'
+import { useNavbarStore } from '@/store/navbar'
+
+const navbarStore = useNavbarStore()  // Используем store для состояния навбара
+const animate = ref(false)
+
+function toggle() {
+  // Запускаем анимацию перед переключением иконки
+  animate.value = true
+  // Используем небольшой timeout для анимации (например, 150 мс)
+  setTimeout(() => {
+    navbarStore.toggleNavbar()  // Переключаем состояние навбара через store
+    // Сбрасываем флаг анимации
+    animate.value = false
+  }, 150)
+}
+</script>
+
 <style scoped>
-  #checkbox {
-    display: none;
-  }
+.toggle {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 30px;
+  margin: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+  transition: transform 0.3s ease;
+  z-index: 6;
+  color: #fff;
+}
 
-  .toggle {
-    position: fixed;
-    width: 40px;
-    height: 40px;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    transition-duration: .3s;
-    z-index: 6;
-    left: 10px;
-    top: 10px;
-  }
+/* Базовая анимация для иконки */
+.toggle i {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
 
-  .bars {
-    width: 100%;
-    height: 4px;
-    background-color: rgb(202, 209, 207);
-    border-radius: 5px;
-    transition-duration: .3s;
-  }
-
-  #checkbox:checked + .toggle .bars {
-    margin-left: 13px;
-  }
-
-  #checkbox:checked + .toggle #bar2 {
-    transform: rotate(135deg);
-    margin-left: 0;
-    transform-origin: center;
-    transition-duration: .3s;
-  }
-
-  #checkbox:checked + .toggle #bar1 {
-    transform: rotate(45deg);
-    transition-duration: .3s;
-    transform-origin: left center;
-  }
-
-  #checkbox:checked + .toggle #bar3 {
-    transform: rotate(-45deg);
-    transition-duration: .3s;
-    transform-origin: left center;
-  }
+/* При добавлении класса .animate можно задать эффект, например, увеличение или небольшое вращение */
+.animate {
+  transform: scale(1.2);
+  opacity: 0.7;
+}
 </style>

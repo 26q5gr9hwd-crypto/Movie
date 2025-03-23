@@ -60,14 +60,16 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { useNavbarStore } from '@/store/navbar' 
 
 const props = defineProps({
   links: Array
 })
 
-const emit = defineEmits(['toggleSearch'])
-
 const route = useRoute()
+
+// Получаем доступ к хранилищу
+const navbarStore = useNavbarStore()
 
 // Флаг состояния боковой панели
 const isSidebarOpen = ref(false)
@@ -109,11 +111,12 @@ const tooltipStyle = computed(() => ({
   top: `${tooltipPosition.value.y}px`
 }))
 
-// Открыть модалку поиска
+// Открыть модалку поиска через хранилище
 const toggleSearch = () => {
   closeSidebar()
-  emit('toggleSearch')
+  navbarStore.openSearchModal()  // Используем метод из хранилища для управления модалкой поиска
 }
+
 // Добавляем и удаляем обработчики событий при монтировании/размонтировании компонента
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)

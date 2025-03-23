@@ -6,7 +6,7 @@
   <template v-else>
     <div class="players-list">
       <span>Плеер:</span>
-      <select v-model="selectedPlayerInternal" class="custom-select" tabindex="0">
+      <select v-model="selectedPlayerInternal" class="custom-select">
         <option v-for="player in playersInternal" :key="player.key" :value="player">
           {{
             player.key === player.translate
@@ -37,7 +37,6 @@
             'theater-mode-lock': theaterMode,
             dimmed: dimmingEnabled
           }"
-          tabindex="0"
           @load="onIframeLoad"
         ></iframe>
         <SpinnerLoading v-if="iframeLoading" />
@@ -57,34 +56,31 @@
     <!-- Кнопки управления -->
     <div v-if="!isMobile" class="controls">
       <button class="dimming-btn" :class="{ active: dimmingEnabled }" @click="toggleDimming">
-        {{ dimmingEnabled ? 'Отключить затемнение' : 'Включить затемнение' }}
+        {{ dimmingEnabled ? 'Отключить' : 'Затемнение' }}
       </button>
 
-      <button class="blur-btn" @click="toggleBlur">Блюр</button>
-      <button class="compressor-btn" @click="toggleCompressor">Компрессор</button>
-      <button class="mirror-btn" @click="toggleMirror">Зеркало</button>
+      <button class="blur-btn" tabindex="-1" @click="toggleBlur">Блюр</button>
+      <button class="compressor-btn" tabindex="-1" @click="toggleCompressor">Компрессор</button>
+      <button class="mirror-btn" tabindex="-1" @click="toggleMirror">Зеркало</button>
 
-      <button class="theater-mode-btn" @click="toggleTheaterMode">
-        {{ theaterMode ? 'Выйти из театрального режима' : 'Включить театральный режим' }}
+      <button class="theater-mode-btn" tabindex="-1" @click="toggleTheaterMode">
+        {{ theaterMode ? 'Выйти из театрального режима' : 'Театральный режим' }}
       </button>
 
       <button
         :class="['aspect-ratio-btn', { active: aspectRatio === '16:9' }]"
-        tabindex="0"
         @click="setAspectRatio('16:9')"
       >
         16:9
       </button>
       <button
         :class="['aspect-ratio-btn', { active: aspectRatio === '12:5' }]"
-        tabindex="0"
         @click="setAspectRatio('12:5')"
       >
         12:5
       </button>
       <button
         :class="['aspect-ratio-btn', { active: aspectRatio === '4:3' }]"
-        tabindex="0"
         @click="setAspectRatio('4:3')"
       >
         4:3
@@ -101,8 +97,11 @@ import { useStore } from 'vuex'
 import SpinnerLoading from '@/components/SpinnerLoading.vue'
 import SliderRound from '@/components/slider/SliderRound.vue'
 import { getPlayers } from '@/api/movies'
+import { useRoute } from 'vue-router'
 
 const store = useStore()
+const route = useRoute()
+const kp_id = ref(route.params.kp_id)
 
 const props = defineProps({
   kpId: String
@@ -242,13 +241,6 @@ const fetchPlayers = async () => {
   }
 }
 
-const onIframeLoad = () => {
-  iframeLoading.value = false
-  if (isCentered.value) {
-    centerPlayer()
-  }
-}
-
 const showMessageToast = (message) => {
   const messageElement = document.createElement('div')
   messageElement.style.position = 'fixed'
@@ -350,6 +342,19 @@ watch(selectedPlayerInternal, (newVal) => {
   emit('update:selectedPlayer', newVal)
 })
 
+watch(
+  () => route.params.kp_id,
+  async (newKpId) => {
+    if (newKpId && newKpId !== kp_id.value) {
+      kp_id.value = newKpId
+      if (isCentered.value) {
+        centerPlayer()
+      }
+    }
+  },
+  { immediate: true }
+)
+
 onMounted(() => {
   iframeLoading.value = true
   fetchPlayers()
@@ -358,6 +363,9 @@ onMounted(() => {
   }
   updateScaleFactor()
   window.addEventListener('resize', updateScaleFactor)
+  if (isCentered.value) {
+        centerPlayer()
+      }
 })
 
 onBeforeUnmount(() => {
