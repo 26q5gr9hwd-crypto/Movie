@@ -47,6 +47,7 @@ const { closeNavbar, toggleSearchModal } = navbarStore
 
 const toggleSearch = () => {
   toggleSearchModal()
+  navbarStore.closeNavbar()
 }
 
 </script>
