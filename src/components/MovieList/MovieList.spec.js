@@ -1,7 +1,7 @@
 import { CardMovie, CardMovieSwipeWrapper } from '@/components/CardMovie'
 import SpinnerLoading from '@/components/SpinnerLoading.vue'
 import { flushPromises, mount } from '@vue/test-utils'
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { createStore } from 'vuex'
@@ -81,6 +81,12 @@ describe('Тесты компонента MovieList', () => {
     }
 
     window.open = vi.fn()
+
+    vi.useFakeTimers()
+  })
+
+  afterAll(() => {
+    vi.useRealTimers()
   })
 
   beforeEach(async () => {
@@ -204,29 +210,32 @@ describe('Тесты компонента MovieList', () => {
   it('Удаляет карточку из списка свайпом, когда это список историй и мобилка', async () => {
     const wrapper = mountComponent(false, true, createDateStore({ isMobile: true }))
     const randomMovie = getRandomMovie(BASE_MOVIES_MOCK)
-    const movieCardDataTestId = `movie-card-${randomMovie.kp_id}`
+    const currentSwipe = wrapper.find(`[data-test-id="movie-card-swipe-wrapper-${randomMovie.kp_id}"]`)
+    const currentSwipeWrapper = currentSwipe.find('[data-test-id="swipe-ref-element"]')
 
-    const card = wrapper.find(`[data-test-id="${movieCardDataTestId}"]`)
 
-    expect(card.exists()).toBe(true)
+    expect(currentSwipeWrapper.exists()).toBe(true)
 
-    /* 
-    startX = 200
-    currentX = 50
-    deltaX = currentX - startX = -150
-    deltaX < threshold(-100)
-    */
-    await card.trigger('touchstart', {
-      touches: [{ clientX: 200 }]
+    // Мокаем offsetWidth
+    Object.defineProperty(currentSwipeWrapper.element, 'offsetWidth', {
+      value: 300,
+      writable: true
     })
-    await card.trigger('touchmove', {
-      touches: [{ clientX: 50 }]
+
+
+    await currentSwipe.trigger('touchstart', {
+      touches: [{ clientX: 300 }]
     })
-    await card.trigger('touchend')
+    await currentSwipe.trigger('touchmove', {
+      touches: [{ clientX: 49 }]
+    })
+    await currentSwipe.trigger('touchend')
+    vi.advanceTimersByTime(300)
 
     expect(removeFromHistory).toHaveBeenCalledWith(expect.anything(), randomMovie.kp_id)
   })
 
+  
   it('Не Удаляет карточку из списка свайпом, когда это НЕ список историй и мобилка', async () => {
     const wrapper = mountComponent(false, false, createDateStore({ isMobile: true }))
     const swipeWrappers = wrapper.findAllComponents(CardMovieSwipeWrapper)
@@ -235,23 +244,30 @@ describe('Тесты компонента MovieList', () => {
 
   })
 
-  it('Не удаляет карточку, если свайп влево слишком короткий (deltaX > threshold), это список историй и мобилка', async () => {
+  it('Не удаляет карточку, если свайп слишком короткий, это список историй и мобилка', async () => {
     const wrapper = mountComponent(false, true, createDateStore({ isMobile: true }))
-    const movie = getRandomMovie(BASE_MOVIES_MOCK)
-    const movieCardDataTestId = `movie-card-${movie.kp_id}`
+    const randomMovie = getRandomMovie(BASE_MOVIES_MOCK)
+    const currentSwipe = wrapper.find(`[data-test-id="movie-card-swipe-wrapper-${randomMovie.kp_id}"]`)
+    const currentSwipeWrapper = currentSwipe.find('[data-test-id="swipe-ref-element"]')
 
-    const card = wrapper.find(`[data-test-id="${movieCardDataTestId}"]`)
 
-    expect(card.exists()).toBe(true)
+    expect(currentSwipeWrapper.exists()).toBe(true)
 
-    // Свайп влево: 200 → 110 = deltaX = -90
-    await card.trigger('touchstart', {
-      touches: [{ clientX: 200 }]
+    // Мокаем offsetWidth
+    Object.defineProperty(currentSwipeWrapper.element, 'offsetWidth', {
+      value: 300,
+      writable: true
     })
-    await card.trigger('touchmove', {
-      touches: [{ clientX: 110 }]
+
+
+    await currentSwipe.trigger('touchstart', {
+      touches: [{ clientX: 100 }]
     })
-    await card.trigger('touchend')
+    await currentSwipe.trigger('touchmove', {
+      touches: [{ clientX: 30 }]
+    })
+    await currentSwipe.trigger('touchend')
+    vi.advanceTimersByTime(300)
 
     expect(removeFromHistory).not.toHaveBeenCalled()
   })

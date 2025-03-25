@@ -1,69 +1,159 @@
 <template>
   <div
-    class="swipe-wrapper"
-    :class="{ swiping }"
+    class="swipe-container"
     @touchstart="onTouchStart"
     @touchmove="onTouchMove"
     @touchend="onTouchEnd"
   >
-    <slot ></slot>
+    <div
+      v-show="!disabled"
+      class="swipe-background"
+      :class="{
+        'swipe-left': deltaX > 0,
+        'swipe-right': deltaX < 0
+      }"
+    >
+      <div v-show="startX" class="icon-container">
+        <slot name="swipe-icon">
+          <TrashIcon />
+        </slot>
+      </div>
+    </div>
+
+    <div
+      ref="swipeElement"
+      data-test-id="swipe-ref-element"
+      class="swipe-wrapper"
+      :class="{ swiping }"
+      :style="{
+        transform: `translateX(${translateValue}px)`,
+        transition: swiping ? 'none' : 'transform 0.3s ease, opacity 0.3s ease'
+      }"
+    >
+      <slot></slot>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import TrashIcon from '@/components/icons/TrashIcon.vue'
+import { computed, nextTick, ref, useTemplateRef } from 'vue'
 
-const { threshold = -100, disableDesktop = true } = defineProps({
-  threshold: Number,
-  disableDesktop: Boolean
+const {
+  thresholdPercent = 50,
+  disabled = false,
+  backgroundSwipeColor = '#e53935'
+} = defineProps({
+  thresholdPercent: Number,
+  disabled: Boolean,
+  backgroundSwipeColor: String
 })
-const emit = defineEmits(['delete'])
 
+const emit = defineEmits(['slide'])
+
+const swipeElement = useTemplateRef('swipeElement')
 const startX = ref(0)
 const currentX = ref(0)
 const swiping = ref(false)
-const swipeElement = ref(null)
+const width = ref(0)
+
+const deltaX = computed(() => currentX.value - startX.value)
+const translateValue = computed(() => (swiping.value ? deltaX.value : 0))
+const actualThreshold = computed(() => (width.value * thresholdPercent) / 100)
 
 function onTouchStart(e) {
-  if (disableDesktop) return
+  if (disabled) return
+
+  width.value = swipeElement.value?.offsetWidth ?? 0
   startX.value = e.touches[0].clientX
+  currentX.value = startX.value
   swiping.value = true
-  swipeElement.value = e.target.closest('.swipe-wrapper')
 }
 
 function onTouchMove(e) {
-  if (disableDesktop) return
+  if (disabled) return
+
   currentX.value = e.touches[0].clientX
-  const deltaX = currentX.value - startX.value
-  if (deltaX < 0) {
-    swipeElement.value.style.transform = `translateX(${deltaX}px)`
-  }
 }
 
 function onTouchEnd() {
-  if (disableDesktop) return
-  const deltaX = currentX.value - startX.value
-  if (deltaX < threshold) {
-    swipeElement.value.style.transform = 'translateX(-100%)'
-    swipeElement.value.style.opacity = '0'
-    emit('delete')
+  if (disabled) return
 
-    setTimeout(() => {
-      swiping.value = false
-    }, 300)
-  } else {
-    swipeElement.value.style.transform = ''
+  if (deltaX.value < -actualThreshold.value) {
     swiping.value = false
+    nextTick(() => {
+      swipeElement.value.style.transform = 'translateX(-100%)'
+      swipeElement.value.style.opacity = '0'
+    })
+    setTimeout(() => {
+      emit('slide')
+      resetSwipe()
+    }, 300)
+    return
   }
 
+  if (deltaX.value > actualThreshold.value) {
+    swiping.value = false
+    nextTick(() => {
+      swipeElement.value.style.transform = 'translateX(100%)'
+      swipeElement.value.style.opacity = '0'
+    })
+    setTimeout(() => {
+      emit('slide')
+      resetSwipe()
+    }, 300)
+    return
+  }
+  resetSwipe()
+}
+
+function resetSwipe() {
   startX.value = 0
   currentX.value = 0
+  swiping.value = false
+  if (swipeElement.value) {
+    swipeElement.value.style.transform = ''
+    swipeElement.value.style.opacity = ''
+  }
 }
 </script>
 
 <style scoped>
+.swipe-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.swipe-background {
+  z-index: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-left: 16px;
+  transition: background-color 0.2s ease;
+  border-radius: 10px;
+}
+
+.swipe-background.swipe-left {
+  background-color: v-bind(backgroundSwipeColor);
+  justify-content: flex-start;
+}
+
+.swipe-background.swipe-right {
+  background-color: v-bind(backgroundSwipeColor);
+  justify-content: flex-end;
+  padding-right: 16px;
+}
+
 .swipe-wrapper {
-  display: block;
+  position: relative;
+  z-index: 1;
   transition:
     transform 0.3s ease,
     opacity 0.3s ease;
@@ -72,5 +162,17 @@ function onTouchEnd() {
 
 .swipe-wrapper.swiping {
   transition: none;
+}
+
+.icon-container {
+  width: 24px;
+  height: 24px;
+}
+
+@media (max-width: 620px) {
+  .swipe-background {
+    height: 180px;
+    border-radius: 15px;
+  }
 }
 </style>

@@ -1,12 +1,12 @@
 <template>
   <div>
     <div v-show="!loading" class="grid">
-      <template v-if="isHistory">
+      <template v-if="isHistory && isMobile">
         <CardMovieSwipeWrapper
           v-for="(movie, index) in moviesList"
           :key="movie.kp_id"
-          :disable-desktop="!isMobile"
-          @delete="removeFromHistory(movie.kp_id)"
+          :data-test-id="`movie-card-swipe-wrapper-${movie.kp_id}`"
+          @slide="removeFromHistory(movie.kp_id)"
         >
           <CardMovie
             :movie
