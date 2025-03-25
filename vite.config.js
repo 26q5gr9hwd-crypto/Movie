@@ -18,7 +18,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'robots.txt', 'icons/*'], // Указываем папку с иконками
       manifest: {
-        name: 'Reyohoho',
+        name: 'ReYohoho',
         short_name: 'Re',
         description: 'Просмотр фильмов и сериалов онлайн',
         theme_color: '#000000',
