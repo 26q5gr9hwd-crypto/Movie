@@ -24,21 +24,29 @@
       </div>
 
       <!-- Контейнер для сетки фильмов и спиннера -->
-      <MovieList :movies-list="movies" :is-history="false" :loading="loading" />
+      <MovieList v-if="!errorMessage" :movies-list="movies" :is-history="false" :loading="loading" />
+
+      <!-- Компонент ошибки отображается только, если errorMessage не пустой -->
+      <ErrorMessage v-if="errorMessage" :message="errorMessage" :code="errorCode" />
     </div>
   </div>
 </template>
 
 <script setup>
-import { getMovies } from '@/api/movies'
+import { getMovies, handleApiError } from '@/api/movies'
 import { MovieList } from '@/components/MovieList'
 import { onMounted, ref } from 'vue'
+import ErrorMessage from '@/components/ErrorMessage.vue'
 
 // Состояния
 const movies = ref([])
 const loading = ref(false)
 const activeTimeFilter = ref('all')
 const typeFilter = ref('all')
+
+// Переменные для ошибок
+const errorMessage = ref('')
+const errorCode = ref(null)
 
 // Фильтры по времени
 const timeFilters = [
@@ -51,13 +59,22 @@ const timeFilters = [
 // Функция для получения фильмов
 const fetchMovies = async () => {
   loading.value = true
+
+  // Сброс сообщения об ошибке при новом запросе
+  errorMessage.value = ''
+  errorCode.value = null
+
   try {
     movies.value = await getMovies({
       activeTime: activeTimeFilter.value,
       typeFilter: typeFilter.value
     })
   } catch (error) {
-    console.error('Ошибка при загрузке фильмов:', error)
+    const { message, code } = handleApiError(error)
+    errorMessage.value = message
+    errorCode.value = code
+    console.error('Ошибка при загрузке топа фильмов:', error)
+    movies.value = []
   } finally {
     loading.value = false
   }

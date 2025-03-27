@@ -54,17 +54,15 @@ ref="searchInput" v-model="searchTerm" :placeholder="getPlaceholder()" class="se
         <div v-if="searchPerformed">
           <h2>Результаты поиска</h2>
           <MovieList :movies-list="movies" :is-history="false" :loading="loading" />
-          <div v-if="movies.length === 0 && !loading" class="no-results">
+          <div v-if="movies.length === 0 && !loading && !errorMessage" class="no-results">
             Ничего не найдено
           </div>
+          <ErrorMessage v-if="errorMessage" :message="errorMessage" :code="errorCode" />
         </div>
 
         <!-- Подсказка, когда ничего не введено в поиске -->
         <div v-if="searchTerm && !searchPerformed && !loading && !errorMessage" class="search-prompt">
           Нажмите кнопку "Поиск" или Enter для поиска
-        </div>
-        <div v-if="errorMessage" class="error-message">
-          {{ errorMessage }}
         </div>
       </div>
     </div>
@@ -73,7 +71,7 @@ ref="searchInput" v-model="searchTerm" :placeholder="getPlaceholder()" class="se
 </template>
 
 <script setup>
-import { apiSearch } from '@/api/movies'
+import { apiSearch, handleApiError } from '@/api/movies'
 import BaseModal from '@/components/BaseModal.vue'
 import DeleteButton from '@/components/buttons/DeleteButton.vue'
 import FooterDonaters from '@/components/FooterDonaters.vue'
@@ -82,6 +80,7 @@ import debounce from 'lodash/debounce'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
+import ErrorMessage from '@/components/ErrorMessage.vue'
 
 const store = useStore()
 const router = useRouter()
@@ -93,6 +92,7 @@ const loading = ref(false)
 const searchPerformed = ref(false)
 const showModal = ref(false)
 const errorMessage = ref('')
+const errorCode = ref(null)
 
 const history = computed(() => store.state.history)
 
@@ -163,13 +163,10 @@ const performSearch = async () => {
       type: movie.raw_data?.type
      }))
   } catch (error) {
-    console.error('Ошибка:', error)
-    if (error.response.status === 500) {
-            errorMessage.value = 'Ошибка на сервере. Пожалуйста, попробуйте позже'
-          }
-    else {
-      errorMessage.value = 'Произошла ошибка'
-    }
+    const { message, code } = handleApiError(error)
+    errorMessage.value = message
+    errorCode.value = code
+    console.error('Ошибка при поиске:', error)
   } finally {
     loading.value = false
   }
@@ -345,18 +342,6 @@ h2 {
   color: #fff;
   font-size: 18px;
   margin-top: 20px;
-}
-
-.error-message {
-  color: #ff4444;
-  text-align: center;
-  padding: 20px;
-  font-size: 1.2rem;
-  border: 1px solid #ff4444;
-  border-radius: 5px;
-  margin: 20px auto;
-  max-width: 500px;
-  background: rgba(255, 68, 68, 0.1);
 }
 
 @media (max-width: 600px) {

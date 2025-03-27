@@ -1,7 +1,5 @@
 <template>
-  <div v-if="errorMessage" class="error-message">
-    {{ errorMessage }}
-  </div>
+  <ErrorMessage v-if="errorMessage" :message="errorMessage" :code="errorCode" />
 
   <template v-else>
     <div class="players-list">
@@ -31,6 +29,7 @@
           :src="selectedPlayerInternal?.iframe"
           frameborder="0"
           allowfullscreen
+          webkitallowfullscreen
           class="responsive-iframe"
           :class="{
             'theater-mode-unlock': closeButtonVisible,
@@ -176,17 +175,34 @@
         </button>
         <div v-show="activeTooltip === 'app_link'" class="custom-tooltip">Открыть в приложении</div>
       </div>
+
+      <!-- Кнопка для копирования ссылки на фильм (только в Electron) -->
+      <div v-if="isElectron" class="tooltip-container">
+        <button
+          class="copy-link-btn"
+          @mouseenter="showTooltip('copy_link')"
+          @mouseleave="activeTooltip = null"
+          @click="copyMovieLink"
+        >
+          <span class="material-icons">content_copy</span>
+        </button>
+        <div v-show="activeTooltip === 'copy_link'" class="custom-tooltip">Скопировать ссылку</div>
+      </div>
     </div>
+
+    <Notification ref="notificationRef" />
   </template>
 </template>
 
 <script setup>
-import { getPlayers } from '@/api/movies'
+import { getPlayers, handleApiError } from '@/api/movies'
 import SpinnerLoading from '@/components/SpinnerLoading.vue'
 import SliderRound from '@/components/slider/SliderRound.vue'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStore } from 'vuex'
+import ErrorMessage from '@/components/ErrorMessage.vue'
+import Notification from '@/components/notification/ToastMessage.vue'
 
 const store = useStore()
 const route = useRoute()
@@ -204,7 +220,10 @@ const theaterMode = ref(false)
 const closeButtonVisible = ref(false)
 const playerIframe = ref(null)
 const containerRef = ref(null)
+
+// Переменные для ошибок
 const errorMessage = ref('')
+const errorCode = ref(null)
 
 const maxPlayerHeightValue = ref(window.innerHeight * 0.9) // 90% от высоты экрана
 const maxPlayerHeight = computed(() => `${maxPlayerHeightValue.value}px`)
@@ -218,6 +237,9 @@ const isElectron = computed(() => {
 const activeTooltip = ref(null)
 const tooltipHovered = ref(false)
 let hideTimeout = null
+
+// Уведомления
+const notificationRef = ref(null)
 
 const showTooltip = (tooltipName) => {
   activeTooltip.value = tooltipName
@@ -319,6 +341,10 @@ const fetchPlayers = async () => {
   try {
     console.log(props.kpId)
 
+    // Сброс сообщения об ошибке при новом запросе
+    errorMessage.value = ''
+    errorCode.value = null
+
     const players = await getPlayers(props.kpId)
 
     // Преобразуем объект с плеерами в массив объектов
@@ -343,25 +369,12 @@ const fetchPlayers = async () => {
       emit('update:selectedPlayer', selectedPlayerInternal.value)
     }
   } catch (error) {
-    if (error.response) {
-      switch (error.response.status) {
-        case 403:
-          errorMessage.value = 'Упс, недоступно по требованию правообладателя'
-          break
-        case 500:
-          errorMessage.value = 'Ошибка на сервере. Пожалуйста, попробуйте позже'
-          break
-        case 404:
-          errorMessage.value = 'Такого не нашлось, повторите поиск'
-          break
-        default:
-          errorMessage.value = `Произошла ошибка: ${error.response.status}`
-      }
-    } else {
-      errorMessage.value = `Ошибка: ${error.message}`
-    }
+    const { message, code } = handleApiError(error)
+    errorMessage.value = message
+    errorCode.value = code
     console.error('Ошибка при загрузке плееров:', error)
   }
+  iframeLoading.value = false
 }
 
 const showMessageToast = (message) => {
@@ -472,14 +485,24 @@ const openAppLink = () => {
   }
 }
 
-// При изменении выбранного плеера сохраняем его ключ в preferredPlayer
+const copyMovieLink = () => {
+  const movieLink = window.location.href // Текущий URL страницы
+  navigator.clipboard.writeText(movieLink).then(() => {})
+  notificationRef.value.showNotification('Ссылка на фильм скопирована')
+}
+
+const onIframeLoad = () => {
+  iframeLoading.value = false
+}
+
+// Изменение плеера
 watch(selectedPlayerInternal, (newVal) => {
   if (newVal) {
+    iframeLoading.value = true // Включаем спиннер при смене плеера
     const normalizedKey = normalizeKey(newVal.key)
     store.dispatch('player/updatePreferredPlayer', normalizedKey)
+    emit('update:selectedPlayer', newVal)
   }
-  iframeLoading.value = true
-  emit('update:selectedPlayer', newVal)
 })
 
 watch(
@@ -727,18 +750,6 @@ html.no-scroll {
 .tooltip-title {
   font-size: 16px;
   text-align: center;
-}
-
-.error-message {
-  color: #ff4444;
-  text-align: center;
-  padding: 20px;
-  font-size: 1.2rem;
-  border: 1px solid #ff4444;
-  border-radius: 5px;
-  margin: 20px auto;
-  max-width: 500px;
-  background: rgba(255, 68, 68, 0.1);
 }
 
 .fullscreen {

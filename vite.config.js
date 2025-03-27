@@ -27,10 +27,10 @@ export default defineConfig({
         rollupOptions: {
             output: {
                 assetFileNames: (assetInfo) => {
-                    const extType = assetInfo.name.split(".")[1]
+                    const extType = assetInfo.name.split('.')[1]
                     return `assets/${extType}/[name][extname]`
                 },
-                chunkFileNames: "assets/js/[name]-[hash].js"
+                chunkFileNames: 'assets/js/[name]-[hash].js'
 
             }
         }

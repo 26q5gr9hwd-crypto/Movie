@@ -8,13 +8,13 @@
           v-model="searchTerm"
           placeholder="Введите название фильма"
           class="search-input"
-          @keydown.enter="search"
           autofocus
+          @keydown.enter="search"
         />
       </div>
 
       <!-- Результаты поиска -->
-      <div class="search__results-wrapper">
+      <div v-if="!errorMessage" class="search__results-wrapper">
         <div class="search__results">
           <div v-if="searchTerm?.length < 3" class="no-results">
             Здесь появятся результаты поиска
@@ -35,6 +35,7 @@
           <div v-else-if="movies.length === 0 && !loading" class="no-results">
             Для просмотра ничего не найдено
           </div>
+
           <div v-else>
             <router-link
               v-for="movie in movies"
@@ -63,6 +64,8 @@
         </div>
       </div>
 
+      <ErrorMessage v-if="errorMessage" :message="errorMessage" :code="errorCode" />
+
       <button class="btn btn--close" @click="closeModal">
         <i class="fas fa-close"></i>
       </button>
@@ -72,14 +75,12 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
 import debounce from 'lodash/debounce'
 import { inRange } from 'lodash'
-import { apiSearch } from '@/api/movies'
+import { apiSearch, handleApiError } from '@/api/movies'
 import { TYPES_ENUM } from '@/constants'
 import { useNavbarStore } from '@/store/navbar'
-
-const router = useRoute()
+import ErrorMessage from '@/components/ErrorMessage.vue'
 
 const navbarStore = useNavbarStore()
 
@@ -87,10 +88,16 @@ const searchTerm = ref('')
 const movies = ref([])
 const loading = ref(false)
 
+// Глобальные переменные для ошибок
+const errorMessage = ref('')
+const errorCode = ref(null)
+
 // Очистка поиска
 const resetSearch = () => {
   searchTerm.value = ''
   movies.value = []
+  errorMessage.value = ''
+  errorCode.value = null
 }
 
 const search = () => {
@@ -105,17 +112,22 @@ const search = () => {
 const performSearch = async () => {
   loading.value = true
   movies.value = []
+  
+  // Сброс предыдущих ошибок
+  errorMessage.value = ''
+  errorCode.value = null
 
   try {
     // Поиск по названию
     const results = await apiSearch(searchTerm.value)
     movies.value = (results || []).map((movie) => ({ ...movie, kp_id: movie.id.toString() }))
   } catch (error) {
-    console.error('Ошибка:', error)
+    // Используем универсальный обработчик ошибок
+    const { message, code } = handleApiError(error)
+    errorMessage.value = message
+    errorCode.value = code
+    console.error('Ошибка при выполнении поиска:', error)
     movies.value = []
-    if (error.response?.status) {
-      router.push(`/${error.response.status}`)
-    }
   } finally {
     loading.value = false
   }
@@ -133,11 +145,9 @@ const getRatingColor = (rating) => {
   if (!rating || inRange(rating, 5.1, 6.9)) {
     return 'medium'
   }
-
   if (inRange(rating, 0.1, 5.0)) {
     return 'low'
   }
-
   if (inRange(rating, 7.0, 10.0)) {
     return 'high'
   }

@@ -3,12 +3,8 @@
     <div class="content">
       <SpinnerLoading v-if="infoLoading" />
 
-      <div v-if="errorMessage" class="error-message">
-        {{ errorMessage }}
-        <div v-if="errorCode !== 500" class="go-home">
-          <router-link to="/" class="home-button">На главную</router-link>
-        </div>
-      </div>
+      <ErrorMessage v-if="errorMessage" :message="errorMessage" :code="errorCode" />
+
       <div v-if="errorMessage" class="content-card">
         <PlayerComponent :key="kp_id" :kp-id="kp_id" />
       </div>
@@ -210,10 +206,11 @@
 </template>
 
 <script setup>
-import { getKpInfo, getShikiInfo } from '@/api/movies'
+import { getKpInfo, getShikiInfo, handleApiError } from '@/api/movies'
 import { MovieList } from '@/components/MovieList/'
 import PlayerComponent from '@/components/PlayerComponent.vue'
 import SpinnerLoading from '@/components/SpinnerLoading.vue'
+import ErrorMessage from '@/components/ErrorMessage.vue'
 import { TYPES_ENUM } from '@/constants'
 import { useNavbarStore } from '@/store/navbar'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
@@ -318,17 +315,10 @@ const fetchMovieInfo = async () => {
       store.dispatch('addToHistory', { ...movieToSave })
     }
   } catch (error) {
-    if (error.response?.status === 404) {
-      errorMessage.value = 'Данные о фильме не найдены'
-      errorCode.value = 404
-    } else if (error.response?.status === 500) {
-      errorMessage.value = 'Ошибка на сервере. Пожалуйста, попробуйте позже'
-      errorCode.value = 500
-    } else {
-      errorMessage.value = 'Ошибка загрузки информации о фильме'
-      errorCode.value = null
-      console.error('Ошибка при загрузке плееров:', error)
-    }
+    const { message, code } = handleApiError(error)
+    errorMessage.value = message
+    errorCode.value = code
+    console.error('Ошибка при загрузке информации о фильмах:', error)
   }
 }
 
@@ -502,26 +492,6 @@ watch(
 .related-movies h2 {
   color: #fff;
   margin-bottom: 15px;
-}
-
-.go-home {
-  text-align: center;
-  margin-top: 20px;
-}
-
-.home-button {
-  display: inline-block;
-  padding: 10px 20px;
-  background-color: #72e944;
-  color: rgb(0, 0, 0);
-  text-decoration: none;
-  border-radius: 5px;
-  font-size: 16px;
-  transition: background-color 0.3s;
-}
-
-.home-button:hover {
-  background-color: #f8f8f8;
 }
 
 @media (max-width: 600px) {
