@@ -4,6 +4,13 @@
   </div>
 
   <template v-else>
+    <BaseModal
+      :is-open="showModal"
+      message="Доступно только в приложении ReYohoho Desktop, открыть ссылку?"
+      @confirm="openDesktopAppInfoLink()"
+      @close="showModal = false"
+    />
+
     <div class="players-list">
       <span>Плеер:</span>
       <select v-model="selectedPlayerInternal" class="custom-select">
@@ -73,6 +80,7 @@
       <div class="tooltip-container">
         <button
           class="blur-btn"
+          :class="{ active: blurEnabled }"
           @mouseenter="showTooltip('blur')"
           @mouseleave="activeTooltip = null"
           @click="toggleBlur"
@@ -80,13 +88,14 @@
           <span class="material-icons">blur_on</span>
         </button>
         <div v-show="activeTooltip === 'blur'" class="custom-tooltip">
-          {{ isElectron ? 'Блюр' : 'Блюр, функция доступна в приложении' }}
+          {{ isElectron ? 'Блюр (F2)' : 'Блюр, функция доступна в приложении' }}
         </div>
       </div>
 
       <div class="tooltip-container">
         <button
           class="material-symbols-outlined"
+          :class="{ active: compressorEnabled }"
           @mouseenter="showTooltip('compressor')"
           @mouseleave="activeTooltip = null"
           @click="toggleCompressor"
@@ -94,13 +103,14 @@
           <span class="material-icons">graphic_eq</span>
         </button>
         <div v-show="activeTooltip === 'compressor'" class="custom-tooltip">
-          {{ isElectron ? 'Компрессор' : 'Компрессор, функция доступна в приложении' }}
+          {{ isElectron ? 'Компрессор (F3)' : 'Компрессор, функция доступна в приложении' }}
         </div>
       </div>
 
       <div class="tooltip-container">
         <button
           class="mirror-btn"
+          :class="{ active: mirrorEnabled }"
           @mouseenter="showTooltip('mirror')"
           @mouseleave="activeTooltip = null"
           @click="toggleMirror"
@@ -108,7 +118,7 @@
           <span class="material-icons">flip</span>
         </button>
         <div v-show="activeTooltip === 'mirror'" class="custom-tooltip">
-          {{ isElectron ? 'Зеркало' : 'Зеркало, функция доступна в приложении' }}
+          {{ isElectron ? 'Зеркало (F4)' : 'Зеркало, функция доступна в приложении' }}
         </div>
       </div>
 
@@ -184,6 +194,7 @@
 import { getPlayers } from '@/api/movies'
 import SpinnerLoading from '@/components/SpinnerLoading.vue'
 import SliderRound from '@/components/slider/SliderRound.vue'
+import BaseModal from '@/components/BaseModal.vue'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStore } from 'vuex'
@@ -205,6 +216,58 @@ const closeButtonVisible = ref(false)
 const playerIframe = ref(null)
 const containerRef = ref(null)
 const errorMessage = ref('')
+const blurEnabled = ref(false)
+const mirrorEnabled = ref(false)
+const compressorEnabled = ref(false)
+const hasReYohohoNewElectronAPI = ref(false)
+const reYohohoVersion = ref(null)
+const showModal = ref(false)
+let iframeObserver = null
+
+const checkUserAgent = () => {
+  const userAgent = navigator.userAgent
+  const match = userAgent.match(/ReYohoho\/(\d+\.\d+\.\d+)/)
+
+  if (match) {
+    reYohohoVersion.value = match[1]
+    const [major, minor, patch] = match[1].split('.').map(Number)
+
+    if (major === 1) {
+      if (minor === 1) {
+        hasReYohohoNewElectronAPI.value = patch > 7
+      } else if (minor > 1) {
+        hasReYohohoNewElectronAPI.value = true
+      }
+    } else if (major > 1) {
+      hasReYohohoNewElectronAPI.value = true
+    }
+  }
+}
+
+const observeIframeVideo = () => {
+  if (!hasReYohohoNewElectronAPI.value) return
+  const iframe = document.getElementsByClassName('responsive-iframe')[0]
+  if (!iframe) return
+
+  const checkForVideo = () => {
+    try {
+      blurEnabled.value = false
+      document.getElementsByClassName('responsive-iframe')[0].style.filter = ''
+      compressorEnabled.value = false
+      mirrorEnabled.value = false
+      iframeObserver?.disconnect()
+    } catch (e) {
+      console.warn('Cannot access iframe content:', e)
+    }
+  }
+
+  iframeObserver = new window.MutationObserver(checkForVideo)
+  iframeObserver.observe(iframe.contentDocument.body, {
+    childList: true,
+    subtree: true
+  })
+  checkForVideo()
+}
 
 const maxPlayerHeightValue = ref(window.innerHeight * 0.9) // 90% от высоты экрана
 const maxPlayerHeight = computed(() => `${maxPlayerHeightValue.value}px`)
@@ -388,28 +451,119 @@ const showMessageToast = (message) => {
 
 const toggleBlur = () => {
   if (isElectron.value) {
-    window.electronAPI.sendHotKey('F2')
+    try {
+      if (!document.getElementsByClassName('responsive-iframe')[0]) return
+      if (document.getElementsByClassName('responsive-iframe')[0].style.filter.includes('blur')) {
+        document.getElementsByClassName('responsive-iframe')[0].style.filter = ''
+        blurEnabled.value = false
+      } else {
+        document.getElementsByClassName('responsive-iframe')[0].style.filter = 'blur(50px)'
+        blurEnabled.value = true
+      }
+    } catch (e) {
+      console.log(e)
+      blurEnabled.value = false
+    }
   } else {
-    showMessageToast('Доступно только в приложении ReYohoho Desktop')
-    window.open('https://t.me/ReYohoho/126', '_blank')
+    showModal.value = true
   }
 }
 
 const toggleCompressor = () => {
   if (isElectron.value) {
-    window.electronAPI.sendHotKey('F3')
+    let videoIframe = document
+      .getElementsByClassName('responsive-iframe')[0]
+      .contentDocument.querySelectorAll('video')[0]
+
+    if (!videoIframe) {
+      return
+    }
+    const observer = new window.MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
+          console.log('src:', videoIframe.src)
+        }
+      })
+    })
+
+    observer.observe(videoIframe, {
+      attributes: true,
+      attributeFilter: ['src']
+    })
+
+    if (/videoframe|kinoserial\.net|allarknow/i.test(videoIframe.src)) {
+      showMessageToast('Компрессор недоступен в этом плеере')
+      return
+    }
+    console.log(videoIframe._compressorContext)
+    if (!videoIframe._compressorContext) {
+      try {
+        videoIframe._compressorContext = new window.AudioContext()
+        videoIframe._audioCompressor = videoIframe._compressorContext.createDynamicsCompressor()
+        videoIframe._audioCompressor.threshold.value = -50
+        videoIframe._audioCompressor.knee.value = 40
+        videoIframe._audioCompressor.ratio.value = 12
+        videoIframe._audioCompressor.attack.value = 0
+        videoIframe._audioCompressor.release.value = 0.25
+        videoIframe._sourceContext =
+          videoIframe._compressorContext.createMediaElementSource(videoIframe)
+        videoIframe._sourceContext.connect(videoIframe._compressorContext.destination)
+      } catch (e) {
+        console.log(e)
+      }
+    }
+
+    try {
+      if (!compressorEnabled.value) {
+        videoIframe._sourceContext.disconnect(videoIframe._compressorContext.destination)
+        videoIframe._sourceContext.connect(videoIframe._audioCompressor)
+        videoIframe._audioCompressor.connect(videoIframe._compressorContext.destination)
+        compressorEnabled.value = true
+      } else {
+        videoIframe._sourceContext.disconnect(videoIframe._audioCompressor)
+        videoIframe._audioCompressor.disconnect(videoIframe._compressorContext.destination)
+        videoIframe._sourceContext.connect(videoIframe._compressorContext.destination)
+        compressorEnabled.value = false
+      }
+    } catch (e) {
+      console.log(e)
+      showMessageToast('Ошибка при включении компрессора')
+      compressorEnabled.value = false
+    }
   } else {
-    showMessageToast('Доступно только в приложении ReYohoho Desktop')
-    window.open('https://t.me/ReYohoho/126', '_blank')
+    showModal.value = true
   }
 }
 
 const toggleMirror = () => {
   if (isElectron.value) {
-    window.electronAPI.sendHotKey('F4')
+    try {
+      if (
+        !document
+          .getElementsByClassName('responsive-iframe')[0]
+          .contentDocument.querySelectorAll('video')[0]
+      )
+        return
+      let video_iframe = document
+        .getElementsByClassName('responsive-iframe')[0]
+        .contentDocument.querySelectorAll('video')[0]
+      if (
+        video_iframe.style.transform === '' ||
+        video_iframe.style.transform === 'scaleX(1)' ||
+        video_iframe.style.transform === 'scale(1)'
+      ) {
+        video_iframe.style.transform = 'scaleX(-1)'
+        mirrorEnabled.value = true
+      } else {
+        video_iframe.style.transform = 'scaleX(1)'
+        mirrorEnabled.value = false
+      }
+    } catch (e) {
+      console.log(e)
+      mirrorEnabled.value = false
+    }
   } else {
-    showMessageToast('Доступно только в приложении ReYohoho Desktop')
-    window.open('https://t.me/ReYohoho/126', '_blank')
+    showModal.value = true
   }
 }
 
@@ -472,6 +626,10 @@ const openAppLink = () => {
   }
 }
 
+const openDesktopAppInfoLink = () => {
+  window.open('https://t.me/ReYohoho/126', '_blank')
+}
+
 // При изменении выбранного плеера сохраняем его ключ в preferredPlayer
 watch(selectedPlayerInternal, (newVal) => {
   if (newVal) {
@@ -496,6 +654,15 @@ watch(
 )
 
 onMounted(() => {
+  if (isElectron.value) {
+    checkUserAgent()
+    observeIframeVideo()
+    const iframe = document.getElementsByClassName('responsive-iframe')[0]
+    iframe?.addEventListener('load', observeIframeVideo)
+  }
+  window.toggleBlur = toggleBlur
+  window.toggleMirror = toggleMirror
+  window.toggleCompressor = toggleCompressor
   iframeLoading.value = true
   fetchPlayers()
   if (isMobile.value) {
@@ -509,6 +676,10 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  iframeObserver?.disconnect()
+  window.toggleBlur = null
+  window.toggleMirror = null
+  window.toggleCompressor = null
   window.removeEventListener('resize', updateScaleFactor)
   window.removeEventListener('mousemove', showCloseButton)
   document.removeEventListener('keydown', onKeyDown)
