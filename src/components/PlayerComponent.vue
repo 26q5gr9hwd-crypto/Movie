@@ -452,12 +452,15 @@ const showMessageToast = (message) => {
 const toggleBlur = () => {
   if (isElectron.value) {
     try {
-      if (!document.getElementsByClassName('responsive-iframe')[0]) return
-      if (document.getElementsByClassName('responsive-iframe')[0].style.filter.includes('blur')) {
-        document.getElementsByClassName('responsive-iframe')[0].style.filter = ''
+      let videoIframe = document
+        .getElementsByClassName('responsive-iframe')[0]
+        .contentDocument.querySelectorAll('video')[0]
+      if (!videoIframe) return
+      if (videoIframe.style.filter.includes('blur')) {
+        videoIframe.style.filter = ''
         blurEnabled.value = false
       } else {
-        document.getElementsByClassName('responsive-iframe')[0].style.filter = 'blur(50px)'
+        videoIframe.style.filter = 'blur(50px)'
         blurEnabled.value = true
       }
     } catch (e) {
