@@ -74,13 +74,13 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
-import debounce from 'lodash/debounce'
-import { inRange } from 'lodash'
 import { apiSearch, handleApiError } from '@/api/movies'
+import ErrorMessage from '@/components/ErrorMessage.vue'
 import { TYPES_ENUM } from '@/constants'
 import { useNavbarStore } from '@/store/navbar'
-import ErrorMessage from '@/components/ErrorMessage.vue'
+import { inRange } from 'lodash'
+import debounce from 'lodash/debounce'
+import { ref, watch } from 'vue'
 
 const navbarStore = useNavbarStore()
 
@@ -112,7 +112,7 @@ const search = () => {
 const performSearch = async () => {
   loading.value = true
   movies.value = []
-  
+
   // Сброс предыдущих ошибок
   errorMessage.value = ''
   errorCode.value = null

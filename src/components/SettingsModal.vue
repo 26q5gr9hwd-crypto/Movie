@@ -23,8 +23,9 @@
           </label>
         </div>
         <div class="settings-actions">
-          <button class="reset-button" @click="resetBackground"><i class="fa-solid fa-arrow-rotate-left"></i> Сбросить
-            фон</button>
+          <button class="reset-button" @click="resetBackground">
+            <i class="fa-solid fa-arrow-rotate-left"></i> Сбросить фон
+          </button>
         </div>
       </div>
 
@@ -36,16 +37,18 @@
 
       <div class="settings-group">
         <h2>История</h2>
-        <SliderRound v-model="isHistoryAllowed">
-          Сохранять историю просмотра</SliderRound>
+        <SliderRound v-model="isHistoryAllowed"> Сохранять историю просмотра</SliderRound>
         <div class="settings-actions">
           <button class="reset-button" @click="showModal = true">
             <i class="fa-solid fa-trash-can"></i>
             Очистить историю просмотра
           </button>
           <BaseModal
-            :is-open="showModal" message="Вы уверены, что хотите очистить историю?" @confirm="clearAllHistory"
-            @close="showModal = false" />
+            :is-open="showModal"
+            message="Вы уверены, что хотите очистить историю?"
+            @confirm="clearAllHistory"
+            @close="showModal = false"
+          />
         </div>
       </div>
     </div>
@@ -53,50 +56,56 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
-import { useStore } from 'vuex'
-import { useRouter } from 'vue-router'
 import SliderRound from '@/components/slider/SliderRound.vue'
+import { useBackgroundStore } from '@/store/background'
+import { useMainStore } from '@/store/main'
+import { usePlayerStore } from '@/store/player'
+import { computed, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import BaseModal from './BaseModal.vue'
 
-const store = useStore()
+const mainStore = useMainStore()
+const backgroundStore = useBackgroundStore()
+const playerStore = usePlayerStore()
 const router = useRouter()
 const showModal = ref(false)
 
 const clearAllHistory = () => {
-  store.dispatch('clearAllHistory')
+  mainStore.clearAllHistory()
   showModal.value = false
 }
 
 // Настройки фона (модуль background)
 const backgroundType = computed({
-  get: () => store.getters['background/getBackgroundType'],
-  set: (value) => store.dispatch('background/updateBackgroundType', value)
+  get: () => backgroundStore.backgroundType,
+  set: (value) => backgroundStore.updateBackgroundType(value)
 })
 
 // Вычисляемое свойство, определяющее, нужно ли отключать размытие
-const isBlurDisabled = computed(() => backgroundType.value === 'stars' || backgroundType.value === 'disable')
+const isBlurDisabled = computed(
+  () => backgroundType.value === 'stars' || backgroundType.value === 'disable'
+)
 watch(isBlurDisabled, (newValue) => {
   if (newValue) {
     // Отключаем размытие, если выбран звездный фон
-    store.dispatch('background/toggleBlur', false)
+    backgroundStore.toggleBlur(false)
   }
 })
 
 // Автоцентрирование плеера (из модуля player)
 const isCentered = computed({
-  get: () => store.getters['player/isCentered'],
-  set: (value) => store.dispatch('player/updateCentering', value)
+  get: () => playerStore.isCentered,
+  set: (value) => playerStore.updateCentering(value)
 })
 
 const isCardBorder = computed({
-  get: () => store.getters['background/getCardBorder'],
-  set: (value) => store.dispatch('background/toggleCardBorder', value)
+  get: () => backgroundStore.isCardBorder,
+  set: (value) => backgroundStore.toggleCardBorder(value)
 })
 
 const isHistoryAllowed = computed({
-  get: () => store.getters['isHistoryAllowed'],
-  set: (value) => store.dispatch('setHistoryAllowed', value)
+  get: () => mainStore.isHistoryAllowed,
+  set: (value) => mainStore.setHistoryAllowed(value)
 })
 
 // Навигация
@@ -105,10 +114,9 @@ const goBack = () => {
 }
 
 const resetBackground = () => {
-  store.dispatch('background/resetBackground')
+  backgroundStore.resetBackground()
 }
 </script>
-
 
 <style scoped>
 .settings-page {

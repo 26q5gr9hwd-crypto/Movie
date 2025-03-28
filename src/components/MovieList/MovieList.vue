@@ -42,12 +42,14 @@
 
 <script setup>
 import Spinner from '@/components/SpinnerLoading.vue'
+import { useBackgroundStore } from '@/store/background'
+import { useMainStore } from '@/store/main'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useStore } from 'vuex'
 import { CardMovie, CardMovieSwipeWrapper } from '../CardMovie'
 
-const store = useStore()
+const mainStore = useMainStore()
+const backgroundStore = useBackgroundStore()
 const router = useRouter()
 
 const {
@@ -63,15 +65,15 @@ const {
 const movieRefs = ref([])
 const activeMovieIndex = ref(null)
 
-const isCardBorder = computed(() => store.getters['background/getCardBorder'])
-const isMobile = computed(() => store.state.isMobile)
+const isCardBorder = computed(() => backgroundStore.isCardBorder)
+const isMobile = computed(() => mainStore.isMobile)
 
 const movieUrl = (movie) => {
   return router.resolve({ name: 'movie-info', params: { kp_id: movie.kp_id } }).href
 }
 
 const removeFromHistory = (kp_id) => {
-  store.dispatch('removeFromHistory', kp_id)
+  mainStore.removeFromHistory(kp_id)
 }
 
 const handleKeyDown = (event) => {

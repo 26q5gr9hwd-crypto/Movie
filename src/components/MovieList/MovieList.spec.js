@@ -1,10 +1,11 @@
 import { CardMovie, CardMovieSwipeWrapper } from '@/components/CardMovie'
 import SpinnerLoading from '@/components/SpinnerLoading.vue'
+import { useMainStore } from '@/store/main'
+import { createTestingPinia } from '@pinia/testing'
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
-import { createStore } from 'vuex'
 import { MovieList } from '.'
 
 const BASE_MOVIES_MOCK = Object.freeze([
@@ -50,8 +51,6 @@ const BASE_MOVIES_MOCK = Object.freeze([
   }
 ])
 
-const removeFromHistory = vi.fn()
-
 function getRandomMovie(arr) {
   if (!Array.isArray(arr) || arr.length === 0) {
     return null
@@ -62,20 +61,10 @@ function getRandomMovie(arr) {
 }
 
 describe('Тесты компонента MovieList', () => {
-  let storeMock
   let routerMock
   let windowOpenMock
 
-  function createDateStore(state) {
-    return createStore({
-      state,
-      getters: { 'background/getCardBorder': () => true },
-      actions: { removeFromHistory }
-    })
-  }
-
   beforeAll(() => {
-
     if (!window.HTMLElement.prototype.scrollIntoView) {
       window.HTMLElement.prototype.scrollIntoView = vi.fn()
     }
@@ -90,10 +79,6 @@ describe('Тесты компонента MovieList', () => {
   })
 
   beforeEach(async () => {
-    storeMock = createDateStore({
-      isMobile: true
-    })
-
     routerMock = createRouter({
       history: createMemoryHistory(),
       routes: [
@@ -132,19 +117,26 @@ describe('Тесты компонента MovieList', () => {
   const mountComponent = (
     loading = false,
     isHistory = false,
-    customMockStore = null,
-    movies = []
+    movies = BASE_MOVIES_MOCK,
+    initialPiniaState = undefined
   ) => {
-    const finalMockStore = customMockStore ? customMockStore : storeMock
-
     return mount(MovieList, {
       global: {
-        plugins: [finalMockStore, routerMock],
+        plugins: [
+          createTestingPinia({
+            createSpy: vi.fn,
+            stubActions: false,
+            ...(initialPiniaState && {
+              initialState: initialPiniaState
+            })
+          }),
+          routerMock
+        ],
         stubs: {
           SpinnerLoading
         }
       },
-      props: { moviesList: movies.length ? movies : BASE_MOVIES_MOCK, isHistory, loading },
+      props: { moviesList: movies, isHistory, loading },
       attachTo: document.body
     })
   }
@@ -180,7 +172,12 @@ describe('Тесты компонента MovieList', () => {
   })
 
   it('Удаляет карточку из списка, когда это список историй и декстоп', async () => {
-    const wrapper = mountComponent(false, true, createDateStore({ isMobile: false }))
+    const wrapper = mountComponent(false, true, BASE_MOVIES_MOCK, {
+      main: {
+        isMobile: false
+      }
+    })
+    const mainStore = useMainStore()
     const movieDeleteId = getRandomMovie(BASE_MOVIES_MOCK).kp_id
     const movieCardDataTestId = `movie-card-${movieDeleteId}`
 
@@ -192,11 +189,15 @@ describe('Тесты компонента MovieList', () => {
 
     await deleteBtn.trigger('click')
 
-    expect(removeFromHistory).toHaveBeenCalledWith(expect.anything(), movieDeleteId)
+    expect(mainStore.removeFromHistory).toHaveBeenCalledWith(movieDeleteId)
   })
 
   it('Не удаляет карточку из списка, когда это НЕ список историй и декстоп', async () => {
-    const wrapper = mountComponent(false, false, createDateStore({ isMobile: false }))
+    const wrapper = mountComponent(false, false, BASE_MOVIES_MOCK, {
+      main: {
+        isMobile: false
+      }
+    })
     const movieDeleteId = getRandomMovie(BASE_MOVIES_MOCK).kp_id
     const movieCardDataTestId = `movie-card-${movieDeleteId}`
 
@@ -208,11 +209,19 @@ describe('Тесты компонента MovieList', () => {
   })
 
   it('Удаляет карточку из списка свайпом, когда это список историй и мобилка', async () => {
-    const wrapper = mountComponent(false, true, createDateStore({ isMobile: true }))
-    const randomMovie = getRandomMovie(BASE_MOVIES_MOCK)
-    const currentSwipe = wrapper.find(`[data-test-id="movie-card-swipe-wrapper-${randomMovie.kp_id}"]`)
-    const currentSwipeWrapper = currentSwipe.find('[data-test-id="swipe-ref-element"]')
+    const wrapper = mountComponent(false, true, BASE_MOVIES_MOCK, {
+      main: {
+        isMobile: true
+      }
+    })
+    const mainStore = useMainStore()
 
+    const randomMovie = getRandomMovie(BASE_MOVIES_MOCK)
+
+    const currentSwipe = wrapper.find(
+      `[data-test-id="movie-card-swipe-wrapper-${randomMovie.kp_id}"]`
+    )
+    const currentSwipeWrapper = currentSwipe.find('[data-test-id="swipe-ref-element"]')
 
     expect(currentSwipeWrapper.exists()).toBe(true)
 
@@ -221,7 +230,6 @@ describe('Тесты компонента MovieList', () => {
       value: 300,
       writable: true
     })
-
 
     await currentSwipe.trigger('touchstart', {
       touches: [{ clientX: 300 }]
@@ -232,24 +240,32 @@ describe('Тесты компонента MovieList', () => {
     await currentSwipe.trigger('touchend')
     vi.advanceTimersByTime(300)
 
-    expect(removeFromHistory).toHaveBeenCalledWith(expect.anything(), randomMovie.kp_id)
+    expect(mainStore.removeFromHistory).toHaveBeenCalledWith(randomMovie.kp_id)
   })
 
-  
   it('Не Удаляет карточку из списка свайпом, когда это НЕ список историй и мобилка', async () => {
-    const wrapper = mountComponent(false, false, createDateStore({ isMobile: true }))
+    const wrapper = mountComponent(false, false, BASE_MOVIES_MOCK, {
+      main: {
+        isMobile: true
+      }
+    })
     const swipeWrappers = wrapper.findAllComponents(CardMovieSwipeWrapper)
 
     expect(swipeWrappers).toHaveLength(0)
-
   })
 
   it('Не удаляет карточку, если свайп слишком короткий, это список историй и мобилка', async () => {
-    const wrapper = mountComponent(false, true, createDateStore({ isMobile: true }))
+    const wrapper = mountComponent(false, true, BASE_MOVIES_MOCK, {
+      main: {
+        isMobile: true
+      }
+    })
+    const mainStore = useMainStore()
     const randomMovie = getRandomMovie(BASE_MOVIES_MOCK)
-    const currentSwipe = wrapper.find(`[data-test-id="movie-card-swipe-wrapper-${randomMovie.kp_id}"]`)
+    const currentSwipe = wrapper.find(
+      `[data-test-id="movie-card-swipe-wrapper-${randomMovie.kp_id}"]`
+    )
     const currentSwipeWrapper = currentSwipe.find('[data-test-id="swipe-ref-element"]')
-
 
     expect(currentSwipeWrapper.exists()).toBe(true)
 
@@ -258,7 +274,6 @@ describe('Тесты компонента MovieList', () => {
       value: 300,
       writable: true
     })
-
 
     await currentSwipe.trigger('touchstart', {
       touches: [{ clientX: 100 }]
@@ -269,7 +284,7 @@ describe('Тесты компонента MovieList', () => {
     await currentSwipe.trigger('touchend')
     vi.advanceTimersByTime(300)
 
-    expect(removeFromHistory).not.toHaveBeenCalled()
+    expect(mainStore.removeFromHistory).not.toHaveBeenCalled()
   })
 
   it('Фокус двигается последовательно вправо при нажатии ArrowRight', async () => {
@@ -310,7 +325,7 @@ describe('Тесты компонента MovieList', () => {
       }
     ]
 
-    const wrapper = mountComponent(false, false, undefined, movies)
+    const wrapper = mountComponent(false, false, movies)
     const cards = wrapper.findAllComponents(CardMovie)
 
     // Фокусируем первую карточку
@@ -369,7 +384,7 @@ describe('Тесты компонента MovieList', () => {
     const scrollSpy = vi.spyOn(window.HTMLElement.prototype, 'scrollIntoView')
     const arrowRightEvent = new window.KeyboardEvent('keydown', { key: 'ArrowRight' })
 
-    const wrapper = mountComponent(false, false, undefined, movies)
+    const wrapper = mountComponent(false, false, movies)
     const cards = wrapper.findAllComponents(CardMovie)
 
     // 1. Ставим фокус на первую карточку (индекс 0)
@@ -442,7 +457,7 @@ describe('Тесты компонента MovieList', () => {
     const scrollSpy = vi.spyOn(window.HTMLElement.prototype, 'scrollIntoView')
     const arrowLeftEvent = new window.KeyboardEvent('keydown', { key: 'ArrowLeft' })
 
-    const wrapper = mountComponent(false, false, undefined, movies)
+    const wrapper = mountComponent(false, false, movies)
     const cards = wrapper.findAllComponents(CardMovie)
 
     // Шаг 1. Фокусируем первую карточку (индекс 0).
@@ -529,7 +544,7 @@ describe('Тесты компонента MovieList', () => {
       }
     ]
     const scrollSpy = vi.spyOn(window.HTMLElement.prototype, 'scrollIntoView')
-    const wrapper = mountComponent(false, false, undefined, movies)
+    const wrapper = mountComponent(false, false, movies)
     const arrowRightEvent = new window.KeyboardEvent('keydown', { key: 'ArrowRight' })
     const arrowUpEvent = new window.KeyboardEvent('keydown', { key: 'ArrowUp' })
 
@@ -626,7 +641,7 @@ describe('Тесты компонента MovieList', () => {
       }
     ]
     const scrollSpy = vi.spyOn(window.HTMLElement.prototype, 'scrollIntoView')
-    const wrapper = mountComponent(false, false, undefined, movies)
+    const wrapper = mountComponent(false, false, movies)
     const arrowRightEvent = new window.KeyboardEvent('keydown', { key: 'ArrowRight' })
     const arrowDownEvent = new window.KeyboardEvent('keydown', { key: 'ArrowDown' })
 
@@ -701,7 +716,7 @@ describe('Тесты компонента MovieList', () => {
       }
     ]
 
-    const wrapper = mountComponent(false, false, undefined, movies)
+    const wrapper = mountComponent(false, false, movies)
     const cards = wrapper.findAllComponents(CardMovie)
 
     cards[0].element.focus()
@@ -710,7 +725,6 @@ describe('Тесты компонента MovieList', () => {
     document.dispatchEvent(arrowRightEvent)
     document.dispatchEvent(arrowRightEvent)
     await flushPromises()
-
 
     document.dispatchEvent(homeEvent)
     await flushPromises()
@@ -758,7 +772,7 @@ describe('Тесты компонента MovieList', () => {
       }
     ]
 
-    const wrapper = mountComponent(false, false, undefined, movies)
+    const wrapper = mountComponent(false, false, movies)
     const cards = wrapper.findAllComponents(CardMovie)
 
     cards[0].element.focus()
@@ -767,7 +781,6 @@ describe('Тесты компонента MovieList', () => {
     document.dispatchEvent(arrowRightEvent)
     document.dispatchEvent(arrowRightEvent)
     await flushPromises()
-
 
     document.dispatchEvent(endEvent)
     await flushPromises()
@@ -814,7 +827,7 @@ describe('Тесты компонента MovieList', () => {
     const pushSpy = vi.spyOn(routerMock, 'push')
     const arrowRightEvent = new window.KeyboardEvent('keydown', { key: 'ArrowRight' })
     const enterEvent = new window.KeyboardEvent('keydown', { key: 'Enter' })
-    const wrapper = mountComponent(false, false, undefined, movies)
+    const wrapper = mountComponent(false, false, movies)
 
     const cards = wrapper.findAllComponents(CardMovie)
 
@@ -882,8 +895,7 @@ describe('Тесты компонента MovieList', () => {
       ctrlKey: true,
       cancelable: true
     })
-    const wrapper = mountComponent(false, false, undefined, movies)
-
+    const wrapper = mountComponent(false, false, movies)
 
     const cards = wrapper.findAllComponents(CardMovie)
 
@@ -948,8 +960,7 @@ describe('Тесты компонента MovieList', () => {
       metaKey: true,
       cancelable: true
     })
-    const wrapper = mountComponent(false, false, undefined, movies)
-
+    const wrapper = mountComponent(false, false, movies)
 
     const cards = wrapper.findAllComponents(CardMovie)
 

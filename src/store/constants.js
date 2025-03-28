@@ -1,0 +1,5 @@
+export const BACKGROUND_STORE_NAME = 'background'
+export const MAIN_STORE_NAME = 'main'
+export const PLAYER_STORE_NAME = 'player'
+export const LEGACY_STORE_KEY = 'vuex'
+export const LEGACY_STORE_KEY_BACKUP = 'vuex_backup'

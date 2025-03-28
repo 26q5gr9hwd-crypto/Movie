@@ -1,9 +1,11 @@
 <template>
   <BackgroundSpace />
-  <MobileHeader v-if="isMobile"/>
+  <MobileHeader v-if="isMobile" />
   <MenuNavigation />
-  
-  <div :class="['router-view-container', { 'router-view-container--with-mobile-header': isMobile }]">
+
+  <div
+    :class="['router-view-container', { 'router-view-container--with-mobile-header': isMobile }]"
+  >
     <router-view v-slot="{ Component }">
       <component :is="Component" />
     </router-view>
@@ -17,20 +19,20 @@
 import BackgroundSpace from '@/components/BackgroundSpace.vue'
 import MenuNavigation from '@/components/MenuNavigation.vue'
 import MobileHeader from '@/components/MobileHeader.vue'
+import { useMainStore } from '@/store/main'
 import { computed, onMounted, onUnmounted } from 'vue'
-import { useStore } from 'vuex'
 
-const store = useStore()
+const store = useMainStore()
 
-const isMobile = computed(() => store.state.isMobile)
+const isMobile = computed(() => store.isMobile)
 
 // Реактивное состояние для ширины окна
 const updateIsMobile = () => {
-  store.commit('setIsMobile', window.innerWidth < 600)
+  store.setIsMobile(window.innerWidth < 600)
 }
 
 onMounted(() => {
-  store.commit('setIsMobile', window.innerWidth < 600)
+  store.setIsMobile(window.innerWidth < 600)
   window.addEventListener('resize', updateIsMobile)
 })
 
@@ -38,9 +40,9 @@ onUnmounted(() => {
   window.removeEventListener('resize', updateIsMobile)
 })
 
-const dimmingEnabled = computed(() => store.state.dimmingEnabled)
+const dimmingEnabled = computed(() => store.dimmingEnabled)
 const toggleDimming = () => {
-  store.commit('toggleDimming')
+  store.toggleDimming()
 }
 </script>
 

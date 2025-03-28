@@ -196,15 +196,17 @@
 
 <script setup>
 import { getPlayers, handleApiError } from '@/api/movies'
+import ErrorMessage from '@/components/ErrorMessage.vue'
 import SpinnerLoading from '@/components/SpinnerLoading.vue'
+import Notification from '@/components/notification/ToastMessage.vue'
 import SliderRound from '@/components/slider/SliderRound.vue'
+import { useMainStore } from '@/store/main'
+import { usePlayerStore } from '@/store/player'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { useStore } from 'vuex'
-import ErrorMessage from '@/components/ErrorMessage.vue'
-import Notification from '@/components/notification/ToastMessage.vue'
 
-const store = useStore()
+const mainStore = useMainStore()
+const playerStore = usePlayerStore()
 const route = useRoute()
 const kp_id = ref(route.params.kp_id)
 
@@ -227,7 +229,7 @@ const errorCode = ref(null)
 
 const maxPlayerHeightValue = ref(window.innerHeight * 0.9) // 90% от высоты экрана
 const maxPlayerHeight = computed(() => `${maxPlayerHeightValue.value}px`)
-const isMobile = computed(() => store.state.isMobile)
+const isMobile = computed(() => mainStore.isMobile)
 // Надо перенести в хранилище аналогично мобильной версии
 const isElectron = computed(() => {
   return !!window.electronAPI
@@ -268,18 +270,18 @@ const hideTooltip = () => {
 
 // Используем геттер для получения aspectRatio из хранилища
 const aspectRatio = computed({
-  get: () => store.getters['player/aspectRatio'],
-  set: (value) => store.dispatch('player/updateAspectRatio', value)
+  get: () => playerStore.aspectRatio,
+  set: (value) => playerStore.updateAspectRatio(value)
 })
 
 // Используем геттер для получения isCentered из хранилища
 const isCentered = computed({
-  get: () => store.getters['player/isCentered'],
-  set: (value) => store.dispatch('player/updateCentering', value)
+  get: () => playerStore.isCentered,
+  set: (value) => playerStore.updateCentering(value)
 })
 
 // Используем геттер для получения предпочтительного плеера из хранилища
-const preferredPlayer = computed(() => store.getters['player/preferredPlayer'])
+const preferredPlayer = computed(() => playerStore.preferredPlayer)
 
 // Естественная (рассчитанная) высота плеера исходя из текущей ширины контейнера
 const naturalHeight = ref(0)
@@ -453,11 +455,11 @@ const showCloseButton = () => {
   closeButtonVisible.value = true
 }
 
-const dimmingEnabled = computed(() => store.state.dimmingEnabled)
+const dimmingEnabled = computed(() => mainStore.dimmingEnabled)
 const toggleDimming = () => {
   // Затемнение включается только в обычном режиме
   if (!theaterMode.value) {
-    store.commit('toggleDimming')
+    mainStore.toggleDimming()
   }
 }
 
@@ -500,7 +502,7 @@ watch(selectedPlayerInternal, (newVal) => {
   if (newVal) {
     iframeLoading.value = true // Включаем спиннер при смене плеера
     const normalizedKey = normalizeKey(newVal.key)
-    store.dispatch('player/updatePreferredPlayer', normalizedKey)
+    playerStore.updatePreferredPlayer(normalizedKey)
     emit('update:selectedPlayer', newVal)
   }
 })

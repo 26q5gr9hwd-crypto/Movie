@@ -14,17 +14,16 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { useStore } from 'vuex'
+import { useMainStore } from '@/store/main'
 import { useNavbarStore } from '@/store/navbar'
-import MobileMenu from './MenuNavigation/MobileMenu.vue'
+import { computed } from 'vue'
 import DesktopMenu from './MenuNavigation/DesktopMenu.vue'
+import MobileMenu from './MenuNavigation/MobileMenu.vue'
 import ModalSearch from './ModalSearch.vue'
 
-const store = useStore()
+const store = useMainStore()
 const navbarStore = useNavbarStore()
-
-const isMobile = computed(() => store.state.isMobile)
+const isMobile = computed(() => store.isMobile)
 
 const navLinks = [
   { to: '/', exact: true, icon: 'fas fa-home', text: 'Главная' },

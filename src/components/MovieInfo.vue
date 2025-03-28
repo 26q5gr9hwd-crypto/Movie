@@ -244,13 +244,15 @@ import PlayerComponent from '@/components/PlayerComponent.vue'
 import SpinnerLoading from '@/components/SpinnerLoading.vue'
 import ErrorMessage from '@/components/ErrorMessage.vue'
 import { TYPES_ENUM } from '@/constants'
+import { useBackgroundStore } from '@/store/background'
+import { useMainStore } from '@/store/main'
 import { useNavbarStore } from '@/store/navbar'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { useStore } from 'vuex'
 
 const infoLoading = ref(true)
-const store = useStore()
+const mainStore = useMainStore()
+const backgroundStore = useBackgroundStore()
 const route = useRoute()
 const kp_id = ref(route.params.kp_id)
 const errorMessage = ref('')
@@ -332,20 +334,20 @@ const fetchMovieInfo = async () => {
       if (movieInfo.value.screenshots && movieInfo.value.screenshots.length > 0) {
         const randomIndex = Math.floor(Math.random() * movieInfo.value.screenshots.length)
         const randomScreenshot = movieInfo.value.screenshots[randomIndex]
-        store.dispatch('background/updateMoviePoster', randomScreenshot)
+        backgroundStore.updateMoviePoster(randomScreenshot)
       } else if (movieToSave.poster) {
-        store.dispatch('background/updateMoviePoster', movieToSave.poster)
+        backgroundStore.updateMoviePoster(movieToSave.poster)
       }
     } else {
       if (movieToSave.poster) {
-        store.dispatch('background/updateMoviePoster', movieToSave.poster)
+        backgroundStore.updateMoviePoster(movieToSave.poster)
       }
     }
 
-    const isHistoryAllowed = computed(() => store.state.isHistoryAllowed)
+    const isHistoryAllowed = computed(() => mainStore.isHistoryAllowed)
 
     if (isHistoryAllowed.value && movieToSave.kp_id && movieToSave.title) {
-      store.dispatch('addToHistory', { ...movieToSave })
+      mainStore.addToHistory({ ...movieToSave })
     }
   } catch (error) {
     const { message, code } = handleApiError(error)

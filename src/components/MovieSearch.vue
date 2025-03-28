@@ -18,8 +18,14 @@
       <div class="search-container">
         <div class="input-wrapper">
           <input
-ref="searchInput" v-model="searchTerm" :placeholder="getPlaceholder()" class="search-input"
-            :inputmode="searchType === 'title' ? 'text' : 'numeric'" @keydown.enter="search" @input="handleInput" />
+            ref="searchInput"
+            v-model="searchTerm"
+            :placeholder="getPlaceholder()"
+            class="search-input"
+            :inputmode="searchType === 'title' ? 'text' : 'numeric'"
+            @keydown.enter="search"
+            @input="handleInput"
+          />
           <div class="icons">
             <button v-if="searchTerm" class="reset-button" @click="resetSearch">
               <i class="fas fa-times"></i>
@@ -61,7 +67,10 @@ ref="searchInput" v-model="searchTerm" :placeholder="getPlaceholder()" class="se
         </div>
 
         <!-- Подсказка, когда ничего не введено в поиске -->
-        <div v-if="searchTerm && !searchPerformed && !loading && !errorMessage" class="search-prompt">
+        <div
+          v-if="searchTerm && !searchPerformed && !loading && !errorMessage"
+          class="search-prompt"
+        >
           Нажмите кнопку "Поиск" или Enter для поиска
         </div>
       </div>
@@ -74,15 +83,15 @@ ref="searchInput" v-model="searchTerm" :placeholder="getPlaceholder()" class="se
 import { apiSearch, handleApiError } from '@/api/movies'
 import BaseModal from '@/components/BaseModal.vue'
 import DeleteButton from '@/components/buttons/DeleteButton.vue'
+import ErrorMessage from '@/components/ErrorMessage.vue'
 import FooterDonaters from '@/components/FooterDonaters.vue'
 import { MovieList } from '@/components/MovieList/'
+import { useMainStore } from '@/store/main'
 import debounce from 'lodash/debounce'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useStore } from 'vuex'
-import ErrorMessage from '@/components/ErrorMessage.vue'
 
-const store = useStore()
+const mainStore = useMainStore()
 const router = useRouter()
 
 const searchType = ref('title')
@@ -94,7 +103,7 @@ const showModal = ref(false)
 const errorMessage = ref('')
 const errorCode = ref(null)
 
-const history = computed(() => store.state.history)
+const history = computed(() => mainStore.history)
 
 // Установка типа поиска
 const setSearchType = (type) => {
@@ -112,11 +121,13 @@ const handleInput = (event) => {
 
 // Получение placeholder для input
 const getPlaceholder = () => {
-  return {
-    title: 'Введите название фильма',
-    kinopoisk: 'Пример: 301 (Матрица)',
-    shikimori: 'Пример: 28171 (Повар-боец Сома)'
-  }[searchType.value] || 'Введите название фильма'
+  return (
+    {
+      title: 'Введите название фильма',
+      kinopoisk: 'Пример: 301 (Матрица)',
+      shikimori: 'Пример: 28171 (Повар-боец Сома)'
+    }[searchType.value] || 'Введите название фильма'
+  )
 }
 
 // Динамический inputmode: для поиска по ID — numeric, иначе — text
@@ -148,7 +159,9 @@ const performSearch = async () => {
   try {
     if (searchType.value === 'kinopoisk' || searchType.value === 'shikimori') {
       if (!/^\d+$/.test(searchTerm.value)) {
-        alert(`Введите числовой ID ${searchType.value === 'kinopoisk' ? 'Кинопоиска' : 'Shikimori'}`)
+        alert(
+          `Введите числовой ID ${searchType.value === 'kinopoisk' ? 'Кинопоиска' : 'Shikimori'}`
+        )
         return
       }
       const idPrefix = searchType.value === 'shikimori' ? 'shiki' : ''
@@ -158,10 +171,12 @@ const performSearch = async () => {
 
     // Поиск по названию
     const response = await apiSearch(searchTerm.value)
-    movies.value = response.map(movie => ({ ...movie, kp_id: movie.id.toString(),
+    movies.value = response.map((movie) => ({
+      ...movie,
+      kp_id: movie.id.toString(),
       rating_kp: movie.raw_data?.rating !== 'null' ? movie.raw_data?.rating : null,
       type: movie.raw_data?.type
-     }))
+    }))
   } catch (error) {
     const { message, code } = handleApiError(error)
     errorMessage.value = message
@@ -173,7 +188,7 @@ const performSearch = async () => {
 }
 
 const clearAllHistory = () => {
-  store.dispatch('clearAllHistory')
+  mainStore.clearAllHistory()
   showModal.value = false
 }
 

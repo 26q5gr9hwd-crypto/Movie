@@ -11,12 +11,12 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useStore } from 'vuex'
 import { getMovies } from '@/api/movies'
+import { useBackgroundStore } from '@/store/background'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
-const store = useStore()
+const backgroundStore = useBackgroundStore()
 const route = useRoute()
 const router = useRouter()
 
@@ -24,9 +24,9 @@ const backgrounds = ref(['', ''])
 const activeIndex = ref(0)
 const isFetching = ref(false) // Флаг для отслеживания состояния запроса
 
-const backgroundUrl = computed(() => store.getters['background/getBackgroundUrl'])
-const backgroundType = computed(() => store.getters['background/getBackgroundType'])
-const isBlurActive = computed(() => store.getters['background/isBlurActive'])
+const backgroundUrl = computed(() => backgroundStore.backgroundUrl)
+const backgroundType = computed(() => backgroundStore.backgroundType)
+const isBlurActive = computed(() => backgroundStore.isBlurActive)
 
 const CACHE_KEY = 'topMoviePoster'
 
@@ -52,7 +52,7 @@ const fetchTopMovie = async () => {
     if (topMovies?.[0]?.cover) {
       const expiresAt = new Date().setHours(24, 0, 0, 0)
       localStorage.setItem(CACHE_KEY, JSON.stringify({ url: topMovies[0].cover, expiresAt }))
-      store.dispatch('background/updateTopMoviePoster', topMovies[0].cover)
+      backgroundStore.updateTopMoviePoster(topMovies[0].cover)
     }
   } catch (err) {
     console.error('Ошибка:', err)
@@ -68,7 +68,7 @@ const checkCachedTopMovie = () => {
   try {
     const { url, expiresAt } = JSON.parse(cached)
     if (Date.now() < expiresAt) {
-      store.dispatch('background/updateTopMoviePoster', url)
+      backgroundStore.updateTopMoviePoster(url)
       return true
     }
     localStorage.removeItem(CACHE_KEY)

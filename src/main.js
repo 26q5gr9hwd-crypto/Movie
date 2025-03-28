@@ -1,14 +1,14 @@
 import 'core-js/stable'
-import 'regenerator-runtime/runtime'
-import { createApp } from 'vue'
-import App from './App.vue'
-import router from './router'
-import VueCookies from 'vue3-cookies'
-import store from './store/store'
-import { createPinia } from 'pinia'
 import jQuery from 'jquery'
-import { initYandexMetrika } from 'yandex-metrika-vue3'
+import { createPinia } from 'pinia'
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
+import 'regenerator-runtime/runtime'
 import { registerSW } from 'virtual:pwa-register'
+import { createApp } from 'vue' // Import createApp from Vue
+import VueCookies from 'vue3-cookies'
+import { initYandexMetrika } from 'yandex-metrika-vue3'
+import App from './App.vue'
+import router from './router' // Import the router
 
 registerSW({ immediate: true })
 const $ = jQuery
@@ -22,11 +22,11 @@ window.addEventListener('vite:preloadError', (event) => {
 const app = createApp(App)
 
 const pinia = createPinia()
+pinia.use(piniaPluginPersistedstate)
 
 app
   .use(VueCookies)
   .use(router)
-  .use(store)
   .use(pinia)
   .use(initYandexMetrika, {
     id: import.meta.env.VITE_YANDEX_METRIKA_ID,
