@@ -47,7 +47,7 @@ const toggleDimming = () => {
 </script>
 
 <style>
-@import '@/assets/main.css';
+@import '@/assets/main.scss';
 
 #app {
   position: relative;

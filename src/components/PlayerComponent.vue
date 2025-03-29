@@ -4,15 +4,21 @@
   <template v-else>
     <div class="players-list">
       <span>Плеер:</span>
-      <select v-model="selectedPlayerInternal" class="custom-select">
-        <option v-for="player in playersInternal" :key="player.key" :value="player">
-          {{
-            player.key === player.translate
-              ? player.translate.toUpperCase()
-              : player.key + ' - ' + player.translate.toUpperCase()
-          }}
-        </option>
-      </select>
+      <div class="custom-select__wrapper">
+        <select
+          v-model="selectedPlayerInternal"
+          class="custom-select"
+          @change="$event.target.blur()"
+        >
+          <option v-for="player in playersInternal" :key="player.key" :value="player">
+            {{
+              player.key === player.translate
+                ? player.translate.toUpperCase()
+                : player.key + ' - ' + player.translate.toUpperCase()
+            }}
+          </option>
+        </select>
+      </div>
     </div>
 
     <!-- Единый контейнер плеера -->
@@ -529,29 +535,6 @@ onBeforeUnmount(() => {
   gap: 10px;
   margin: auto;
   margin-bottom: 10px;
-}
-
-/* Select */
-.custom-select {
-  font-size: 16px;
-  padding: 8px 16px;
-  border: 1px solid #444;
-  background-color: #1e1e1e;
-  color: #fff;
-  border-radius: 5px;
-  cursor: pointer;
-  transition:
-    background-color 0.3s,
-    border-color 0.3s;
-  width: 100%;
-}
-
-.custom-select:hover {
-  border-color: #666;
-}
-
-.custom-select:focus {
-  border-color: #558839;
 }
 
 .player-container {

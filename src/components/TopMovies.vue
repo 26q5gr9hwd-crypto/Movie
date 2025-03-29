@@ -7,6 +7,7 @@
           <button
             v-for="(button, index) in timeFilters"
             :key="index"
+            class="btn btn--primary"
             :class="{ active: activeTimeFilter === button.apiUrl }"
             @click="changeTimeFilter(button.apiUrl)"
           >
@@ -15,16 +16,23 @@
         </div>
 
         <div class="type-filter">
-          <select v-model="typeFilter" class="custom-select" @change="fetchMovies">
-            <option value="all">Все</option>
-            <option value="movie">Фильмы</option>
-            <option value="series">Сериалы</option>
-          </select>
+          <div class="custom-select__wrapper">
+            <select v-model="typeFilter" class="custom-select" @change="fetchMovies">
+              <option value="all">Все</option>
+              <option value="movie">Фильмы</option>
+              <option value="series">Сериалы</option>
+            </select>
+          </div>
         </div>
       </div>
 
       <!-- Контейнер для сетки фильмов и спиннера -->
-      <MovieList v-if="!errorMessage" :movies-list="movies" :is-history="false" :loading="loading" />
+      <MovieList
+        v-if="!errorMessage"
+        :movies-list="movies"
+        :is-history="false"
+        :loading="loading"
+      />
 
       <!-- Компонент ошибки отображается только, если errorMessage не пустой -->
       <ErrorMessage v-if="errorMessage" :message="errorMessage" :code="errorCode" />
@@ -57,7 +65,8 @@ const timeFilters = [
 ]
 
 // Функция для получения фильмов
-const fetchMovies = async () => {
+const fetchMovies = async (e) => {
+  e?.target?.blur()
   loading.value = true
 
   // Сброс сообщения об ошибке при новом запросе
@@ -129,49 +138,6 @@ onMounted(() => {
   justify-content: center;
   max-width: 367.5px;
   width: 100%;
-}
-
-button {
-  padding: 16px 16px;
-  border: 1px solid #444;
-  background-color: #1e1e1e;
-  color: #fff;
-  border-radius: 5px;
-  cursor: pointer;
-  transition:
-    background-color 0.3s,
-    color 0.3s;
-}
-
-button:hover {
-  background-color: #444;
-}
-
-button.active {
-  background-color: #fff;
-  color: #000;
-}
-
-/* Select */
-.custom-select {
-  padding: 8px 16px;
-  border: 1px solid #444;
-  background-color: #1e1e1e;
-  color: #fff;
-  border-radius: 5px;
-  cursor: pointer;
-  transition:
-    background-color 0.3s,
-    border-color 0.3s;
-  width: 100%;
-}
-
-.custom-select:hover {
-  border-color: #666;
-}
-
-.custom-select:focus {
-  border-color: #558839;
 }
 
 @media (max-width: 600px) {

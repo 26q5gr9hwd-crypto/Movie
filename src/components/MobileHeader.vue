@@ -15,7 +15,7 @@
             <!-- Если нет ни текста, ни изображения, ничего не показываем -->
         </div>
         <div class="header-actions">
-            <button class="btn btn-search" @click="toggleSearch">
+            <button class="btn btn--search" @click="toggleSearch">
                 <i class="fas fa-search"></i>
             </button>
         </div>
@@ -106,14 +106,5 @@ onUnmounted(() => {
     align-items: center;
     gap: 10px;
     margin: 10px;
-}
-
-.header-actions .btn {
-    background: none;
-    border: none;
-    color: #fff;
-    font-size: 30px;
-    cursor: pointer;
-    padding: 0;
 }
 </style>

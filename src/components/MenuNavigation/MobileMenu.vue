@@ -18,7 +18,7 @@
             </component>
           </li>
           <li v-if="route.name !== 'home'">
-            <a class="btn btn-search" @click="toggleSearch">
+            <a @click="toggleSearch">
               <i class="fas fa-search"></i>
               <span class="menu-text">Поиск</span>
             </a>

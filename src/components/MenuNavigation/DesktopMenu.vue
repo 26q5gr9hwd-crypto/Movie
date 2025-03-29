@@ -42,7 +42,7 @@
             @pointerenter="showTooltip(links.length, $event)"
             @pointerleave="hideTooltip"
           >
-            <a class="btn btn--search" @click="toggleSearch">
+            <a @click="toggleSearch">
               <i class="fas fa-search"></i>
               <span v-show="isSidebarOpen" class="menu-text">Поиск</span>
             </a>
@@ -60,7 +60,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { useNavbarStore } from '@/store/navbar' 
+import { useNavbarStore } from '@/store/navbar'
 
 const props = defineProps({
   links: Array
@@ -303,7 +303,7 @@ onBeforeUnmount(() => {
   white-space: nowrap;
 }
 
-.btn {
+a {
   cursor: pointer;
 }
 </style>

@@ -299,39 +299,6 @@ watch(searchTerm, () => {
   }
 }
 
-.btn {
-  background: none;
-  border: none;
-  color: #fff;
-  cursor: pointer;
-  padding: 2px;
-  opacity: 0.7;
-  transition: opacity 0.2s ease;
-
-  &:hover {
-    opacity: 1;
-  }
-
-  &--search {
-    position: absolute;
-    right: 5px;
-    top: 11px;
-  }
-
-  &--close {
-    position: absolute;
-    top: 8px;
-    right: 6px;
-  }
-
-  i {
-    font-size: 18px;
-    display: block;
-    width: 20px;
-    height: 20px;
-  }
-}
-
 .movie-skeleton {
   display: flex;
   align-items: center;

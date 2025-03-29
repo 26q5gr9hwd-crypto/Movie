@@ -1,0 +1,115 @@
+// ／￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣＼
+// |       S E L E C T   M A G I C      |
+// |                                    |
+// |    (╯°□°）╯︵ ┻━┻                   |
+// |    "Выбери мудро, друг мой"        |
+// |      (◕﹏◕✿)                       |
+// ＼＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿／
+
+.custom-select {
+  -webkit-appearance: none; /* Отключаем стандартный вид */
+  appearance: none;
+  position: relative;
+  padding: 8px 30px 8px 16px;
+  border: 1px solid #444;
+  background-color: #1e1e1e;
+  color: #fff;
+  border-radius: 5px;
+  cursor: pointer;
+  transition:
+    background-color 0.3s,
+    border-color 0.3s;
+  width: 100%;
+  font-size: 16px; /* Фиксированный размер шрифта */
+  line-height: 1.5; /* Межстрочный интервал */
+  outline: none;
+
+  &:hover {
+    border-color: #666;
+  }
+
+  &:focus {
+    border-color: #558839;
+    outline: none !important;
+  }
+  &__wrapper {
+    position: relative;
+    width: 100%;
+
+    &::after {
+      content: '';
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0;
+      height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 5px solid currentColor;
+      pointer-events: none; /* Чтобы не перекрывать клики */
+    }
+  }
+}
+
+// ／￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣＼
+// |      B U T T O N   S T Y L E S     |
+// |                                    |
+// |    ┌─┐                             |
+// |   (◕‿◕)┌∩┐ "КЛИКАЙ МЕНЯ!"          |
+// |    └─┘                             |
+// ＼＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿／
+.btn {
+  padding: 16px 16px;
+  border: 1px solid #444;
+  background-color: #1e1e1e;
+  color: #fff;
+  border-radius: 5px;
+  font-size: 13.4px;
+  cursor: pointer;
+  transition:
+    background-color 0.3s,
+    color 0.3s;
+
+  &:hover {
+    background-color: #444;
+  }
+
+  &.active {
+    background-color: #fff;
+    color: #000;
+  }
+
+  &--search {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 30px;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  &--close {
+    position: absolute;
+    top: 8px;
+    right: 6px;
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    padding: 2px;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+
+    &:hover {
+      opacity: 1;
+    }
+
+    i {
+      font-size: 18px;
+      display: block;
+      width: 20px;
+      height: 20px;
+    }
+  }
+}
