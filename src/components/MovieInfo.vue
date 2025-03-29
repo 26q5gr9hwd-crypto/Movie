@@ -11,11 +11,26 @@
 
       <div v-if="movieInfo" class="content-card">
         <div class="content-header">
-          <div v-if="movieInfo.logo_url" class="content-logo">
+          <div
+            v-if="movieInfo.logo_url"
+            class="content-logo"
+            @mousemove="moveTooltip"
+            @mouseleave="titleCopyTooltip = false"
+            @click="copyMovieMeta"
+          >
             <img :src="movieInfo.logo_url" alt="Логотип фильма" class="content-logo" />
           </div>
-          <div v-else>
+          <div
+            v-else
+            @mousemove="moveTooltip"
+            @mouseleave="titleCopyTooltip = false"
+            @click="copyMovieMeta"
+          >
             <h1 class="content-title">{{ movieInfo.title }}</h1>
+          </div>
+
+          <div v-show="titleCopyTooltip" class="title-copy-tooltip" :style="tooltipStyle">
+            Скопировать
           </div>
         </div>
 
@@ -235,6 +250,7 @@
       </div>
     </div>
   </div>
+  <Notification ref="notificationRef" />
 </template>
 
 <script setup>
@@ -249,6 +265,7 @@ import { useMainStore } from '@/store/main'
 import { useNavbarStore } from '@/store/navbar'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import Notification from '@/components/notification/ToastMessage.vue'
 
 const infoLoading = ref(true)
 const mainStore = useMainStore()
@@ -281,9 +298,37 @@ const transformMoviesData = (movies) => {
 }
 
 const formatTime = (minutes) => {
+  if (typeof minutes !== 'number') {
+    return
+  }
   const hours = Math.floor(minutes / 60)
   const mins = minutes % 60
   return `${hours} ч. ${mins} мин.`
+}
+
+const titleCopyTooltip = ref(false)
+const tooltipStyle = ref({ top: '0px', left: '0px' })
+const moveTooltip = (event) => {
+  titleCopyTooltip.value = true
+  tooltipStyle.value = {
+    top: `${event.pageY + 10}px`,
+    left: `${event.pageX - 70}px`
+  }
+}
+
+const notificationRef = ref(null)
+const copyMovieMeta = async () => {
+  try {
+    const movieMeta = [
+      movieInfo.value.name_ru || movieInfo.value.name_en || movieInfo.value.name_original,
+      ...(movieInfo.value.year ? [movieInfo.value.year] : []),
+      ...(movieInfo.value.film_length ? [formatTime(movieInfo.value.film_length)] : [])
+    ]
+    await navigator.clipboard.writeText(movieMeta.join(', '))
+    notificationRef.value.showNotification('Скопировано')
+  } catch (err) {
+    console.error('Ошибка копирования:', err)
+  }
 }
 
 const fetchMovieInfo = async () => {
@@ -428,6 +473,7 @@ watch(
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  cursor: pointer;
 }
 
 .content-logo {
@@ -619,5 +665,16 @@ watch(
   text-align: center;
   background: #f5f5f5;
   color: #666;
+}
+
+.title-copy-tooltip {
+  position: absolute;
+  background-color: #333;
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 14px;
+  white-space: nowrap;
+  pointer-events: none;
 }
 </style>
