@@ -276,6 +276,8 @@ watch(searchTerm, () => {
   justify-content: center;
   gap: 20px;
   padding-top: 10px;
+  margin-bottom: 5px;
+  flex-wrap: wrap;
 }
 
 .search-type-buttons button {
