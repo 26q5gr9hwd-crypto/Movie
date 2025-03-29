@@ -208,7 +208,7 @@
         </div>
 
         <div v-if="videos.length" class="yt-video-container">
-          <h2>Трейлеры</h2>
+          <h2>Трейлеры(YouTube)</h2>
 
           <div class="yt-video-thumbnails">
             <div
