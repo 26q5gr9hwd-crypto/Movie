@@ -2,24 +2,22 @@
   <ErrorMessage v-if="errorMessage" :message="errorMessage" :code="errorCode" />
 
   <template v-else>
+    <!-- Кнопка для открытия модалки выбора плеера -->
     <div class="players-list">
       <span>Плеер:</span>
-      <div class="custom-select__wrapper">
-        <select
-          v-model="selectedPlayerInternal"
-          class="custom-select"
-          @change="$event.target.blur()"
-        >
-          <option v-for="player in playersInternal" :key="player.key" :value="player">
-            {{
-              player.key === player.translate
-                ? player.translate.toUpperCase()
-                : player.key + ' - ' + player.translate.toUpperCase()
-            }}
-          </option>
-        </select>
-      </div>
+      <button class="player-btn" @click="openPlayerModal">
+        {{ selectedPlayerInternal ? cleanName(selectedPlayerInternal.translate).toUpperCase() : 'Загрузка плееров...' }}
+      </button>
     </div>
+
+    <!-- Модальное окно выбора плеера -->
+    <PlayerModal
+      v-if="showPlayerModal"
+      :players="playersInternal"
+      :selected-player="selectedPlayerInternal"
+      @close="closePlayerModal"
+      @select="handlePlayerSelect"
+    />
 
     <!-- Единый контейнер плеера -->
     <div
@@ -170,7 +168,7 @@
         </div>
       </div>
 
-      <!-- Новая кнопка для открытия в приложении -->
+      <!-- Кнопка для открытия в приложении -->
       <div v-if="!isElectron" class="tooltip-container">
         <button
           class="app-link-btn"
@@ -212,6 +210,7 @@ import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import PlayerModal from '@/components/PlayerModal.vue'
 
 const mainStore = useMainStore()
 const playerStore = usePlayerStore()
@@ -230,25 +229,21 @@ const theaterMode = ref(false)
 const closeButtonVisible = ref(false)
 const playerIframe = ref(null)
 const containerRef = ref(null)
+const showPlayerModal = ref(false)
 
 // Переменные для ошибок
 const errorMessage = ref('')
 const errorCode = ref(null)
 
-const maxPlayerHeightValue = ref(window.innerHeight * 0.9) // 90% от высоты экрана
+const maxPlayerHeightValue = ref(window.innerHeight * 0.9)
 const maxPlayerHeight = computed(() => `${maxPlayerHeightValue.value}px`)
 const isMobile = computed(() => mainStore.isMobile)
-// Надо перенести в хранилище аналогично мобильной версии
-const isElectron = computed(() => {
-  return !!window.electronAPI
-})
+const isElectron = computed(() => !!window.electronAPI)
 
-// Подсказки
 const activeTooltip = ref(null)
 const tooltipHovered = ref(false)
 let hideTimeout = null
 
-// Уведомления
 const notificationRef = ref(null)
 
 const showTooltip = (tooltipName) => {
@@ -258,7 +253,6 @@ const showTooltip = (tooltipName) => {
 }
 
 const tryHideTooltip = () => {
-  // Если курсор не над подсказкой - скрываем через 300мс (для плавности)
   if (!tooltipHovered.value) {
     hideTimeout = setTimeout(() => {
       activeTooltip.value = null
@@ -276,32 +270,23 @@ const hideTooltip = () => {
   activeTooltip.value = null
 }
 
-// Используем геттер для получения aspectRatio из хранилища
 const aspectRatio = computed({
   get: () => playerStore.aspectRatio,
   set: (value) => playerStore.updateAspectRatio(value)
 })
 
-// Используем геттер для получения isCentered из хранилища
 const isCentered = computed({
   get: () => playerStore.isCentered,
   set: (value) => playerStore.updateCentering(value)
 })
 
-// Используем геттер для получения предпочтительного плеера из хранилища
 const preferredPlayer = computed(() => playerStore.preferredPlayer)
-
-// Естественная (рассчитанная) высота плеера исходя из текущей ширины контейнера
 const naturalHeight = ref(0)
 
-// Функция приведения к верхнему регистру
-const normalizeKey = (key) => {
-  return key.toUpperCase()
-}
+const normalizeKey = (key) => key.toUpperCase()
 
 const updateScaleFactor = () => {
   if (theaterMode.value || !containerRef.value) return
-
   const [w, h] = aspectRatio.value.split(':').map(Number)
   maxPlayerHeightValue.value = window.innerHeight * 0.9
   naturalHeight.value = Math.min(
@@ -312,10 +297,8 @@ const updateScaleFactor = () => {
 
 const containerStyle = computed(() => {
   if (theaterMode.value) return {}
-
   const [w, h] = aspectRatio.value.split(':').map(Number)
   const maxWidth = maxPlayerHeightValue.value * (w / h)
-
   return {
     width: '100%',
     maxWidth: `${maxWidth}px`,
@@ -335,10 +318,9 @@ const iframeWrapperStyle = computed(() => {
 })
 
 const centerPlayer = () => {
-  const container = containerRef.value
-  if (container) {
+  if (containerRef.value) {
     nextTick(() => {
-      container.scrollIntoView({
+      containerRef.value.scrollIntoView({
         behavior: 'smooth',
         block: 'center',
         inline: 'center'
@@ -349,28 +331,18 @@ const centerPlayer = () => {
 
 const fetchPlayers = async () => {
   try {
-    console.log(props.kpId)
-
-    // Сброс сообщения об ошибке при новом запросе
     errorMessage.value = ''
     errorCode.value = null
-
     const players = await getPlayers(props.kpId)
-
-    // Преобразуем объект с плеерами в массив объектов
     playersInternal.value = Object.entries(players).map(([key, value]) => ({
       key: key.toUpperCase(),
       ...value
     }))
-
-    // Выбираем плеер:
     if (playersInternal.value.length > 0) {
       if (preferredPlayer.value) {
-        // Приводим preferredPlayer к верхнему регистру и удаляем цифры
-        const normalizedPreferredPlayer = normalizeKey(preferredPlayer.value)
-        // Ищем плеера, чей ключ совпадает с предпочтительным плеером
+        const normalizedPreferred = normalizeKey(preferredPlayer.value)
         const preferred = playersInternal.value.find(
-          (player) => normalizeKey(player.key) === normalizedPreferredPlayer
+          player => normalizeKey(player.key) === normalizedPreferred
         )
         selectedPlayerInternal.value = preferred || playersInternal.value[0]
       } else {
@@ -384,6 +356,21 @@ const fetchPlayers = async () => {
     errorCode.value = code
     console.error('Ошибка при загрузке плееров:', error)
   }
+}
+
+const openPlayerModal = () => {
+  showPlayerModal.value = true
+}
+
+const closePlayerModal = () => {
+  showPlayerModal.value = false
+}
+
+const handlePlayerSelect = (player) => {
+  selectedPlayerInternal.value = player
+  iframeLoading.value = true
+  playerStore.updatePreferredPlayer(normalizeKey(player.key))
+  emit('update:selectedPlayer', player)
 }
 
 const toggleBlur = () => {
@@ -425,10 +412,7 @@ const toggleTheaterMode = () => {
     document.body.classList.remove('no-scroll')
   }
   closeButtonVisible.value = theaterMode.value
-  // Вызываем центрирование после закрытия театрального режима. Возможно временное решение
-  nextTick(() => {
-    centerPlayer()
-  })
+  nextTick(() => centerPlayer())
 }
 
 const theaterModeCloseButtonTimeout = ref(null)
@@ -442,7 +426,6 @@ const showCloseButton = () => {
 
 const dimmingEnabled = computed(() => mainStore.dimmingEnabled)
 const toggleDimming = () => {
-  // Затемнение включается только в обычном режиме
   if (!theaterMode.value) {
     mainStore.toggleDimming()
   }
@@ -457,9 +440,7 @@ const onKeyDown = (event) => {
 const setAspectRatio = (ratio) => {
   aspectRatio.value = ratio
   setTimeout(() => {
-    if (isCentered.value) {
-      centerPlayer()
-    }
+    if (isCentered.value) centerPlayer()
   }, 310)
 }
 
@@ -473,7 +454,7 @@ const openAppLink = () => {
 }
 
 const copyMovieLink = () => {
-  const movieLink = window.location.href // Текущий URL страницы
+  const movieLink = window.location.href
   navigator.clipboard.writeText(movieLink).then(() => {})
   notificationRef.value.showNotification('Ссылка на фильм скопирована')
 }
@@ -482,39 +463,35 @@ const onIframeLoad = () => {
   iframeLoading.value = false
 }
 
+function cleanName(name) {
+  return name
+    .replace(/^REYOHOHO_PLAYER>HDREZKA>/, '')
+    .replace(/KODIK>/, 'KODIK - ')
+    .trim()
+}
+
 watch(selectedPlayerInternal, (newVal) => {
   if (newVal) {
     iframeLoading.value = true
-    const normalizedKey = normalizeKey(newVal.key)
-    playerStore.updatePreferredPlayer(normalizedKey)
+    playerStore.updatePreferredPlayer(normalizeKey(newVal.key))
     emit('update:selectedPlayer', newVal)
   }
 })
 
-watch(
-  () => route.params.kp_id,
-  async (newKpId) => {
-    if (newKpId && newKpId !== kp_id.value) {
-      kp_id.value = newKpId
-      if (isCentered.value) {
-        centerPlayer()
-      }
-    }
-  },
-  { immediate: true }
-)
+watch(() => route.params.kp_id, async (newKpId) => {
+  if (newKpId && newKpId !== kp_id.value) {
+    kp_id.value = newKpId
+    if (isCentered.value) centerPlayer()
+  }
+}, { immediate: true })
 
 onMounted(() => {
   iframeLoading.value = true
   fetchPlayers()
-  if (isMobile.value) {
-    aspectRatio.value = '4:3'
-  }
+  if (isMobile.value) aspectRatio.value = '4:3'
   updateScaleFactor()
   window.addEventListener('resize', updateScaleFactor)
-  if (isCentered.value) {
-    centerPlayer()
-  }
+  if (isCentered.value) centerPlayer()
 })
 
 onBeforeUnmount(() => {
@@ -528,12 +505,48 @@ onBeforeUnmount(() => {
 <style scoped>
 .players-list {
   width: 100%;
-  max-width: 700px;
+  max-width: 800px;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   margin: auto;
   margin-bottom: 10px;
+}
+
+/* Стили для кнопки выбора плеера */
+.player-btn {
+  display: flex;
+  align-items: center;
+  justify-content: left;
+  background: #3a3a3a;
+  color: #fff;
+  border: 2px solid #505050;
+  border-radius: 5px;
+  padding: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  width: 100%;
+  max-width: 800px;
+  text-align: left;
+  font-size: 16px;
+}
+
+.player-btn:hover {
+  background: #505050;
+  border-color: #17850b;
+}
+
+.player-btn:active {
+  background: #17850b;;
+  border-color: #17850b;;
+}
+
+.player-btn:focus {
+  outline: none;
+  box-shadow: 0 0 5px #17850b;
 }
 
 .player-container {
