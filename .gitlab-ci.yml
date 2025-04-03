@@ -3,9 +3,9 @@ pages:
   script:
     - npm install
     - VITE_BASE_URL=/reyohoho/ npm run build
-    - mkdir .public
-    - cp -r ./dist/* .public
-    - mv .public public
+    - rm -rf ./public
+    - mkdir ./public
+    - cp -r ./dist/* ./public/
   artifacts:
     paths:
       - public
