@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:github": "vite build --mode github",
+    "build:github": "cross-env VITE_BASE_URL=/reyohoho/ vite build --mode github",
     "preview": "vite preview",
     "test:unit": "vitest",
     "lint": "eslint --ext .js,.vue src",
@@ -40,6 +40,7 @@
     "@vitejs/plugin-vue": "^5.2.1",
     "@vue/eslint-config-prettier": "^10.2.0",
     "@vue/test-utils": "2.4.6",
+    "cross-env": "^7.0.3",
     "eslint": "^9.22.0",
     "eslint-config-prettier": "^10.1.1",
     "eslint-plugin-prettier": "^5.2.3",
