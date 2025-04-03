@@ -1,4 +1,5 @@
 pages:
+  image: node:20
   script:
     - npm ci
     - VITE_BASE_URL=/reyohoho/ npm run build
