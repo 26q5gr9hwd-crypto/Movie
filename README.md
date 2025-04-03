@@ -18,7 +18,11 @@
 </p>
 
 <p align="center">
-  🖥 <a href="https://github.com/reyohoho/reyohoho-desktop">Desktop App</a>
+  🖥 <a href="https://gitlab.com/reyohoho/reyohoho-desktop">Desktop App</a>
+</p>
+
+<p align="center">
+  🖥 <a href="https://gitlab.com/reyohoho/reyohoho-chrome-ff-ext">Расширение для браузера</a>
 </p>
 
 <p align="center">
@@ -44,27 +48,34 @@
 ReYohoho — это современное веб-приложение, предназначенное для онлайн-просмотра фильмов и сериалов.
 
 ---
+
 ## 🪞 Зеркала
+
 ### 🔹 Статус работы сервера:
+
 - [Status](http://45.136.199.126:3001/status/reyohoho)
 
 ### 🔹 Новый фронтенд (Vue 3):
+
 - [reyohoho.github.io/reyohoho](https://reyohoho.github.io/reyohoho)
 - [reyohoho-vue.vercel.app](https://reyohoho-vue.vercel.app)
-
-### 🔸 Старый фронтенд:
-- [reyohoho.vercel.app](https://reyohoho.vercel.app)
 - [reyohoho.onrender.com](https://reyohoho.onrender.com)
 - [reyohoho.serv00.net](https://reyohoho.serv00.net)
+
+### 🔸 Старый фронтенд:
+
+- [reyohoho.vercel.app](https://reyohoho.vercel.app)
 - [reyohoho.surge.sh](https://reyohoho.surge.sh)
 
 ---
+
 ## 🛠️ Технологии
 
 - [Vue 3](https://vuejs.org/)
 - [Vite](https://vitejs.dev/)
 
 ---
+
 ## 🤝 Вклад в проект
 
 ### Присоединяйтесь к нашему Telegram
@@ -74,7 +85,7 @@ ReYohoho — это современное веб-приложение, пред
 ### Форк и клонирование репозитория
 
 1. Форкните репозиторий [(нажмите здесь, чтобы сделать форк)](https://github.com/reyohoho/reyohoho/fork).
-2. Склонируйте ваш форк: 
+2. Склонируйте ваш форк:
    ```bash
    git clone https://github.com/ваше_имя_пользователя/reyohoho
    ```
@@ -108,7 +119,9 @@ yarn
 ```bash
 yarn dev
 ```
+
 ---
+
 ## 💕 Участники
 
 <a href="https://github.com/reyohoho/reyohoho/contributors">
@@ -116,6 +129,7 @@ yarn dev
 </a>
 
 ---
+
 ## 📬 Контакты
 
 - 📧 **Email:** [reyohoho@proton.me](mailto:reyohoho@proton.me)
@@ -123,6 +137,7 @@ yarn dev
 - ✍🏼 **Telegram:** [@ReYohoho](https://t.me/ReYohoho)
 
 ---
+
 ## 📜 Лицензия
 
 Этот проект распространяется под лицензией [MIT](LICENSE).
