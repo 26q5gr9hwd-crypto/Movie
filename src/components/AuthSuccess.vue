@@ -36,6 +36,7 @@ export default {
     const moveHistory = ref(false)
     const success = ref(false)
     const error = ref(null)
+    const base = ref(import.meta.env.VITE_BASE_URL || '/')
 
     const processAuth = async () => {
       try {
@@ -47,7 +48,7 @@ export default {
         }
         authStore.setToken(token)
 
-        window.history.replaceState({}, document.title, '/auth-success')
+        window.history.replaceState({}, document.title, `${base.value}auth-success`)
 
         let user = await getUser()
         authStore.setUser(user)
