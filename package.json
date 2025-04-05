@@ -54,6 +54,7 @@
     "sass-embedded": "^1.85.1",
     "typescript": "^5.8.2",
     "vite": "^6.2.3",
+    "vite-plugin-bugsnag": "^2.0.2",
     "vite-plugin-eslint": "^1.8.1",
     "vitest": "^3.0.7",
     "vue-eslint-parser": "^10.1.1",
