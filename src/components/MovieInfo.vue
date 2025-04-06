@@ -650,7 +650,7 @@ watch(
 }
 
 .additional-info-title {
-  margin: 0 0 15px;
+  margin: 15px 0 15px;
   text-align: left;
   color: #fff;
 }
