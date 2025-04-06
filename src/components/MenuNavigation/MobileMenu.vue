@@ -25,12 +25,6 @@
               <span class="menu-text">{{ link.text }}</span>
             </component>
           </li>
-          <li v-if="route.name !== 'home'">
-            <a @click="toggleSearch">
-              <i class="fas fa-search"></i>
-              <span class="menu-text">Поиск</span>
-            </a>
-          </li>
         </ul>
       </div>
     </nav>
@@ -42,21 +36,14 @@
 <script setup>
 import { storeToRefs } from 'pinia'
 import { useNavbarStore } from '@/store/navbar'
-import { useRoute } from 'vue-router'
 
 const props = defineProps({
   links: Array
 })
 
-const route = useRoute()
 const navbarStore = useNavbarStore()
 const { isNavbarVisible } = storeToRefs(navbarStore)
-const { closeNavbar, toggleSearchModal } = navbarStore
-
-const toggleSearch = () => {
-  toggleSearchModal()
-  navbarStore.closeNavbar()
-}
+const { closeNavbar } = navbarStore
 </script>
 
 <style scoped>
