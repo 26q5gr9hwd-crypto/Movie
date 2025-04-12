@@ -61,33 +61,14 @@ onMounted(async () => {
           {
             to: '/lists',
             exact: true,
-            icon: 'fas fa-list',
+            icon: 'fas fa-bookmark',
             text: 'Мои списки'
           }
         ]
       : []),
     { to: '/top', icon: 'fa-solid fa-trophy', text: 'Популярное' },
-    { href: 'https://t.me/ReYohoho/126', icon: 'fab fa-telegram', text: 'Приложение' },
-    {
-      href: 'https://gitlab.com/reyohoho/reyohoho-chrome-ff-ext',
-      icon: 'fa-solid fa-puzzle-piece',
-      text: 'Расширение'
-    },
-    {
-      href: 'https://gitlab.com/-/snippets/4830428',
-      icon: 'fas fa-heart',
-      text: 'Благодарность'
-    },
-    { href: 'https://gitlab.com/reyohoho/reyohoho', icon: 'fab fa-gitlab', text: 'Gitlab' },
-    { href: 'https://t.me/ReYohoho', icon: 'fab fa-telegram', text: 'Telegram' },
-    {
-      href: 'http://45.136.199.126:3001/status/reyohoho',
-      icon: 'fas fa-tachometer-alt',
-      text: 'Статус'
-    },
-    { to: '/contact', icon: 'fas fa-info-circle', text: 'Copyright' },
-    { href: 'https://t.me/ReYohoho_Donut_Bot?start=1', icon: '', text: 'Поддержать' },
-    { to: '/setting', icon: 'fa-solid fa-gear', text: 'Настройки' }
+    { to: '/setting', icon: 'fa-solid fa-gear', text: 'Настройки' },
+    { to: '/links', icon: 'fa-solid fa-info-circle', text: 'Полезные ссылки' }
   ]
 })
 </script>
