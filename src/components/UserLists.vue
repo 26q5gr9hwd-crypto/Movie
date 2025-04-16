@@ -17,12 +17,19 @@
             <button class="share-btn" @click="copyShareLink()">
               <span class="material-icons">{{ 'share' }}</span>
             </button>
+            <button 
+              v-if="movies.length > 0 && (!user_id || String(user_id) === String(authStore.user?.id))" 
+              class="clear-btn" 
+              @click="showModal = true"
+            >
+              <span class="material-icons">{{ 'delete_sweep' }}</span>
+            </button>
           </div>
         </div>
       </div>
 
       <div v-if="movies.length === 0 && !loading" class="empty-state">
-        <span class="material-icons">sentiment_dissatisfied</span>
+        <span class="material-icons">movie</span>
         <p>Нет фильмов для отображения</p>
       </div>
 
@@ -31,23 +38,31 @@
         :movies-list="movies"
         :is-history="false"
         :loading="loading"
+        @item-deleted="handleItemDeleted"
       />
 
       <ErrorMessage v-if="errorMessage" :message="errorMessage" :code="errorCode" />
     </div>
   </div>
   <Notification ref="notificationRef" />
+  <BaseModal
+    :is-open="showModal"
+    message="Вы уверены, что хотите очистить список?"
+    @confirm="clearList"
+    @close="showModal = false"
+  />
 </template>
 
 <script setup>
-import { getMyLists, getUserLists } from '@/api/user'
+import { getMyLists, getUserLists, delFromList, delAllFromList } from '@/api/user'
 import { useAuthStore } from '@/store/auth'
 import { handleApiError, USER_LIST_TYPES_ENUM } from '@/constants'
 import { MovieList } from '@/components/MovieList'
 import { onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import ErrorMessage from '@/components/ErrorMessage.vue'
 import Notification from '@/components/notification/ToastMessage.vue'
+import BaseModal from '@/components/BaseModal.vue'
 
 const movies = ref([])
 const loading = ref(true)
@@ -56,7 +71,9 @@ const errorMessage = ref('')
 const errorCode = ref(null)
 const authStore = useAuthStore()
 const route = useRoute()
+const router = useRouter()
 const user_id = ref(route.params.user_id)
+const showModal = ref(false)
 
 const notificationRef = ref(null)
 const copyShareLink = async () => {
@@ -104,6 +121,49 @@ const fetchMovies = async () => {
 const changeTypeFilter = (value) => {
   typeFilter.value = value
   fetchMovies()
+}
+
+const clearList = async () => {
+  loading.value = true
+  if (authStore.token) {
+    try {
+      await delAllFromList(typeFilter.value)
+      movies.value = []
+      notificationRef.value.showNotification('Список очищен')
+    } catch (error) {
+      const { message, code } = handleApiError(error)
+      errorMessage.value = message
+      errorCode.value = code
+      console.error('Ошибка при очистке списка:', error)
+      if (code === 401) {
+        authStore.logout()
+        await router.push('/login')
+        router.go(0)
+      }
+    }
+  }
+  loading.value = false
+  showModal.value = false
+}
+
+const handleItemDeleted = async (deletedItemId) => {
+  if (authStore.token) {
+    try {
+      await delFromList(deletedItemId, typeFilter.value)
+      movies.value = movies.value.filter((item) => item.kp_id !== deletedItemId)
+      notificationRef.value.showNotification('Фильм удален из списка')
+    } catch (error) {
+      const { message, code } = handleApiError(error)
+      errorMessage.value = message
+      errorCode.value = code
+      console.error('Ошибка при удалении фильма:', error)
+      if (code === 401) {
+        authStore.logout()
+        await router.push('/login')
+        router.go(0)
+      }
+    }
+  }
 }
 
 onMounted(fetchMovies)
@@ -233,6 +293,26 @@ onMounted(fetchMovies)
 }
 
 .share-btn:hover {
+  background: #3a3a3a;
+}
+
+.clear-btn {
+  padding: 10px 10px;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  background: #2d2d2d;
+  color: #e0e0e0;
+  cursor: pointer;
+  font-weight: 500;
+  white-space: nowrap;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
+}
+
+.clear-btn:hover {
   background: #3a3a3a;
 }
 

@@ -3,7 +3,7 @@
     <div v-if="movie.poster || movie.cover">
       <img v-lazy="movie.poster || movie.cover" class="movie-poster" />
       <DeleteButton
-        v-if="isHistory && !isMobile"
+        v-if="!isMobile && (isHistory || isUserList)"
         class="delete-button"
         data-test-id="delete-button"
         @click.stop.prevent="emit('remove:from-history', movie.kp_id)"
@@ -35,12 +35,14 @@ import { TYPES_ENUM } from '@/constants'
 
 const {
   movie,
+  isMobile = false,
   isHistory = false,
-  isMobile = false
+  isUserList = false
 } = defineProps({
   movie: Object,
+  isMobile: Boolean,
   isHistory: Boolean,
-  isMobile: Boolean
+  isUserList: Boolean
 })
 const emit = defineEmits(['remove:from-history'])
 </script>

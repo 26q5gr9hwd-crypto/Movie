@@ -15,6 +15,7 @@
       :movie
       :is-history
       :is-mobile
+      :is-user-list="isUserList"
       @remove:from-history="(data) => emit('remove:from-history', data)"
     />
 
@@ -36,6 +37,7 @@ const {
   isHistory = false,
   isCardBorder = false,
   isMobile = false,
+  isUserList = false,
   activeMovieIndex = null,
   index = 0
 } = defineProps({
@@ -43,6 +45,7 @@ const {
   isHistory: Boolean,
   isMobile: Boolean,
   isCardBorder: Boolean,
+  isUserList: Boolean,
   index: Number,
   activeMovieIndex: [Number, null]
 })

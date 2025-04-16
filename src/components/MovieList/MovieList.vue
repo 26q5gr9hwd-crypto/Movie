@@ -12,6 +12,7 @@
             :movie
             :is-history
             :is-mobile
+            :is-user-list="isUserList"
             :index
             :is-card-border="isCardBorder"
             :active-movie-index
@@ -26,8 +27,9 @@
           v-for="(movie, index) in moviesList"
           :key="movie.kp_id"
           :movie
-          :is-history
-          :is-mobile
+          :is-history="isHistory"
+          :is-mobile="isMobile"
+          :is-user-list="isUserList"
           :index
           :is-card-border="isCardBorder"
           :active-movie-index
@@ -46,7 +48,7 @@ import { useBackgroundStore } from '@/store/background'
 import { useMainStore } from '@/store/main'
 import { useAuthStore } from '@/store/auth'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { CardMovie, CardMovieSwipeWrapper } from '../CardMovie'
 import { delFromList } from '@/api/user'
 import { handleApiError } from '@/constants'
@@ -56,6 +58,7 @@ const mainStore = useMainStore()
 const authStore = useAuthStore()
 const backgroundStore = useBackgroundStore()
 const router = useRouter()
+const route = useRoute()
 
 const {
   moviesList,
@@ -72,6 +75,9 @@ const activeMovieIndex = ref(null)
 
 const isCardBorder = computed(() => backgroundStore.isCardBorder)
 const isMobile = computed(() => mainStore.isMobile)
+const isUserList = computed(() => {
+  return route.name === 'lists' && (!route.params.user_id || String(route.params.user_id) === String(authStore.user?.id))
+})
 
 const movieUrl = (movie) => {
   return router.resolve({ name: 'movie-info', params: { kp_id: movie.kp_id } }).href
