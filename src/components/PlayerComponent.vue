@@ -62,7 +62,7 @@
     </div>
 
     <!-- Кнопки управления -->
-    <div class="controls">
+    <div class="controls" v-if="!theaterMode">
       <div v-if="!isMobile" class="tooltip-container list-buttons-container" ref="tooltipContainer">
         <button
           class="favorite-btn"
