@@ -6,17 +6,17 @@
           <div class="movie-skeleton__header">
             <div class="movie-skeleton__title"></div>
           </div>
-          
+
           <div class="movie-skeleton__ratings">
             <div class="movie-skeleton__rating-item"></div>
             <div class="movie-skeleton__rating-item"></div>
             <div class="movie-skeleton__rating-item"></div>
           </div>
-          
+
           <div class="movie-skeleton__player">
             <SpinnerLoading />
           </div>
-          
+
           <div class="movie-skeleton__controls">
             <div class="movie-skeleton__control-btn"></div>
             <div class="movie-skeleton__control-btn"></div>
@@ -24,7 +24,7 @@
             <div class="movie-skeleton__control-btn"></div>
             <div class="movie-skeleton__control-btn"></div>
           </div>
-          
+
           <div class="movie-skeleton__additional-info">
             <div class="movie-skeleton__section-title"></div>
             <div class="movie-skeleton__info-list">
@@ -35,7 +35,7 @@
               <div class="movie-skeleton__info-item"></div>
             </div>
           </div>
-          
+
           <div class="movie-skeleton__description">
             <div class="movie-skeleton__description-line"></div>
             <div class="movie-skeleton__description-line"></div>
@@ -48,7 +48,12 @@
       <ErrorMessage v-if="errorMessage" :message="errorMessage" :code="errorCode" />
 
       <div v-if="errorMessage" class="content-card">
-        <PlayerComponent :key="kp_id" :kp-id="kp_id" :movie-info="movieInfo" @update:movie-info="fetchMovieInfo" />
+        <PlayerComponent
+          :key="kp_id"
+          :kp-id="kp_id"
+          :movie-info="movieInfo"
+          @update:movie-info="fetchMovieInfo"
+        />
       </div>
 
       <div v-if="movieInfo" class="content-card">
@@ -194,7 +199,12 @@
         </div>
 
         <!-- Интеграция компонента плеера -->
-        <PlayerComponent :key="kp_id" :kp-id="kp_id" :movie-info="movieInfo" @update:movie-info="fetchMovieInfo" />
+        <PlayerComponent
+          :key="kp_id"
+          :kp-id="kp_id"
+          :movie-info="movieInfo"
+          @update:movie-info="fetchMovieInfo"
+        />
 
         <meta
           name="title-and-year"
@@ -250,7 +260,11 @@
         </div>
 
         <div v-if="videos.length && areTrailersActive" class="yt-video-container">
-          <TrailerCarousel :videos="videos" :active-video-index="activeTrailerIndex" @select="playTrailer" />
+          <TrailerCarousel
+            :videos="videos"
+            :active-video-index="activeTrailerIndex"
+            @select="playTrailer"
+          />
         </div>
 
         <!-- Секция с сиквелами и приквелами -->
@@ -858,12 +872,6 @@ watch(
 .movie-skeleton__player {
   width: 60%;
   height: 500px;
-  background: linear-gradient(
-    90deg,
-    rgba(40, 40, 40, 0.8) 0%,
-    rgba(60, 60, 60, 0.8) 50%,
-    rgba(40, 40, 40, 0.8) 100%
-  );
   background-size: 200% 100%;
   animation: shimmer 2s infinite linear;
   border-radius: 12px;
@@ -1004,30 +1012,30 @@ watch(
   .movie-skeleton {
     padding: 10px;
   }
-  
+
   .movie-skeleton__header {
     height: 60px;
   }
-  
+
   .movie-skeleton__logo {
     width: 150px;
     height: 60px;
   }
-  
+
   .movie-skeleton__title {
     width: 70%;
     height: 30px;
   }
-  
+
   .movie-skeleton__player {
     height: 250px;
   }
-  
+
   .movie-skeleton__rating-item {
     width: 80px;
     height: 25px;
   }
-  
+
   .movie-skeleton__control-btn {
     width: 40px;
     height: 40px;
