@@ -62,141 +62,319 @@
     </div>
 
     <!-- Кнопки управления -->
-    <div v-if="!isMobile" class="controls">
-      <div class="tooltip-container">
+    <div class="controls">
+      <div v-if="!isMobile" class="tooltip-container list-buttons-container">
         <button
-          class="dimming-btn"
-          :class="{ active: dimmingEnabled }"
-          @mouseenter="showTooltip('dimming')"
-          @mouseleave="activeTooltip = null"
-          @click="toggleDimming"
+          class="favorite-btn"
+          :class="{ active: movieInfo?.lists?.isFavorite }"
+          @mouseenter="showTooltip('favorite')"
+          @mouseleave="tryHideTooltip"
+          @click="toggleList(USER_LIST_TYPES_ENUM.FAVORITE)"
         >
-          <span class="material-icons">{{ dimmingEnabled ? 'light_mode' : 'dark_mode' }}</span>
-        </button>
-        <div v-show="activeTooltip === 'dimming'" class="custom-tooltip">
-          {{ dimmingEnabled ? 'Отключить затемнение' : 'Включить затемнение' }}
-        </div>
-      </div>
-
-      <div class="tooltip-container">
-        <button
-          class="blur-btn"
-          @mouseenter="showTooltip('blur')"
-          @mouseleave="activeTooltip = null"
-          @click="toggleBlur"
-        >
-          <span class="material-icons">blur_on</span>
-        </button>
-        <div v-show="activeTooltip === 'blur'" class="custom-tooltip">
-          {{ isElectron ? 'Блюр' : 'Блюр, функция доступна в приложении' }}
-        </div>
-      </div>
-
-      <div class="tooltip-container">
-        <button
-          class="material-symbols-outlined"
-          @mouseenter="showTooltip('compressor')"
-          @mouseleave="activeTooltip = null"
-          @click="toggleCompressor"
-        >
-          <span class="material-icons">graphic_eq</span>
-        </button>
-        <div v-show="activeTooltip === 'compressor'" class="custom-tooltip">
-          {{ isElectron ? 'Компрессор' : 'Компрессор, функция доступна в приложении' }}
-        </div>
-      </div>
-
-      <div class="tooltip-container">
-        <button
-          class="mirror-btn"
-          @mouseenter="showTooltip('mirror')"
-          @mouseleave="activeTooltip = null"
-          @click="toggleMirror"
-        >
-          <span class="material-icons">flip</span>
-        </button>
-        <div v-show="activeTooltip === 'mirror'" class="custom-tooltip">
-          {{ isElectron ? 'Зеркало' : 'Зеркало, функция доступна в приложении' }}
-        </div>
-      </div>
-
-      <div class="tooltip-container">
-        <button
-          class="theater-mode-btn"
-          @mouseenter="showTooltip('theater')"
-          @mouseleave="activeTooltip = null"
-          @click="toggleTheaterMode"
-        >
-          <span class="material-symbols-outlined">{{
-            theaterMode ? 'fullscreen_exit' : 'aspect_ratio'
+          <span class="material-icons">{{
+            movieInfo?.lists?.isFavorite ? 'favorite' : 'favorite_border'
           }}</span>
         </button>
-        <div v-show="activeTooltip === 'theater'" class="custom-tooltip">
-          {{ theaterMode ? 'Выйти из театрального режима' : 'Театральный режим' }}
-        </div>
-      </div>
-
-      <!-- Кнопки соотношения сторон -->
-      <div v-for="ratio in ['16:9', '12:5', '4:3']" :key="ratio" class="tooltip-container">
-        <button
-          :class="['aspect-ratio-btn', { active: aspectRatio === ratio }]"
-          @mouseenter="showTooltip(ratio)"
-          @mouseleave="activeTooltip = null"
-          @click="setAspectRatio(ratio)"
-        >
-          {{ ratio }}
-        </button>
-        <div v-show="activeTooltip === ratio" class="custom-tooltip">
-          Установить соотношение {{ ratio }}
-        </div>
-      </div>
-
-      <!-- Кнопка центрирования с SliderRound в подсказке -->
-      <div
-        class="tooltip-container"
-        @mouseenter="showTooltip('centering')"
-        @mouseleave="tryHideTooltip"
-      >
-        <button class="center-btn" @click="centerPlayer">
-          <span class="material-icons">center_focus_strong</span>
-        </button>
         <div
-          v-show="activeTooltip === 'centering'"
-          class="custom-tooltip advanced-tooltip"
+          v-show="activeTooltip === 'favorite'"
+          class="custom-tooltip advanced-tooltip list-buttons-dropdown"
           @mouseenter="keepTooltipVisible"
           @mouseleave="hideTooltip"
         >
-          Отцентрировать плеер
-          <SliderRound v-model="isCentered" title="Автоцентрирование плеера" />
-          <span class="tooltip-title">Автоцентрирование плеера</span>
+          <div class="list-button-item">
+            <button
+              class="favorite-btn"
+              :class="{ active: movieInfo?.lists?.isFavorite }"
+              @click="toggleList(USER_LIST_TYPES_ENUM.FAVORITE)"
+            >
+              <span class="material-icons">{{
+                movieInfo?.lists?.isFavorite ? 'favorite' : 'favorite_border'
+              }}</span>
+              <span class="button-label">В избранное</span>
+            </button>
+          </div>
+          <div class="list-button-item">
+            <button
+              class="watching-btn"
+              :class="{ active: movieInfo?.lists?.isWatching }"
+              @click="toggleList(USER_LIST_TYPES_ENUM.WATCHING)"
+            >
+              <span class="material-icons">{{
+                movieInfo?.lists?.isWatching ? 'visibility' : 'visibility_off'
+              }}</span>
+              <span class="button-label">Смотрю</span>
+            </button>
+          </div>
+          <div class="list-button-item">
+            <button
+              class="later-btn"
+              :class="{ active: movieInfo?.lists?.isLater }"
+              @click="toggleList(USER_LIST_TYPES_ENUM.LATER)"
+            >
+              <span class="material-icons">watch_later</span>
+              <span class="button-label">Смотреть позже</span>
+            </button>
+          </div>
+          <div class="list-button-item">
+            <button
+              class="completed-btn"
+              :class="{ active: movieInfo?.lists?.isCompleted }"
+              @click="toggleList(USER_LIST_TYPES_ENUM.COMPLETED)"
+            >
+              <span class="material-icons">{{
+                movieInfo?.lists?.isCompleted ? 'check_circle' : 'check_circle_outline'
+              }}</span>
+              <span class="button-label">Просмотрено</span>
+            </button>
+          </div>
+          <div class="list-button-item">
+            <button
+              class="abandoned-btn"
+              :class="{ active: movieInfo?.lists?.isAbandoned }"
+              @click="toggleList(USER_LIST_TYPES_ENUM.ABANDONED)"
+            >
+              <span class="material-icons">{{
+                movieInfo?.lists?.isAbandoned ? 'not_interested' : 'not_interested'
+              }}</span>
+              <span class="button-label">Брошено</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- Кнопка для открытия в приложении -->
-      <div v-if="!isElectron" class="tooltip-container">
-        <button
-          class="app-link-btn"
-          @mouseenter="showTooltip('app_link')"
-          @mouseleave="activeTooltip = null"
-          @click="openAppLink"
-        >
-          <span class="material-icons">open_in_new</span>
-        </button>
-        <div v-show="activeTooltip === 'app_link'" class="custom-tooltip">Открыть в приложении</div>
+      <div v-else class="mobile-list-buttons">
+        <div class="tooltip-container">
+          <button
+            class="favorite-btn"
+            :class="{ active: movieInfo?.lists?.isFavorite }"
+            @mouseenter="showTooltip('favorite')"
+            @mouseleave="activeTooltip = null"
+            @click="toggleList(USER_LIST_TYPES_ENUM.FAVORITE)"
+          >
+            <span class="material-icons">{{
+              movieInfo?.lists?.isFavorite ? 'favorite' : 'favorite_border'
+            }}</span>
+          </button>
+          <div v-show="activeTooltip === 'favorite'" class="custom-tooltip">
+            {{ 'В избранное' }}
+          </div>
+        </div>
+
+        <div class="tooltip-container">
+          <button
+            class="watching-btn"
+            :class="{ active: movieInfo?.lists?.isWatching }"
+            @mouseenter="showTooltip('watching')"
+            @mouseleave="activeTooltip = null"
+            @click="toggleList(USER_LIST_TYPES_ENUM.WATCHING)"
+          >
+            <span class="material-icons">{{
+              movieInfo?.lists?.isWatching ? 'visibility' : 'visibility_off'
+            }}</span>
+          </button>
+          <div v-show="activeTooltip === 'watching'" class="custom-tooltip">
+            {{ 'Смотрю' }}
+          </div>
+        </div>
+
+        <div class="tooltip-container">
+          <button
+            class="later-btn"
+            :class="{ active: movieInfo?.lists?.isLater }"
+            @mouseenter="showTooltip('later')"
+            @mouseleave="activeTooltip = null"
+            @click="toggleList(USER_LIST_TYPES_ENUM.LATER)"
+          >
+            <span class="material-icons">watch_later</span>
+          </button>
+          <div v-show="activeTooltip === 'later'" class="custom-tooltip">
+            {{ 'Смотреть позже' }}
+          </div>
+        </div>
+
+        <div class="tooltip-container">
+          <button
+            class="completed-btn"
+            :class="{ active: movieInfo?.lists?.isCompleted }"
+            @mouseenter="showTooltip('completed')"
+            @mouseleave="activeTooltip = null"
+            @click="toggleList(USER_LIST_TYPES_ENUM.COMPLETED)"
+          >
+            <span class="material-icons">{{
+              movieInfo?.lists?.isCompleted ? 'check_circle' : 'check_circle_outline'
+            }}</span>
+          </button>
+          <div v-show="activeTooltip === 'completed'" class="custom-tooltip">
+            {{ 'Просмотрено' }}
+          </div>
+        </div>
+
+        <div class="tooltip-container">
+          <button
+            class="abandoned-btn"
+            :class="{ active: movieInfo?.lists?.isAbandoned }"
+            @mouseenter="showTooltip('abandoned')"
+            @mouseleave="activeTooltip = null"
+            @click="toggleList(USER_LIST_TYPES_ENUM.ABANDONED)"
+          >
+            <span class="material-icons">{{
+              movieInfo?.lists?.isAbandoned ? 'not_interested' : 'not_interested'
+            }}</span>
+          </button>
+          <div v-show="activeTooltip === 'abandoned'" class="custom-tooltip">
+            {{ 'Брошено' }}
+          </div>
+        </div>
       </div>
 
-      <!-- Кнопка для копирования ссылки на фильм (только в Electron) -->
-      <div v-if="isElectron" class="tooltip-container">
-        <button
-          class="copy-link-btn"
-          @mouseenter="showTooltip('copy_link')"
-          @mouseleave="activeTooltip = null"
-          @click="copyMovieLink"
+      <template v-if="!isMobile">
+        <div class="tooltip-container">
+          <button
+            class="dimming-btn"
+            :class="{ active: dimmingEnabled }"
+            @mouseenter="showTooltip('dimming')"
+            @mouseleave="activeTooltip = null"
+            @click="toggleDimming"
+          >
+            <span class="material-icons">{{ dimmingEnabled ? 'light_mode' : 'dark_mode' }}</span>
+          </button>
+          <div v-show="activeTooltip === 'dimming'" class="custom-tooltip">
+            {{ dimmingEnabled ? 'Отключить затемнение' : 'Включить затемнение' }}
+          </div>
+        </div>
+
+        <div class="tooltip-container">
+          <button
+            class="blur-btn"
+            @mouseenter="showTooltip('blur')"
+            @mouseleave="activeTooltip = null"
+            @click="toggleBlur"
+          >
+            <span class="material-icons">blur_on</span>
+          </button>
+          <div v-show="activeTooltip === 'blur'" class="custom-tooltip">
+            {{ isElectron ? 'Блюр' : 'Блюр, функция доступна в приложении' }}
+          </div>
+        </div>
+
+        <div class="tooltip-container">
+          <button
+            class="material-symbols-outlined"
+            @mouseenter="showTooltip('compressor')"
+            @mouseleave="activeTooltip = null"
+            @click="toggleCompressor"
+          >
+            <span class="material-icons">graphic_eq</span>
+          </button>
+          <div v-show="activeTooltip === 'compressor'" class="custom-tooltip">
+            {{ isElectron ? 'Компрессор' : 'Компрессор, функция доступна в приложении' }}
+          </div>
+        </div>
+
+        <div class="tooltip-container">
+          <button
+            class="mirror-btn"
+            @mouseenter="showTooltip('mirror')"
+            @mouseleave="activeTooltip = null"
+            @click="toggleMirror"
+          >
+            <span class="material-icons">flip</span>
+          </button>
+          <div v-show="activeTooltip === 'mirror'" class="custom-tooltip">
+            {{ isElectron ? 'Зеркало' : 'Зеркало, функция доступна в приложении' }}
+          </div>
+        </div>
+
+        <div class="tooltip-container">
+          <button
+            class="theater-mode-btn"
+            @mouseenter="showTooltip('theater')"
+            @mouseleave="activeTooltip = null"
+            @click="toggleTheaterMode"
+          >
+            <span class="material-symbols-outlined">{{
+              theaterMode ? 'fullscreen_exit' : 'aspect_ratio'
+            }}</span>
+          </button>
+          <div v-show="activeTooltip === 'theater'" class="custom-tooltip">
+            {{ theaterMode ? 'Выйти из театрального режима' : 'Театральный режим' }}
+          </div>
+        </div>
+
+        <div class="tooltip-container">
+          <button
+            class="aspect-ratio-dropdown-btn"
+            @mouseenter="showTooltip('aspect_ratio')"
+            @mouseleave="tryHideTooltip"
+            @click="cycleAspectRatio"
+          >
+            <span class="current-ratio">{{ aspectRatio }}</span>
+          </button>
+          <div
+            v-show="activeTooltip === 'aspect_ratio'"
+            class="custom-tooltip advanced-tooltip aspect-ratio-dropdown"
+            @mouseenter="keepTooltipVisible"
+            @mouseleave="hideTooltip"
+          >
+            <div
+              v-for="ratio in aspectRatios"
+              :key="ratio"
+              class="aspect-ratio-option"
+              :class="{ active: aspectRatio === ratio }"
+              @click="setAspectRatio(ratio)"
+            >
+              {{ ratio }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Кнопка центрирования с SliderRound в подсказке -->
+        <div
+          class="tooltip-container"
+          @mouseenter="showTooltip('centering')"
+          @mouseleave="tryHideTooltip"
         >
-          <span class="material-icons">content_copy</span>
-        </button>
-        <div v-show="activeTooltip === 'copy_link'" class="custom-tooltip">Скопировать ссылку</div>
-      </div>
+          <button class="center-btn" @click="centerPlayer">
+            <span class="material-icons">center_focus_strong</span>
+          </button>
+          <div
+            v-show="activeTooltip === 'centering'"
+            class="custom-tooltip advanced-tooltip"
+            @mouseenter="keepTooltipVisible"
+            @mouseleave="hideTooltip"
+          >
+            Отцентрировать плеер
+            <SliderRound v-model="isCentered" title="Автоцентрирование плеера" />
+            <span class="tooltip-title">Автоцентрирование плеера</span>
+          </div>
+        </div>
+
+        <!-- Кнопка для открытия в приложении -->
+        <div v-if="!isElectron" class="tooltip-container">
+          <button
+            class="app-link-btn"
+            @mouseenter="showTooltip('app_link')"
+            @mouseleave="activeTooltip = null"
+            @click="openAppLink"
+          >
+            <span class="material-icons">open_in_new</span>
+          </button>
+          <div v-show="activeTooltip === 'app_link'" class="custom-tooltip">Открыть в приложении</div>
+        </div>
+
+        <!-- Кнопка для копирования ссылки на фильм (только в Electron) -->
+        <div v-if="isElectron" class="tooltip-container">
+          <button
+            class="copy-link-btn"
+            @mouseenter="showTooltip('copy_link')"
+            @mouseleave="activeTooltip = null"
+            @click="copyMovieLink"
+          >
+            <span class="material-icons">content_copy</span>
+          </button>
+          <div v-show="activeTooltip === 'copy_link'" class="custom-tooltip">Скопировать ссылку</div>
+        </div>
+      </template>
     </div>
 
     <Notification ref="notificationRef" />
@@ -206,6 +384,7 @@
 <script setup>
 import { getPlayers } from '@/api/movies'
 import { handleApiError } from '@/constants'
+import { addToList, delFromList } from '@/api/user'
 import ErrorMessage from '@/components/ErrorMessage.vue'
 import SpinnerLoading from '@/components/SpinnerLoading.vue'
 import Notification from '@/components/notification/ToastMessage.vue'
@@ -213,19 +392,26 @@ import SliderRound from '@/components/slider/SliderRound.vue'
 import { showMessageToast } from '@/helpers/ui'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
+import { useAuthStore } from '@/store/auth'
+import { USER_LIST_TYPES_ENUM } from '@/constants'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import PlayerModal from '@/components/PlayerModal.vue'
 
 const mainStore = useMainStore()
 const playerStore = usePlayerStore()
+const authStore = useAuthStore()
 const route = useRoute()
 const kp_id = ref(route.params.kp_id)
 
 const props = defineProps({
-  kpId: String
+  kpId: String,
+  movieInfo: {
+    type: Object,
+    default: () => ({})
+  }
 })
-const emit = defineEmits(['update:selectedPlayer'])
+const emit = defineEmits(['update:selectedPlayer', 'update:movieInfo'])
 
 const playersInternal = ref([])
 const selectedPlayerInternal = ref(null)
@@ -499,6 +685,59 @@ watch(
   { immediate: true }
 )
 
+const aspectRatios = ['16:9', '12:5', '4:3']
+
+const cycleAspectRatio = () => {
+  const currentIndex = aspectRatios.indexOf(aspectRatio.value)
+  const nextIndex = (currentIndex + 1) % aspectRatios.length
+  setAspectRatio(aspectRatios[nextIndex])
+}
+
+const getListStatus = (listType) => {
+  const statusMap = {
+    [USER_LIST_TYPES_ENUM.FAVORITE]: props.movieInfo?.lists?.isFavorite || false,
+    [USER_LIST_TYPES_ENUM.HISTORY]: props.movieInfo?.lists?.isHistory || false,
+    [USER_LIST_TYPES_ENUM.LATER]: props.movieInfo?.lists?.isLater || false,
+    [USER_LIST_TYPES_ENUM.COMPLETED]: props.movieInfo?.lists?.isCompleted || false,
+    [USER_LIST_TYPES_ENUM.ABANDONED]: props.movieInfo?.lists?.isAbandoned || false,
+    [USER_LIST_TYPES_ENUM.WATCHING]: props.movieInfo?.lists?.isWatching || false
+  }
+
+  return statusMap[listType] ?? false
+}
+
+const toggleList = async (type) => {
+  if (!authStore.token) {
+    notificationRef.value.showNotification('Необходимо авторизоваться', 5000)
+    return
+  }
+  let hasError = false
+  try {
+    const listNames = {
+      [USER_LIST_TYPES_ENUM.FAVORITE]: 'избранное',
+      [USER_LIST_TYPES_ENUM.HISTORY]: 'историю',
+      [USER_LIST_TYPES_ENUM.LATER]: 'список "Смотреть позже"',
+      [USER_LIST_TYPES_ENUM.COMPLETED]: 'список "Просмотрено"',
+      [USER_LIST_TYPES_ENUM.ABANDONED]: 'список "Брошено"',
+      [USER_LIST_TYPES_ENUM.WATCHING]: 'список "Смотрю"'
+    }
+
+    if (getListStatus(type)) {
+      await delFromList(kp_id.value, type)
+      notificationRef.value.showNotification(`Удалено из ${listNames[type]}`)
+    } else {
+      await addToList(kp_id.value, type)
+      notificationRef.value.showNotification(`Добавлено в ${listNames[type]}`)
+    }
+  } catch (error) {
+    const { message, code } = handleApiError(error)
+    notificationRef.value.showNotification(`${message} ${code}`)
+  }
+  if (!hasError) {
+    emit('update:movieInfo')
+  }
+}
+
 onMounted(() => {
   iframeLoading.value = true
   fetchPlayers()
@@ -714,32 +953,105 @@ html.no-scroll {
   top: 100%;
   left: 50%;
   transform: translateX(-50%);
-  background-color: #333;
+  background-color: rgba(51, 51, 51, 0.95);
   color: #fff;
-  padding: 5px;
-  border-radius: 4px;
-  font-size: 16px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 14px;
   white-space: nowrap;
-  margin-top: 8px;
+  margin-top: 12px;
   pointer-events: none;
   text-align: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+}
+
+.custom-tooltip::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 12px;
+  height: 12px;
+  background-color: rgba(51, 51, 51, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: -1;
+}
+
+.tooltip-container:hover .custom-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
 }
 
 .advanced-tooltip {
   white-space: normal;
-  padding: 15px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  top: calc(100% + 5px);
+  gap: 12px;
+  top: calc(100% + 8px);
   pointer-events: all;
   text-align: center;
+  min-width: 200px;
+  background-color: rgba(51, 51, 51, 0.98);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.advanced-tooltip::before {
+  top: -8px;
+  width: 16px;
+  height: 16px;
 }
 
 .tooltip-title {
-  font-size: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  margin-top: 4px;
+}
+
+.aspect-ratio-dropdown {
+  min-width: fit-content;
+  width: max-content;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background-color: rgba(51, 51, 51, 0.98);
+  border-radius: 12px;
+}
+
+.aspect-ratio-option {
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
   text-align: center;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
+  width: 100%;
+}
+
+.aspect-ratio-option:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.aspect-ratio-option.active {
+  background-color: rgba(76, 175, 80, 0.9);
+  color: white;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
 }
 
 .fullscreen {
@@ -757,5 +1069,93 @@ html.no-scroll {
 
 .theater-mode-unlock {
   pointer-events: all;
+}
+
+.aspect-ratio-dropdown-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  min-width: 60px;
+}
+
+.current-ratio {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.list-buttons-container {
+  position: relative;
+}
+
+.list-buttons-dropdown {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  min-width: 200px;
+  background-color: rgba(51, 51, 51, 0.98);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.list-button-item {
+  width: 100%;
+}
+
+.list-button-item button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 44px;
+}
+
+.list-button-item button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: translateX(4px);
+}
+
+.list-button-item button.active {
+  background-color: rgba(76, 175, 80, 0.9);
+  color: white;
+}
+
+.button-label {
+  font-size: 14px;
+  font-weight: 500;
+  flex: 1;
+}
+
+.list-button-item .material-icons {
+  font-size: 20px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-list-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin: 0 auto;
+  border-radius: 10px;
+  backdrop-filter: blur(10px);
+}
+
+@media (max-width: 768px) {
+  .mobile-list-buttons {
+    margin-top: 10px;
+  }
 }
 </style>

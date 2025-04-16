@@ -48,7 +48,7 @@
       <ErrorMessage v-if="errorMessage" :message="errorMessage" :code="errorCode" />
 
       <div v-if="errorMessage" class="content-card">
-        <PlayerComponent :key="kp_id" :kp-id="kp_id" />
+        <PlayerComponent :key="kp_id" :kp-id="kp_id" :movie-info="movieInfo" @update:movie-info="fetchMovieInfo" />
       </div>
 
       <div v-if="movieInfo" class="content-card">
@@ -194,7 +194,7 @@
         </div>
 
         <!-- Интеграция компонента плеера -->
-        <PlayerComponent :key="kp_id" :kp-id="kp_id" />
+        <PlayerComponent :key="kp_id" :kp-id="kp_id" :movie-info="movieInfo" @update:movie-info="fetchMovieInfo" />
 
         <meta
           name="title-and-year"
@@ -211,90 +211,6 @@
           :content="movieInfo.name_original"
         />
         <div class="additional-info">
-          <div class="controls">
-            <div class="tooltip-container">
-              <button
-                class="favorite-btn"
-                :class="{ active: movieInfo.lists.isFavorite }"
-                @mouseenter="showTooltip('favorite')"
-                @mouseleave="activeTooltip = null"
-                @click="toggleList(USER_LIST_TYPES_ENUM.FAVORITE)"
-              >
-                <span class="material-icons">{{
-                  movieInfo.lists.isFavorite ? 'favorite' : 'favorite_border'
-                }}</span>
-              </button>
-              <div v-show="activeTooltip === 'favorite'" class="custom-tooltip">
-                {{ 'В избранное' }}
-              </div>
-            </div>
-
-            <div class="tooltip-container">
-              <button
-                class="watching-btn"
-                :class="{ active: movieInfo.lists.isWatching }"
-                @mouseenter="showTooltip('watching')"
-                @mouseleave="activeTooltip = null"
-                @click="toggleList(USER_LIST_TYPES_ENUM.WATCHING)"
-              >
-                <span class="material-icons">{{
-                  movieInfo.lists.isWatching ? 'visibility' : 'visibility_off'
-                }}</span>
-              </button>
-              <div v-show="activeTooltip === 'watching'" class="custom-tooltip">
-                {{ 'Смотрю' }}
-              </div>
-            </div>
-
-            <div class="tooltip-container">
-              <button
-                class="later-btn"
-                :class="{ active: movieInfo.lists.isLater }"
-                @mouseenter="showTooltip('later')"
-                @mouseleave="activeTooltip = null"
-                @click="toggleList(USER_LIST_TYPES_ENUM.LATER)"
-              >
-                <span class="material-icons">{{ 'watch_later' }}</span>
-              </button>
-              <div v-show="activeTooltip === 'later'" class="custom-tooltip">
-                {{ 'Смотреть позже' }}
-              </div>
-            </div>
-
-            <div class="tooltip-container">
-              <button
-                class="completed-btn"
-                :class="{ active: movieInfo.lists.isCompleted }"
-                @mouseenter="showTooltip('completed')"
-                @mouseleave="activeTooltip = null"
-                @click="toggleList(USER_LIST_TYPES_ENUM.COMPLETED)"
-              >
-                <span class="material-icons">{{
-                  movieInfo.lists.isCompleted ? 'check_circle' : 'check_circle_outline'
-                }}</span>
-              </button>
-              <div v-show="activeTooltip === 'completed'" class="custom-tooltip">
-                {{ 'Просмотрено' }}
-              </div>
-            </div>
-
-            <div class="tooltip-container">
-              <button
-                class="abandoned-btn"
-                :class="{ active: movieInfo.lists.isAbandoned }"
-                @mouseenter="showTooltip('abandoned')"
-                @mouseleave="activeTooltip = null"
-                @click="toggleList(USER_LIST_TYPES_ENUM.ABANDONED)"
-              >
-                <span class="material-icons">{{
-                  movieInfo.lists.isAbandoned ? 'not_interested' : 'not_interested'
-                }}</span>
-              </button>
-              <div v-show="activeTooltip === 'abandoned'" class="custom-tooltip">
-                {{ 'Брошено' }}
-              </div>
-            </div>
-          </div>
           <h2 class="additional-info-title">Подробнее</h2>
           <div class="info-content">
             <div class="details-container">
@@ -357,7 +273,7 @@
 <script setup>
 import { getKpInfo, getShikiInfo } from '@/api/movies'
 import { handleApiError } from '@/constants'
-import { addToList, delFromList } from '@/api/user'
+import { addToList } from '@/api/user'
 import { MovieList } from '@/components/MovieList/'
 import PlayerComponent from '@/components/PlayerComponent.vue'
 import ErrorMessage from '@/components/ErrorMessage.vue'
@@ -387,16 +303,6 @@ const trailerStore = useTrailerStore()
 
 const areTrailersActive = trailerStore.areTrailersActive
 const activeTrailerIndex = ref(null)
-
-const activeTooltip = ref(null)
-const tooltipHovered = ref(false)
-let hideTimeout = null
-
-const showTooltip = (tooltipName) => {
-  activeTooltip.value = tooltipName
-  tooltipHovered.value = false
-  clearTimeout(hideTimeout)
-}
 
 const setDocumentTitle = () => {
   if (movieInfo.value) {
@@ -448,42 +354,6 @@ const copyMovieMeta = async () => {
     notificationRef.value.showNotification('Скопировано')
   } catch (err) {
     console.error('Ошибка копирования:', err)
-  }
-}
-
-const getListStatus = (movieInfo, listType) => {
-  const statusMap = {
-    [USER_LIST_TYPES_ENUM.FAVORITE]: movieInfo.lists?.isFavorite || false,
-    [USER_LIST_TYPES_ENUM.HISTORY]: movieInfo.lists?.isHistory || false,
-    [USER_LIST_TYPES_ENUM.LATER]: movieInfo.lists?.isLater || false,
-    [USER_LIST_TYPES_ENUM.COMPLETED]: movieInfo.lists?.isCompleted || false,
-    [USER_LIST_TYPES_ENUM.ABANDONED]: movieInfo.lists?.isAbandoned || false,
-    [USER_LIST_TYPES_ENUM.WATCHING]: movieInfo.lists?.isWatching || false
-  }
-
-  return statusMap[listType] ?? false
-}
-
-const toggleList = async (type) => {
-  if (!authStore.token) {
-    notificationRef.value.showNotification('Необходимо авторизоваться', 5000)
-    return
-  }
-  let hasError = false
-  try {
-    if (getListStatus(movieInfo.value, type)) {
-      await delFromList(kp_id.value, type)
-      notificationRef.value.showNotification('Удалено')
-    } else {
-      await addToList(kp_id.value, type)
-      notificationRef.value.showNotification('Добавлено')
-    }
-  } catch (error) {
-    const { message, code } = handleApiError(error)
-    notificationRef.value.showNotification(`${message} ${code}`)
-  }
-  if (!hasError) {
-    await fetchMovieInfo(false)
   }
 }
 
