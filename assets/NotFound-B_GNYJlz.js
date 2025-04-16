@@ -1,2 +1,0 @@
-import{_ as n,b as r,e as t,y as a,d as u}from"./index-BgxO_8E4.js";const c={class:"error-page"},l={__name:"NotFound",setup(p){const e=a(),s=()=>{e.push("/")};return(_,o)=>(u(),r("div",c,[t("div",{class:"error-content"},[o[0]||(o[0]=t("h1",null,"400 — Ошибка запроса",-1)),o[1]||(o[1]=t("p",null,"Что-то пошло не так. Проверьте введенные данные и попробуйте снова.",-1)),t("button",{class:"home-button",onClick:s},"На главную")])]))}},m=n(l,[["__scopeId","data-v-cb6351e3"]]);export{m as default};
-//# sourceMappingURL=NotFound-B_GNYJlz.js.map
