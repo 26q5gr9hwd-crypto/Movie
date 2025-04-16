@@ -255,14 +255,30 @@ onBeforeUnmount(() => {
   color: rgba(255, 255, 255, 0.8);
   text-decoration: none;
   padding: 10px 20px;
-  transition:
-    background 0.2s ease,
-    color 0.2s ease;
+  transition: all 0.3s ease;
   height: 20px;
 }
 
+.side-panel:not(.collapsed) .nav-links a {
+  min-width: 250px;
+}
+
+.side-panel.collapsed .nav-links a {
+  justify-content: center;
+  padding: 10px;
+  min-width: auto;
+}
+
+.nav-links a i,
+.nav-links a img {
+  width: 25px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .nav-links .support-link {
-  align-items: self-end;
+  align-items: center;
 }
 
 .menu-text {
@@ -275,6 +291,8 @@ onBeforeUnmount(() => {
   max-width: 0;
   opacity: 0;
   margin-left: 0;
+  width: 130px;
+  display: inline-block;
 }
 .side-panel:not(.collapsed) .menu-text {
   max-width: 130px;
@@ -284,6 +302,10 @@ onBeforeUnmount(() => {
 .side-panel.collapsed .nav-links a {
   justify-content: center;
   padding: 10px;
+}
+.side-panel.collapsed .nav-links a i,
+.side-panel.collapsed .nav-links a img {
+  margin: 0;
 }
 .nav-links a:hover {
   background: rgba(255, 255, 255, 0.05);

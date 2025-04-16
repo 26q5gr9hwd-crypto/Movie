@@ -87,9 +87,21 @@ const { closeNavbar } = navbarStore
   color: rgba(255, 255, 255, 0.8);
   text-decoration: none;
   padding: 10px 20px;
-  transition:
-    background 0.2s ease,
-    color 0.2s ease;
+  transition: all 0.3s ease;
+  min-width: 250px;
+}
+
+.nav-links a i,
+.nav-links a img {
+  width: 25px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.menu-text {
+  width: 130px;
+  display: inline-block;
 }
 
 .nav-links a:hover {
@@ -119,6 +131,7 @@ const { closeNavbar } = navbarStore
 .icon-donut {
   height: 25px;
   object-fit: contain;
+  width: 25px;
 }
 
 .icon-user {
