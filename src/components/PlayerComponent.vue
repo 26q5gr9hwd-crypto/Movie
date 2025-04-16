@@ -363,7 +363,9 @@
           >
             <span class="material-icons">open_in_new</span>
           </button>
-          <div v-show="activeTooltip === 'app_link'" class="custom-tooltip">Открыть в приложении</div>
+          <div v-show="activeTooltip === 'app_link'" class="custom-tooltip">
+            Открыть в приложении
+          </div>
         </div>
 
         <!-- Кнопка для копирования ссылки на фильм (только в Electron) -->
@@ -376,7 +378,9 @@
           >
             <span class="material-icons">content_copy</span>
           </button>
-          <div v-show="activeTooltip === 'copy_link'" class="custom-tooltip">Скопировать ссылку</div>
+          <div v-show="activeTooltip === 'copy_link'" class="custom-tooltip">
+            Скопировать ссылку
+          </div>
         </div>
       </template>
     </div>
@@ -514,13 +518,15 @@ const iframeWrapperStyle = computed(() => {
 
 const centerPlayer = () => {
   if (containerRef.value) {
-    nextTick(() => {
-      containerRef.value.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-        inline: 'center'
+    setTimeout(() => {
+      nextTick(() => {
+        containerRef.value.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'center'
+        })
       })
-    })
+    }, 500)
   }
 }
 
@@ -566,7 +572,7 @@ const handlePlayerSelect = (player) => {
     closePlayerModal()
     return
   }
-  
+
   selectedPlayerInternal.value = player
   iframeLoading.value = true
   playerStore.updatePreferredPlayer(normalizeKey(player.key))
