@@ -292,7 +292,7 @@
         </div>
 
         <div v-if="videos.length && areTrailersActive" class="yt-video-container">
-          <TrailerCarousel :videos="videos" @select="playTrailer" />
+          <TrailerCarousel :videos="videos" :active-video-index="activeTrailerIndex" @select="playTrailer" />
         </div>
 
         <!-- Секция с сиквелами и приквелами -->
@@ -344,6 +344,7 @@ const navbarStore = useNavbarStore()
 const trailerStore = useTrailerStore()
 
 const areTrailersActive = trailerStore.areTrailersActive
+const activeTrailerIndex = ref(null)
 
 const activeTooltip = ref(null)
 const tooltipHovered = ref(false)
@@ -554,6 +555,7 @@ watch(
     if (newKpId && newKpId !== kp_id.value) {
       navbarStore.clearHeaderContent()
       kp_id.value = newKpId
+      activeTrailerIndex.value = null
       await fetchMovieInfo()
       infoLoading.value = false
     }

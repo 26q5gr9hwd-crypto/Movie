@@ -52,11 +52,15 @@ const props = defineProps({
   videos: {
     type: Array,
     required: true
+  },
+  activeVideoIndex: {
+    type: Number,
+    default: null
   }
 })
 
 const emit = defineEmits(['select'])
-const activeVideoIndex = ref(null)
+const activeVideoIndex = ref(props.activeVideoIndex)
 const carousel = ref(null)
 const canScrollLeft = ref(false)
 const canScrollRight = ref(false)
@@ -122,6 +126,13 @@ watch(
 
     const results = await Promise.all(availabilityChecks)
     availableVideos.value = results.filter(Boolean)
+  }
+)
+
+watch(
+  () => props.activeVideoIndex,
+  (newIndex) => {
+    activeVideoIndex.value = newIndex
   }
 )
 
