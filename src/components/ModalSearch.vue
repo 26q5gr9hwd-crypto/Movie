@@ -8,7 +8,6 @@
           v-model="searchTerm"
           placeholder="Введите название фильма"
           class="search-input"
-          autofocus
           @keydown.enter="search"
         />
       </div>
@@ -81,7 +80,7 @@ import { handleApiError } from '@/constants'
 import { useNavbarStore } from '@/store/navbar'
 import { inRange } from 'lodash'
 import debounce from 'lodash/debounce'
-import { ref, watch } from 'vue'
+import { ref, watch, nextTick, onMounted } from 'vue'
 
 const navbarStore = useNavbarStore()
 
@@ -92,6 +91,13 @@ const loading = ref(false)
 // Глобальные переменные для ошибок
 const errorMessage = ref('')
 const errorCode = ref(null)
+
+const searchInput = ref(null)
+
+onMounted(async () => {
+  await nextTick()
+  searchInput.value?.focus()
+})
 
 // Очистка поиска
 const resetSearch = () => {
