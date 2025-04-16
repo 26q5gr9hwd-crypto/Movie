@@ -11,7 +11,9 @@
     "test:unit": "vitest",
     "lint": "eslint --ext .js,.vue src",
     "lint:fix": "eslint --ext .js,.vue src --fix",
-    "format": "prettier --write src/"
+    "format": "prettier --write src/",
+    "icons": "node scripts/generate-icons.js",
+    "build:icons": "node scripts/generate-icons.js && vite build"
   },
   "dependencies": {
     "@bugsnag/browser-performance": "^2.12.0",

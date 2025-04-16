@@ -30,7 +30,6 @@ async function generatePNGIcons() {
 }
 
 async function generateCircleMask(size) {
-  // Создаем круглую маску
   const circle = Buffer.from(
     `<svg><circle cx="${size / 2}" cy="${size / 2}" r="${size / 2}" /></svg>`
   )
@@ -41,7 +40,6 @@ async function generateICO() {
   const icoSizes = [32]
   const size = icoSizes[0]
 
-  // Создаем круглую маску
   const circleMask = await generateCircleMask(size)
 
   const icoBuffers = await Promise.all(
