@@ -8,7 +8,8 @@ export const useMainStore = defineStore(MAIN_STORE_NAME, {
     history: [],
     isHistoryAllowed: true,
     isMobile: false,
-    dimmingEnabled: false
+    dimmingEnabled: false,
+    isCtrlFEnabled: true
   }),
 
   actions: {
@@ -20,6 +21,9 @@ export const useMainStore = defineStore(MAIN_STORE_NAME, {
     },
     toggleDimming() {
       this.dimmingEnabled = !this.dimmingEnabled
+    },
+    toggleCtrlF() {
+      this.isCtrlFEnabled = !this.isCtrlFEnabled
     },
 
     addToHistory(movie) {
@@ -71,7 +75,7 @@ export const useMainStore = defineStore(MAIN_STORE_NAME, {
 
   persist: {
     key: MAIN_STORE_NAME,
-    pick: ['history', 'isHistoryAllowed'],
+    pick: ['history', 'isHistoryAllowed', 'isCtrlFEnabled'],
     beforeHydrate: beforeHydrateLegacyVuex
   }
 })

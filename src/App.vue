@@ -20,9 +20,11 @@ import BackgroundSpace from '@/components/BackgroundSpace.vue'
 import MenuNavigation from '@/components/MenuNavigation.vue'
 import MobileHeader from '@/components/MobileHeader.vue'
 import { useMainStore } from '@/store/main'
+import { useNavbarStore } from '@/store/navbar'
 import { computed, onMounted, onUnmounted } from 'vue'
 
 const store = useMainStore()
+const navbarStore = useNavbarStore()
 
 const isMobile = computed(() => store.isMobile)
 
@@ -31,13 +33,31 @@ const updateIsMobile = () => {
   store.setIsMobile(window.innerWidth < 600)
 }
 
+const handleKeyDown = (event) => {
+  // Ctrl+F
+  if (event.ctrlKey && event.keyCode === 70 && store.isCtrlFEnabled) {
+    event.preventDefault()
+    event.stopPropagation()
+    navbarStore.openSearchModal()
+  }
+  
+  // ESC
+  if (event.keyCode === 27 && navbarStore.isModalSearchVisible) {
+    event.preventDefault()
+    event.stopPropagation()
+    navbarStore.closeSearchModal()
+  }
+}
+
 onMounted(() => {
   store.setIsMobile(window.innerWidth < 600)
   window.addEventListener('resize', updateIsMobile)
+  document.addEventListener('keydown', handleKeyDown, true)
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', updateIsMobile)
+  document.removeEventListener('keydown', handleKeyDown, true)
 })
 
 const dimmingEnabled = computed(() => store.dimmingEnabled)

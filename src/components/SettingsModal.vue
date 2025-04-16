@@ -58,6 +58,11 @@
       </div>
 
       <div class="settings-group">
+        <h2>Горячие клавиши</h2>
+        <SliderRound v-model="isCtrlFEnabled">Перехватывать Ctrl+F для поиска</SliderRound>
+      </div>
+
+      <div class="settings-group">
         <h2>Версия</h2>
         {{ appVersion }}
       </div>
@@ -131,6 +136,11 @@ const areTrailersActive = computed({
       trailerStore.deactivateTrailers() // Выключаем трейлеры
     }
   }
+})
+
+const isCtrlFEnabled = computed({
+  get: () => mainStore.isCtrlFEnabled,
+  set: () => mainStore.toggleCtrlF()
 })
 
 // Навигация
