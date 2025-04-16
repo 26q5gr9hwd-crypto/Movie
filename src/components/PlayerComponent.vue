@@ -298,6 +298,7 @@
           </button>
           <div v-show="activeTooltip === 'theater'" class="custom-tooltip">
             {{ theaterMode ? 'Выйти из театрального режима' : 'Театральный режим' }}
+            <span class="shortcut-hint">Alt+T</span>
           </div>
         </div>
 
@@ -629,6 +630,8 @@ const toggleDimming = () => {
 
 const onKeyDown = (event) => {
   if (event.key === 'Escape' && theaterMode.value) {
+    toggleTheaterMode()
+  } else if (event.altKey && event.keyCode === 84) {
     toggleTheaterMode()
   }
 }
@@ -1157,5 +1160,12 @@ html.no-scroll {
   .mobile-list-buttons {
     margin-top: 10px;
   }
+}
+
+.shortcut-hint {
+  display: block;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 4px;
 }
 </style>

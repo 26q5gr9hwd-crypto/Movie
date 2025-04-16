@@ -452,13 +452,27 @@ const sequelsAndPrequels = computed(() =>
 
 const similars = computed(() => transformMoviesData(movieInfo.value?.similars))
 
+const onKeyDown = (event) => {
+  if (event.altKey && event.keyCode === 84) {
+    const playerComponent = document.querySelector('.player-container')
+    if (playerComponent) {
+      const theaterModeBtn = document.querySelector('.theater-mode-btn')
+      if (theaterModeBtn) {
+        theaterModeBtn.click()
+      }
+    }
+  }
+}
+
 onMounted(async () => {
   await fetchMovieInfo()
   infoLoading.value = false
+  document.addEventListener('keydown', onKeyDown)
 })
 
 onUnmounted(async () => {
   navbarStore.clearHeaderContent()
+  document.removeEventListener('keydown', onKeyDown)
 })
 
 watch(
