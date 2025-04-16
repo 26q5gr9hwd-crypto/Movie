@@ -1,7 +1,49 @@
 <template>
   <div class="movie-info">
     <div class="content">
-      <SpinnerLoading v-if="infoLoading" />
+      <div v-if="infoLoading" class="content-card">
+        <div class="movie-skeleton">
+          <div class="movie-skeleton__header">
+            <div class="movie-skeleton__title"></div>
+          </div>
+          
+          <div class="movie-skeleton__ratings">
+            <div class="movie-skeleton__rating-item"></div>
+            <div class="movie-skeleton__rating-item"></div>
+            <div class="movie-skeleton__rating-item"></div>
+          </div>
+          
+          <div class="movie-skeleton__player">
+            <SpinnerLoading />
+          </div>
+          
+          <div class="movie-skeleton__controls">
+            <div class="movie-skeleton__control-btn"></div>
+            <div class="movie-skeleton__control-btn"></div>
+            <div class="movie-skeleton__control-btn"></div>
+            <div class="movie-skeleton__control-btn"></div>
+            <div class="movie-skeleton__control-btn"></div>
+          </div>
+          
+          <div class="movie-skeleton__additional-info">
+            <div class="movie-skeleton__section-title"></div>
+            <div class="movie-skeleton__info-list">
+              <div class="movie-skeleton__info-item"></div>
+              <div class="movie-skeleton__info-item"></div>
+              <div class="movie-skeleton__info-item"></div>
+              <div class="movie-skeleton__info-item"></div>
+              <div class="movie-skeleton__info-item"></div>
+            </div>
+          </div>
+          
+          <div class="movie-skeleton__description">
+            <div class="movie-skeleton__description-line"></div>
+            <div class="movie-skeleton__description-line"></div>
+            <div class="movie-skeleton__description-line"></div>
+            <div class="movie-skeleton__description-line"></div>
+          </div>
+        </div>
+      </div>
 
       <ErrorMessage v-if="errorMessage" :message="errorMessage" :code="errorCode" />
 
@@ -318,8 +360,8 @@ import { handleApiError } from '@/constants'
 import { addToList, delFromList } from '@/api/user'
 import { MovieList } from '@/components/MovieList/'
 import PlayerComponent from '@/components/PlayerComponent.vue'
-import SpinnerLoading from '@/components/SpinnerLoading.vue'
 import ErrorMessage from '@/components/ErrorMessage.vue'
+import SpinnerLoading from '@/components/SpinnerLoading.vue'
 import { TYPES_ENUM, USER_LIST_TYPES_ENUM } from '@/constants'
 import { useBackgroundStore } from '@/store/background'
 import { useMainStore } from '@/store/main'
@@ -834,5 +876,277 @@ watch(
 .tooltip-title {
   font-size: 16px;
   text-align: center;
+}
+
+.movie-skeleton {
+  padding: 0 20px 20px;
+  color: #e0e0e0;
+}
+
+.movie-skeleton__header {
+  height: 80px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.movie-skeleton__logo {
+  width: 200px;
+  height: 80px;
+  background: linear-gradient(
+    90deg,
+    rgba(30, 30, 30, 0.9) 0%,
+    rgba(50, 50, 50, 0.9) 50%,
+    rgba(30, 30, 30, 0.9) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite linear;
+  border-radius: 8px;
+}
+
+.movie-skeleton__title {
+  width: 30%;
+  height: 40px;
+  background: linear-gradient(
+    90deg,
+    rgba(40, 40, 40, 0.8) 0%,
+    rgba(60, 60, 60, 0.8) 50%,
+    rgba(40, 40, 40, 0.8) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite linear;
+  border-radius: 12px;
+  margin: 0 auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.movie-skeleton__title::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    transparent 100%
+  );
+  animation: shine 1.5s infinite;
+}
+
+@keyframes shine {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.movie-skeleton__ratings {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin: 15px 0;
+}
+
+.movie-skeleton__rating-item {
+  width: 120px;
+  height: 30px;
+  background: linear-gradient(
+    90deg,
+    rgba(30, 30, 30, 0.9) 0%,
+    rgba(50, 50, 50, 0.9) 50%,
+    rgba(30, 30, 30, 0.9) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite linear;
+  border-radius: 8px;
+}
+
+.movie-skeleton__player {
+  width: 60%;
+  height: 500px;
+  background: linear-gradient(
+    90deg,
+    rgba(40, 40, 40, 0.8) 0%,
+    rgba(60, 60, 60, 0.8) 50%,
+    rgba(40, 40, 40, 0.8) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite linear;
+  border-radius: 12px;
+  margin: 20px auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.movie-skeleton__player::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-top: 4px solid rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+.movie-skeleton__controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.movie-skeleton__control-btn {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(
+    90deg,
+    rgba(30, 30, 30, 0.9) 0%,
+    rgba(50, 50, 50, 0.9) 50%,
+    rgba(30, 30, 30, 0.9) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite linear;
+  border-radius: 8px;
+}
+
+.movie-skeleton__additional-info {
+  margin: 20px 0;
+}
+
+.movie-skeleton__section-title {
+  width: 150px;
+  height: 24px;
+  background: linear-gradient(
+    90deg,
+    rgba(30, 30, 30, 0.9) 0%,
+    rgba(50, 50, 50, 0.9) 50%,
+    rgba(30, 30, 30, 0.9) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite linear;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+.movie-skeleton__info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.movie-skeleton__info-item {
+  width: 100%;
+  height: 20px;
+  background: linear-gradient(
+    90deg,
+    rgba(30, 30, 30, 0.9) 0%,
+    rgba(50, 50, 50, 0.9) 50%,
+    rgba(30, 30, 30, 0.9) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite linear;
+  border-radius: 8px;
+}
+
+.movie-skeleton__description {
+  margin: 20px 0;
+}
+
+.movie-skeleton__description-line {
+  width: 100%;
+  height: 16px;
+  background: linear-gradient(
+    90deg,
+    rgba(30, 30, 30, 0.9) 0%,
+    rgba(50, 50, 50, 0.9) 50%,
+    rgba(30, 30, 30, 0.9) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite linear;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.movie-skeleton__description-line:nth-child(2) {
+  width: 90%;
+}
+
+.movie-skeleton__description-line:nth-child(3) {
+  width: 95%;
+}
+
+.movie-skeleton__description-line:nth-child(4) {
+  width: 85%;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .movie-skeleton {
+    padding: 10px;
+  }
+  
+  .movie-skeleton__header {
+    height: 60px;
+  }
+  
+  .movie-skeleton__logo {
+    width: 150px;
+    height: 60px;
+  }
+  
+  .movie-skeleton__title {
+    width: 70%;
+    height: 30px;
+  }
+  
+  .movie-skeleton__player {
+    height: 250px;
+  }
+  
+  .movie-skeleton__rating-item {
+    width: 80px;
+    height: 25px;
+  }
+  
+  .movie-skeleton__control-btn {
+    width: 40px;
+    height: 40px;
+  }
 }
 </style>

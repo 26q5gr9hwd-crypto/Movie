@@ -6,7 +6,7 @@
 
     <div class="profile-content" v-if="user">
       <div class="profile-photo">
-        <img :src="photoURL" alt="Profile Photo" v-if="user.photo && photoURL" />
+        <img v-lazy="photoURL" alt="Profile Photo" v-if="user.photo && photoURL" />
         <div class="photo-placeholder" v-else>
           {{ String.fromCodePoint(user.name.codePointAt(0)).toLocaleUpperCase() }}
         </div>

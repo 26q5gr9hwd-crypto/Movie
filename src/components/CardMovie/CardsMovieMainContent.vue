@@ -1,7 +1,7 @@
 <template>
   <div class="movie-poster-container">
     <div v-if="movie.poster || movie.cover">
-      <img :src="movie.poster || movie.cover" class="movie-poster" />
+      <img v-lazy="movie.poster || movie.cover" class="movie-poster" />
       <DeleteButton
         v-if="isHistory && !isMobile"
         class="delete-button"

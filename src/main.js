@@ -7,6 +7,7 @@ import { registerSW } from 'virtual:pwa-register'
 import { createApp } from 'vue' // Import createApp from Vue
 import VueCookies from 'vue3-cookies'
 import { initYandexMetrika } from 'yandex-metrika-vue3'
+import VueLazyload from 'vue-lazyload'
 import App from './App.vue'
 import router from './router' // Import the router
 import Bugsnag from '@bugsnag/js'
@@ -39,6 +40,35 @@ const app = createApp(App)
 
 const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)
+
+app.use(VueLazyload, {
+  preLoad: 1.3,
+  error: '/src/assets/image-no-poster.gif',
+  loading: '',
+  attempt: 1,
+  observer: true,
+  observerOptions: {
+    rootMargin: '0px',
+    threshold: 0.1
+  },
+  filter: {
+    progressive(listener) {
+      const quality = 'q_auto,f_auto,w_auto,dpr_auto'
+      listener.src = `${listener.src}?${quality}`
+    }
+  },
+  adapter: {
+    loaded({ el }) {
+      el.classList.add('loaded')
+    },
+    loading({ el }) {
+      el.classList.add('loading')
+    },
+    error({ el }) {
+      el.classList.add('error')
+    }
+  }
+})
 
 app
   .use(bugsnagVue)
