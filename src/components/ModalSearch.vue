@@ -8,8 +8,15 @@
           v-model="searchTerm"
           placeholder="Введите название фильма"
           class="search-input"
+          :class="{ 'wrong-layout': showLayoutWarning }"
           @keydown.enter="search"
+          @keydown.tab.prevent="handleTabKey"
+          @input="handleInput"
         />
+        <div v-if="showLayoutWarning" class="layout-warning" :class="{ 'show': showLayoutWarning }">
+          <i class="fas fa-keyboard"></i>
+          Возможно, вы используете неправильную раскладку. Нажмите Tab для переключения на {{ suggestedLayout }} раскладку
+        </div>
       </div>
 
       <!-- Результаты поиска -->
@@ -78,6 +85,7 @@ import ErrorMessage from '@/components/ErrorMessage.vue'
 import { TYPES_ENUM } from '@/constants'
 import { handleApiError } from '@/constants'
 import { useNavbarStore } from '@/store/navbar'
+import { hasConsecutiveConsonants, suggestLayout, convertLayout } from '@/utils/keyboardLayout'
 import { inRange } from 'lodash'
 import debounce from 'lodash/debounce'
 import { ref, watch, nextTick, onMounted } from 'vue'
@@ -94,6 +102,9 @@ const errorCode = ref(null)
 
 const searchInput = ref(null)
 
+const showLayoutWarning = ref(false)
+const suggestedLayout = ref('')
+
 onMounted(async () => {
   await nextTick()
   searchInput.value?.focus()
@@ -105,6 +116,7 @@ const resetSearch = () => {
   movies.value = []
   errorMessage.value = ''
   errorCode.value = null
+  showLayoutWarning.value = false
 }
 
 const search = () => {
@@ -170,6 +182,21 @@ const closeModal = (event) => {
   if ((isLeftClick && isNotModified) || !event) {
     navbarStore.closeSearchModal() // Используем метод из хранилища для закрытия модалки
     resetSearch()
+  }
+}
+
+const handleInput = (event) => {
+  searchTerm.value = event.target.value
+  showLayoutWarning.value = hasConsecutiveConsonants(searchTerm.value)
+  if (showLayoutWarning.value) {
+    suggestedLayout.value = suggestLayout(searchTerm.value)
+  }
+}
+
+const handleTabKey = () => {
+  if (showLayoutWarning.value) {
+    searchTerm.value = convertLayout(searchTerm.value)
+    showLayoutWarning.value = false
   }
 }
 
@@ -304,6 +331,45 @@ watch(searchTerm, () => {
     border-color: #558839;
     outline: none;
   }
+  
+  &.wrong-layout {
+    border-color: #ff8c00;
+    box-shadow: 0 0 5px rgba(255, 140, 0, 0.2);
+  }
+}
+
+.layout-warning {
+  position: absolute;
+  bottom: -40px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: #ff8c00;
+  font-size: 14px;
+  background: rgba(255, 140, 0, 0.15);
+  padding: 8px 12px;
+  border-radius: 5px;
+  pointer-events: none;
+  border: 1px solid rgba(255, 140, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  z-index: 1;
+  backdrop-filter: blur(5px);
+}
+
+.layout-warning.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.layout-warning i {
+  font-size: 16px;
+  color: #ff8c00;
 }
 
 .movie-skeleton {

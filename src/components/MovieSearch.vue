@@ -25,8 +25,10 @@
             v-model="searchTerm"
             :placeholder="getPlaceholder()"
             class="search-input"
+            :class="{ 'wrong-layout': showLayoutWarning }"
             :inputmode="searchType === 'title' ? 'text' : 'numeric'"
             @keydown.enter="search"
+            @keydown.tab.prevent="handleTabKey"
             @input="handleInput"
           />
           <div class="icons">
@@ -36,6 +38,10 @@
             <button class="search-button" @click="search">
               <i class="fas fa-search"></i>
             </button>
+          </div>
+          <div v-if="showLayoutWarning" class="layout-warning" :class="{ 'show': showLayoutWarning }">
+            <i class="fas fa-keyboard"></i>
+            Возможно, вы используете неправильную раскладку. Нажмите Tab для переключения на {{ suggestedLayout }} раскладку
           </div>
         </div>
       </div>
@@ -100,6 +106,7 @@ import { MovieList } from '@/components/MovieList/'
 import { useMainStore } from '@/store/main'
 import { useAuthStore } from '@/store/auth'
 import { USER_LIST_TYPES_ENUM } from '@/constants'
+import { hasConsecutiveConsonants, suggestLayout, convertLayout } from '@/utils/keyboardLayout'
 import debounce from 'lodash/debounce'
 import { watchEffect, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
@@ -118,6 +125,9 @@ const errorMessage = ref('')
 const errorCode = ref(null)
 
 const history = ref([])
+
+const showLayoutWarning = ref(false)
+const suggestedLayout = ref('')
 
 watchEffect(async () => {
   loading.value = true
@@ -151,13 +161,25 @@ function handleItemDeleted(deletedItemId) {
 const setSearchType = (type) => {
   searchType.value = type
   resetSearch()
+  showLayoutWarning.value = false
 }
 
 const handleInput = (event) => {
   if (searchType.value === 'title') {
     searchTerm.value = event.target.value
+    showLayoutWarning.value = hasConsecutiveConsonants(searchTerm.value)
+    if (showLayoutWarning.value) {
+      suggestedLayout.value = suggestLayout(searchTerm.value)
+    }
   } else {
     searchTerm.value = event.target.value.replace(/\D+/g, '')
+  }
+}
+
+const handleTabKey = () => {
+  if (showLayoutWarning.value) {
+    searchTerm.value = convertLayout(searchTerm.value)
+    showLayoutWarning.value = false
   }
 }
 
@@ -389,9 +411,9 @@ watch(searchTerm, () => {
   transition: border-color 0.3s ease;
 }
 
-.search-input:focus {
-  border-color: #558839;
-  outline: none;
+.search-input.wrong-layout {
+  border-color: #ff8c00;
+  box-shadow: 0 0 5px rgba(255, 140, 0, 0.2);
 }
 
 .icons {
@@ -452,6 +474,44 @@ h2 {
   color: #fff;
   font-size: 18px;
   margin-top: 20px;
+}
+
+.layout-warning {
+  position: absolute;
+  bottom: -40px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: #ff8c00;
+  font-size: 14px;
+  background: rgba(255, 140, 0, 0.15);
+  padding: 8px 12px;
+  border-radius: 5px;
+  pointer-events: none;
+  border: 1px solid rgba(255, 140, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  z-index: 1;
+  backdrop-filter: blur(5px);
+}
+
+.layout-warning.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.layout-warning i {
+  font-size: 16px;
+  color: #ff8c00;
+}
+
+.layout-warning {
+  color: #ff8c00;
 }
 
 @media (max-width: 600px) {
