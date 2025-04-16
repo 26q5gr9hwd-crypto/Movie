@@ -56,7 +56,7 @@
       </div>
 
       <div v-if="!isSidebarOpen && activeTooltip !== null" class="tooltip" :style="tooltipStyle">
-        {{ activeTooltip === links?.length ? 'Поиск' : links[activeTooltip]?.text }}
+        {{ activeTooltip === links?.length ? 'Поиск (Ctrl+F)' : links[activeTooltip]?.text }}
       </div>
     </nav>
   </aside>
