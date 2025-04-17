@@ -4,6 +4,10 @@
       <h3>{{ removeYearFromTitle(movie.title) }}</h3>
     </div>
 
+    <div v-if="movie.raw_data?.name_en || movie.raw_data?.Name_original" class="original-title">
+      {{ movie.raw_data.name_en || movie.raw_data.Name_original }}
+    </div>
+
     <!-- Вместо старого места для типа выводим год выпуска -->
     <div v-if="movie.year" class="meta">
       <span class="year">{{ movie.year }}</span>
@@ -52,6 +56,22 @@ const removeYearFromTitle = (title) => {
   text-overflow: ellipsis;
   line-height: 1.2;
   max-height: 3.6em;
+}
+
+.original-title {
+  font-size: 0.8em;
+  color: #888;
+  margin-bottom: 10px;
+  font-style: italic;
+  display: -webkit-box;
+  display: box;
+  -webkit-line-clamp: 2;
+  -moz-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  -moz-box-orient: vertical;
+  box-orient: vertical;
+  overflow: hidden;
 }
 
 .year {
