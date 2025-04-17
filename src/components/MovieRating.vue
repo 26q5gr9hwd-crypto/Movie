@@ -14,6 +14,7 @@
       <div
         v-show="isHovered || isTooltipVisible"
         class="rating-tooltip"
+        :class="{ 'mobile-tooltip': mainStore.isMobile }"
         @mouseenter="handleMouseEnter"
         @mouseleave="handleMouseLeave"
       >
@@ -304,5 +305,15 @@ onMounted(() => {
 }
 .number-btn.active:nth-child(10) {
   background: #00ff00;
+}
+
+.mobile-tooltip {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin-top: 0;
+  width: 90%;
+  max-width: 320px;
 }
 </style>
