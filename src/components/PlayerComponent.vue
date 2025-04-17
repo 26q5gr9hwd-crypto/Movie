@@ -945,7 +945,7 @@ html.no-scroll {
   border-radius: 10px;
   backdrop-filter: blur(10px);
   position: relative;
-  z-index: 10;
+  z-index: 4;
 }
 
 .controls button {
@@ -991,7 +991,6 @@ html.no-scroll {
 .tooltip-container {
   position: relative;
   display: inline-block;
-  z-index: 11;
 }
 
 .custom-tooltip {
@@ -1011,7 +1010,6 @@ html.no-scroll {
   opacity: 0;
   visibility: hidden;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 12;
 }
 
 .custom-tooltip::before {
