@@ -132,6 +132,9 @@ const setRating = async (rating) => {
     } else {
       notificationRef.value.showNotification('Ошибка при сохранении оценки')
     }
+    if (mainStore.isMobile) {
+      isTooltipVisible.value = false
+    }
   }
 }
 
@@ -313,7 +316,5 @@ onMounted(() => {
   left: 50%;
   transform: translate(-50%, -50%);
   margin-top: 0;
-  width: 90%;
-  max-width: 320px;
 }
 </style>
