@@ -74,7 +74,9 @@
           <span class="material-icons">{{
             movieInfo?.lists?.isFavorite ? 'favorite' : 'favorite_border'
           }}</span>
-          <span class="material-icons dropdown-arrow">expand_more</span>
+          <span class="material-icons dropdown-arrow" :class="{ highlighted: isInAnyList }"
+            >expand_more</span
+          >
         </button>
         <div
           v-show="activeTooltip === 'favorite'"
@@ -507,6 +509,16 @@ const aspectRatio = computed({
 const isCentered = computed({
   get: () => playerStore.isCentered,
   set: (value) => playerStore.updateCentering(value)
+})
+
+const isInAnyList = computed(() => {
+  return (
+    props.movieInfo?.lists?.isFavorite ||
+    props.movieInfo?.lists?.isWatching ||
+    props.movieInfo?.lists?.isLater ||
+    props.movieInfo?.lists?.isCompleted ||
+    props.movieInfo?.lists?.isAbandoned
+  )
 })
 
 const preferredPlayer = computed(() => playerStore.preferredPlayer)
@@ -1271,5 +1283,12 @@ html.no-scroll {
   font-size: 16px;
   opacity: 0.7;
   pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+.dropdown-arrow.highlighted {
+  opacity: 1;
+  color: #4caf50;
+  text-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
 }
 </style>
