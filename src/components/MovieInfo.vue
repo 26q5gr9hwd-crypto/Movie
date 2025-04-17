@@ -65,7 +65,7 @@
             @mouseleave="titleCopyTooltip = false"
             @click="copyMovieMeta"
           >
-            <img :src="movieInfo.logo_url" alt="Логотип фильма" class="content-logo" />
+            <img v-lazy="movieInfo.logo_url" alt="Логотип фильма" class="content-logo" v-once />
           </div>
           <div
             v-else

@@ -44,8 +44,7 @@ pinia.use(piniaPluginPersistedstate)
 app.use(VueLazyload, {
   preLoad: 1.3,
   error: '/src/assets/image-no-poster.gif',
-  loading: '',
-  attempt: 1,
+  attempt: 2,
   observer: true,
   observerOptions: {
     rootMargin: '0px',
@@ -60,6 +59,7 @@ app.use(VueLazyload, {
   adapter: {
     loaded({ el }) {
       el.classList.add('loaded')
+      el.classList.remove('loading')
     },
     loading({ el }) {
       el.classList.add('loading')
