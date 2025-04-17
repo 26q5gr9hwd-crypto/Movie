@@ -73,7 +73,28 @@ const getKpIDfromSHIKI = async (shiki_id) => {
   return data
 }
 
-export { apiSearch, getShikiInfo, getKpInfo, getPlayers, getMovies, getDons, getKpIDfromIMDB, getKpIDfromSHIKI }
+const getRating = async (kpId) => {
+  const { data } = await apiCall((api) => api.get(`/rating/${kpId}`))
+  return data
+}
+
+const setRating = async (kpId, rating) => {
+  const { data } = await apiCall((api) => api.post(`/rating/${kpId}`, { rating }))
+  return data
+}
+
+export {
+  apiSearch,
+  getShikiInfo,
+  getKpInfo,
+  getPlayers,
+  getMovies,
+  getDons,
+  getKpIDfromIMDB,
+  getKpIDfromSHIKI,
+  getRating,
+  setRating
+}
 
 // ===== Функция для включения/выключения симуляции =====
 export const toggleErrorSimulation = (enabled) => {

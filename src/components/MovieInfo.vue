@@ -91,6 +91,12 @@
           "
           class="ratings-links"
         >
+          <MovieRating
+            v-if="movieInfo.kinopoisk_id"
+            :kp-id="movieInfo.kinopoisk_id"
+            :show-dash="true"
+          />
+
           <!-- Кинопоиск -->
           <div v-if="movieInfo.kinopoisk_id">
             <a
@@ -100,7 +106,9 @@
               class="rating-link"
             >
               <img src="/src/assets/icon-kp-logo.svg" alt="КП" class="rating-logo" />
-              <span v-if="movieInfo.rating_kinopoisk">{{ movieInfo.rating_kinopoisk }}/10</span>
+              <span>{{
+                movieInfo.rating_kinopoisk ? movieInfo.rating_kinopoisk : '—'
+              }}</span>
               <img
                 src="/src/assets/icon-external-link.png"
                 alt="Внешняя ссылка"
@@ -118,7 +126,9 @@
               class="rating-link"
             >
               <img src="/src/assets/icon-kp-logo.svg" alt="КП" class="rating-logo" />
-              <span v-if="movieInfo.rating_kinopoisk">{{ movieInfo.rating_kinopoisk }}/10</span>
+              <span>{{
+                movieInfo.rating_kinopoisk ? movieInfo.rating_kinopoisk : '—'
+              }}</span>
               <img
                 src="/src/assets/icon-external-link.png"
                 alt="Внешняя ссылка"
@@ -136,7 +146,7 @@
               class="rating-link"
             >
               <img src="/src/assets/icon-imdb-logo.svg" alt="IMDb" class="rating-logo" />
-              <span v-if="movieInfo.rating_imdb">{{ movieInfo.rating_imdb }}/10</span>
+              <span>{{ movieInfo.rating_imdb ? movieInfo.rating_imdb : '—' }}</span>
               <img
                 src="/src/assets/icon-external-link.png"
                 alt="Внешняя ссылка"
@@ -154,7 +164,7 @@
               class="rating-link"
             >
               <img src="/src/assets/icon-imdb-logo.svg" alt="IMDb" class="rating-logo" />
-              <span v-if="movieInfo.rating_imdb">{{ movieInfo.rating_imdb }}/10</span>
+              <span>{{ movieInfo.rating_imdb ? movieInfo.rating_imdb : '—' }}</span>
               <img
                 src="/src/assets/icon-external-link.png"
                 alt="Внешняя ссылка"
@@ -302,6 +312,7 @@ import { useRoute } from 'vue-router'
 import Notification from '@/components/notification/ToastMessage.vue'
 import TrailerCarousel from '@/components/TrailerCarousel.vue'
 import { useTrailerStore } from '@/store/trailer'
+import MovieRating from '@/components/MovieRating.vue'
 
 const infoLoading = ref(true)
 const mainStore = useMainStore()

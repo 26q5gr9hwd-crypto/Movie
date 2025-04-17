@@ -8,7 +8,10 @@
         data-test-id="delete-button"
         @click.stop.prevent="emit('remove:from-history', movie.kp_id)"
       />
-      <div v-if="movie.rating_kp || movie.rating_imdb" class="ratings-overlay">
+      <div
+        v-if="movie.rating_kp || movie.rating_imdb || movie.average_rating"
+        class="ratings-overlay"
+      >
         <span v-if="movie.rating_kp" class="rating-kp">
           <img src="/src/assets/icon-kp-logo.svg" alt="КП" class="rating-logo" />
           {{ movie.rating_kp }}
@@ -16,6 +19,10 @@
         <span v-if="movie.rating_imdb" class="rating-imdb">
           <img src="/src/assets/icon-imdb-logo.svg" alt="IMDb" class="rating-logo" />
           {{ movie.rating_imdb }}
+        </span>
+        <span v-if="movie.average_rating" class="rating-our">
+          <img src="/icons/icon-192x192.png" alt="ReYohoho" class="rating-logo" />
+          {{ movie.average_rating.toFixed(1) }}
         </span>
       </div>
       <!-- Добавлен блок для отображения типа (сериал/фильм) в правом верхнем углу постера -->
@@ -92,7 +99,8 @@ const emit = defineEmits(['remove:from-history'])
 }
 
 .rating-kp,
-.rating-imdb {
+.rating-imdb,
+.rating-our {
   font-size: 1.2em;
   color: #fff;
   display: flex;
