@@ -1,7 +1,7 @@
 <template>
   <div class="movie-info">
     <div class="content">
-      <div v-if="infoLoading" class="content-card">
+      <div v-if="(infoLoading || !movieInfo) && !errorMessage" class="content-card">
         <div class="movie-skeleton">
           <div class="movie-skeleton__header">
             <div class="movie-skeleton__title"></div>
@@ -15,14 +15,6 @@
 
           <div class="movie-skeleton__player">
             <SpinnerLoading />
-          </div>
-
-          <div class="movie-skeleton__controls">
-            <div class="movie-skeleton__control-btn"></div>
-            <div class="movie-skeleton__control-btn"></div>
-            <div class="movie-skeleton__control-btn"></div>
-            <div class="movie-skeleton__control-btn"></div>
-            <div class="movie-skeleton__control-btn"></div>
           </div>
 
           <div class="movie-skeleton__additional-info">
@@ -56,7 +48,7 @@
         />
       </div>
 
-      <div v-if="movieInfo" class="content-card">
+      <div v-if="movieInfo && !infoLoading" class="content-card">
         <div class="content-header">
           <div
             v-if="movieInfo.logo_url"
@@ -954,28 +946,6 @@ const getStaffByProfession = (profession) => {
   100% {
     transform: translate(-50%, -50%) rotate(360deg);
   }
-}
-
-.movie-skeleton__controls {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-  margin: 20px 0;
-}
-
-.movie-skeleton__control-btn {
-  width: 50px;
-  height: 50px;
-  background: linear-gradient(
-    90deg,
-    rgba(30, 30, 30, 0.9) 0%,
-    rgba(50, 50, 50, 0.9) 50%,
-    rgba(30, 30, 30, 0.9) 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 2s infinite linear;
-  border-radius: 8px;
 }
 
 .movie-skeleton__additional-info {
