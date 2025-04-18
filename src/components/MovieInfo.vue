@@ -106,9 +106,7 @@
               class="rating-link"
             >
               <img src="/src/assets/icon-kp-logo.svg" alt="КП" class="rating-logo" />
-              <span>{{
-                movieInfo.rating_kinopoisk ? movieInfo.rating_kinopoisk : '—'
-              }}</span>
+              <span>{{ movieInfo.rating_kinopoisk ? movieInfo.rating_kinopoisk : '—' }}</span>
               <img
                 src="/src/assets/icon-external-link.png"
                 alt="Внешняя ссылка"
@@ -126,9 +124,7 @@
               class="rating-link"
             >
               <img src="/src/assets/icon-kp-logo.svg" alt="КП" class="rating-logo" />
-              <span>{{
-                movieInfo.rating_kinopoisk ? movieInfo.rating_kinopoisk : '—'
-              }}</span>
+              <span>{{ movieInfo.rating_kinopoisk ? movieInfo.rating_kinopoisk : '—' }}</span>
               <img
                 src="/src/assets/icon-external-link.png"
                 alt="Внешняя ссылка"
@@ -267,6 +263,51 @@
           <p v-if="movieInfo.description" class="content-description-text">
             {{ movieInfo.description }}
           </p>
+        </div>
+
+        <div v-if="movieInfo.staff" class="staff-section">
+          <div class="staff-categories">
+            <div v-if="getStaffByProfession('ACTOR').length" class="staff-category">
+              <h3 class="additional-info-title">Актёры</h3>
+              <div class="staff-list">
+                <div
+                  v-for="person in getStaffByProfession('ACTOR').slice(0, 5)"
+                  :key="person.staff_id"
+                  class="staff-item"
+                >
+                  <a
+                    :href="`https://www.kinopoisk.ru/name/${person.staff_id}/`"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="staff-link"
+                    :title="person.description || ''"
+                  >
+                    <img v-lazy="person.poster_url" :alt="person.name_ru" class="staff-photo" />
+                    <span class="staff-name">{{ person.name_ru || person.name_en }}</span>
+                    <span v-if="person.description" class="staff-role">{{
+                      person.description
+                    }}</span>
+                  </a>
+                </div>
+                <button class="expand-circle-button" @click="showAllStaff" title="Весь состав">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M18 6L6 18" />
+                    <path d="M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div v-if="videos.length && areTrailersActive" class="yt-video-container">
@@ -521,6 +562,14 @@ watch(
   },
   { deep: true }
 )
+
+const getStaffByProfession = (profession) => {
+  return movieInfo.value?.staff?.filter((person) => person.profession_key === profession) || []
+}
+
+const showAllStaff = () => {
+  window.open(`https://www.kinopoisk.ru/film/${kp_id.value}/cast/`, '_blank')
+}
 </script>
 
 <style scoped>
@@ -1051,5 +1100,128 @@ watch(
     width: 40px;
     height: 40px;
   }
+}
+
+.staff-section {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+}
+
+.staff-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.staff-category h3 {
+  color: #fff;
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+
+.staff-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 15px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.staff-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.staff-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s;
+}
+
+.staff-link:hover {
+  transform: translateY(-3px);
+}
+
+.staff-photo {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.staff-name {
+  font-size: 14px;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.staff-role {
+  font-size: 12px;
+  color: #aaa;
+}
+
+@media (max-width: 600px) {
+  .staff-list {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+
+  .staff-photo {
+    width: 60px;
+    height: 60px;
+  }
+
+  .staff-name {
+    font-size: 12px;
+  }
+
+  .staff-role {
+    font-size: 10px;
+  }
+}
+
+.show-all-link {
+  display: inline-block;
+  color: #aaa;
+  text-decoration: none;
+  margin-top: 10px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.show-all-link:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.expand-circle-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin: 10px auto 0;
+  transition: all 0.2s ease;
+  color: #fff;
+}
+
+.expand-circle-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(45deg);
+}
+
+.expand-circle-button svg {
+  width: 20px;
+  height: 20px;
 }
 </style>
