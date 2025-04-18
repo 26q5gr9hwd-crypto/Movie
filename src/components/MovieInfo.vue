@@ -263,7 +263,7 @@
               <h3 class="additional-info-title">Актёры</h3>
               <div class="staff-list">
                 <div
-                  v-for="person in getStaffByProfession('ACTOR').slice(0, 5)"
+                  v-for="person in getStaffByProfession('ACTOR').slice(0, 12)"
                   :key="person.staff_id"
                   class="staff-item"
                 >
@@ -282,13 +282,13 @@
                   </a>
                 </div>
                 <a
-                  class="expand-circle-button"
+                  class="expand-actors-circle-button"
                   :href="`https://www.kinopoisk.ru/film/${kp_id}/cast/`"
                   target="_blank"
                   rel="noopener noreferrer"
                   :title="`Показать всех ${getStaffByProfession('ACTOR').length} актеров`"
                 >
-                  +{{ getStaffByProfession('ACTOR').length - 5 }}
+                  +{{ getStaffByProfession('ACTOR').length - 12 }}
                 </a>
               </div>
             </div>
@@ -1218,6 +1218,22 @@ const getStaffByProfession = (profession) => {
 .show-all-link:hover {
   color: #fff;
   text-decoration: underline;
+}
+.expand-actors-circle-button {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin: 0 auto;
+  transition: all 0.2s ease;
+  color: #fff;
+  font-size: 24px;
+  text-decoration: none;
 }
 
 .expand-circle-button {
