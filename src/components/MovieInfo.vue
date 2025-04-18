@@ -282,7 +282,7 @@
                     class="staff-link"
                     :title="person.description || ''"
                   >
-                    <img v-lazy="person.poster_url" :alt="person.name_ru" class="staff-photo" />
+                    <img :src="person.poster_url" :alt="person.name_ru" class="staff-photo" />
                     <span class="staff-name">{{ person.name_ru || person.name_en }}</span>
                     <span v-if="person.description" class="staff-role">{{
                       person.description
@@ -1103,7 +1103,6 @@ const showAllStaff = () => {
 }
 
 .staff-section {
-  background: rgba(0, 0, 0, 0.2);
   border-radius: 8px;
 }
 
@@ -1154,10 +1153,6 @@ const showAllStaff = () => {
   object-fit: cover;
   margin-bottom: 8px;
   border: 2px solid rgba(255, 255, 255, 0.1);
-}
-
-.staff-photo[lazy='loading'] {
-  border-radius: 0% !important;
 }
 
 .staff-name {
