@@ -12,6 +12,15 @@
     <div v-if="movie.year" class="meta">
       <span class="year">{{ movie.year }}</span>
     </div>
+
+    <div v-if="movie.raw_data?.genres?.length" class="genres">
+      <template v-for="genre in movie.raw_data.genres.slice(0, 2)" :key="genre.genre">
+        <span class="genre-tag">{{ genre.genre }}</span>
+      </template>
+      <span v-if="movie.raw_data.genres.length > 2" class="genre-count">
+        +{{ movie.raw_data.genres.length - 2 }}
+      </span>
+    </div>
   </div>
 </template>
 
@@ -81,6 +90,32 @@ const removeYearFromTitle = (title) => {
 
 .meta {
   margin-bottom: 10px;
+}
+
+.genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 5px;
+  align-items: center;
+}
+
+.genre-tag {
+  font-size: 0.75em;
+  color: #888;
+  background-color: rgba(136, 136, 136, 0.1);
+  padding: 2px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.genre-count {
+  font-size: 0.75em;
+  color: #888;
+  background-color: rgba(136, 136, 136, 0.1);
+  padding: 2px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
 }
 
 @media (max-width: 600px) {
