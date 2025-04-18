@@ -144,7 +144,7 @@ onBeforeUnmount(() => {
 <style lang="scss" scoped>
 .carousel-container {
   margin: 2rem 0;
-  padding: 0 20px;
+  padding: 0;
 }
 
 .carousel-wrapper {
