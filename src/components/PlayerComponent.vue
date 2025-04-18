@@ -110,7 +110,7 @@
                 @click="toggleList(USER_LIST_TYPES_ENUM.WATCHING)"
               >
                 <span class="material-icons">{{
-                  movieInfo?.lists?.isWatching ? 'visibility' : 'visibility_off'
+                  movieInfo?.lists?.isWatching ? 'visibility_off' : 'visibility'
                 }}</span>
                 <span class="button-label">Смотрю</span>
               </button>
@@ -344,7 +344,7 @@
             @click="toggleList(USER_LIST_TYPES_ENUM.WATCHING)"
           >
             <span class="material-icons">{{
-              movieInfo?.lists?.isWatching ? 'visibility' : 'visibility_off'
+              movieInfo?.lists?.isWatching ? 'visibility_off' : 'visibility'
             }}</span>
           </button>
           <div v-show="activeTooltip === 'watching'" class="custom-tooltip">
@@ -429,7 +429,7 @@
             @click="toggleList(USER_LIST_TYPES_ENUM.WATCHING)"
           >
             <span class="material-icons">{{
-              movieInfo?.lists?.isWatching ? 'visibility' : 'visibility_off'
+              movieInfo?.lists?.isWatching ? 'visibility_off' : 'visibility'
             }}</span>
           </button>
           <div v-show="activeTooltip === 'watching'" class="custom-tooltip">
