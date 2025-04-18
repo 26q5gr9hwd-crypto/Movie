@@ -307,17 +307,19 @@
         <div v-if="sequelsAndPrequels.length" class="related-movies">
           <h2>Сиквелы и приквелы</h2>
           <MovieList
-            :movies-list="showAllSequels ? sequelsAndPrequels : sequelsAndPrequels.slice(0, 6)"
+            :movies-list="
+              showAllSequels ? sequelsAndPrequels : sequelsAndPrequels.slice(0, itemsPerRow)
+            "
             :loading="false"
             :is-history="false"
           />
           <a
-            v-if="sequelsAndPrequels.length > 6"
+            v-if="sequelsAndPrequels.length > itemsPerRow"
             class="expand-circle-button"
             @click="showAllSequels = !showAllSequels"
             :title="`${showAllSequels ? 'Скрыть' : 'Показать все'} (${sequelsAndPrequels.length})`"
           >
-            {{ showAllSequels ? '−' : `+${sequelsAndPrequels.length - 6}` }}
+            {{ showAllSequels ? '−' : `+${sequelsAndPrequels.length - itemsPerRow}` }}
           </a>
         </div>
 
@@ -325,17 +327,17 @@
         <div v-if="similars.length" class="related-movies">
           <h2>Похожие</h2>
           <MovieList
-            :movies-list="showAllSimilars ? similars : similars.slice(0, 6)"
+            :movies-list="showAllSimilars ? similars : similars.slice(0, itemsPerRow)"
             :loading="false"
             :is-history="false"
           />
           <a
-            v-if="similars.length > 6"
+            v-if="similars.length > itemsPerRow"
             class="expand-circle-button"
             @click="showAllSimilars = !showAllSimilars"
             :title="`${showAllSimilars ? 'Скрыть' : 'Показать все'} (${similars.length})`"
           >
-            {{ showAllSimilars ? '−' : `+${similars.length - 6}` }}
+            {{ showAllSimilars ? '−' : `+${similars.length - itemsPerRow}` }}
           </a>
         </div>
       </div>
@@ -380,6 +382,8 @@ const areTrailersActive = trailerStore.areTrailersActive
 const activeTrailerIndex = ref(null)
 const showAllSequels = ref(false)
 const showAllSimilars = ref(false)
+
+const itemsPerRow = ref(6)
 
 const setDocumentTitle = () => {
   if (movieInfo.value) {
@@ -529,6 +533,17 @@ const sequelsAndPrequels = computed(() =>
 
 const similars = computed(() => transformMoviesData(movieInfo.value?.similars))
 
+const updateItemsPerRow = () => {
+  const containerWidth = document.querySelector('.related-movies')?.clientWidth || 0
+  const itemWidth = 240 + 20
+  const newItemsPerRow = Math.floor(containerWidth / itemWidth) || 6
+  itemsPerRow.value = Math.max(1, newItemsPerRow)
+}
+
+const onResize = () => {
+  updateItemsPerRow()
+}
+
 const onKeyDown = (event) => {
   if (event.altKey && event.keyCode === 84) {
     const playerComponent = document.querySelector('.player-container')
@@ -545,11 +560,14 @@ onMounted(async () => {
   await fetchMovieInfo()
   infoLoading.value = false
   document.addEventListener('keydown', onKeyDown)
+  window.addEventListener('resize', onResize)
+  setTimeout(updateItemsPerRow, 100)
 })
 
 onUnmounted(async () => {
   navbarStore.clearHeaderContent()
   document.removeEventListener('keydown', onKeyDown)
+  window.removeEventListener('resize', onResize)
 })
 
 watch(
