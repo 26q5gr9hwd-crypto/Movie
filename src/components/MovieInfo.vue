@@ -65,7 +65,9 @@
             @mouseleave="titleCopyTooltip = false"
             @click="copyMovieMeta"
           >
-            <h1 class="content-title">{{ movieInfo.title }}</h1>
+            <h1 class="content-title">
+              {{ movieInfo.title }}
+            </h1>
           </div>
 
           <div v-show="titleCopyTooltip" class="title-copy-tooltip" :style="tooltipStyle">
@@ -663,6 +665,9 @@ const getStaffByProfession = (profession) => {
   justify-content: center;
   overflow: hidden;
   cursor: pointer;
+  flex-wrap: wrap;
+  height: auto;
+  min-height: 80px;
 }
 
 .content-logo {
@@ -682,6 +687,12 @@ const getStaffByProfession = (profession) => {
   justify-content: center;
   width: 100%;
   text-align: center;
+  white-space: normal;
+  width: 100%;
+  text-align: center;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .content-subtitle {
