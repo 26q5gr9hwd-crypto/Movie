@@ -1,9 +1,9 @@
 <template>
   <div class="toggle">
     <label class="switch">
-      <input 
-        type="checkbox" 
-        :checked="modelValue" 
+      <input
+        type="checkbox"
+        :checked="modelValue"
         :disabled="disabled"
         @change="onChange"
         @keydown.enter.prevent="toggle"
@@ -29,7 +29,6 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 function onChange(event) {
-  // Эмитируем событие только если компонент не заблокирован
   if (!props.disabled) {
     emit('update:modelValue', event.target.checked)
   }
@@ -43,64 +42,94 @@ function toggle() {
 </script>
 
 <style scoped>
-  .toggle {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
 
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #444;
+  transition: 0.3s;
+  border-radius: 20px;
+}
+
+.slider:before {
+  position: absolute;
+  content: '';
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #4caf50;
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+.label-text {
+  color: #fff;
+  font-size: 0.875rem;
+  white-space: normal;
+  word-break: break-word;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+input:focus-visible + .slider {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+@media (max-width: 360px) {
   .switch {
-    position: relative;
-    display: inline-block;
-    width: 48px;
-    height: 24px;
-  }
-
-  .switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
-
-  .slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #444;
-    transition: .3s;
-    border-radius: 24px;
+    width: 36px;
+    height: 18px;
   }
 
   .slider:before {
-    position: absolute;
-    content: "";
-    height: 18px;
-    width: 18px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    transition: .3s;
-    border-radius: 50%;
-  }
-
-  input:checked + .slider {
-    background-color: #4caf50;
+    height: 14px;
+    width: 14px;
   }
 
   input:checked + .slider:before {
-    transform: translateX(24px);
+    transform: translateX(18px);
+  }
+
+  .toggle {
+    gap: 6px;
   }
 
   .label-text {
-    color: #fff;
+    font-size: 0.8rem;
   }
-
-  /* Стили для фокуса при навигации с клавиатуры */
-  input:focus-visible + .slider {
-    outline: 2px solid #fff;
-    outline-offset: 2px;
-  }
+}
 </style>
