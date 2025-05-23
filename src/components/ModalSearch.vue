@@ -90,7 +90,8 @@ import { useNavbarStore } from '@/store/navbar'
 import { hasConsecutiveConsonants, suggestLayout, convertLayout } from '@/utils/keyboardLayout'
 import { inRange } from 'lodash'
 import debounce from 'lodash/debounce'
-import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
+import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
+import { useMainStore } from '@/store/main'
 
 const navbarStore = useNavbarStore()
 
@@ -107,6 +108,8 @@ const activeMovieIndex = ref(null)
 
 const showLayoutWarning = ref(false)
 const suggestedLayout = ref('')
+const store = useMainStore()
+const isMobile = computed(() => store.isMobile)
 
 onMounted(async () => {
   await nextTick()
@@ -195,6 +198,7 @@ const closeModal = (event) => {
 
 const handleInput = (event) => {
   searchTerm.value = event.target.value
+  if (isMobile.value) return
   showLayoutWarning.value = hasConsecutiveConsonants(searchTerm.value)
   if (showLayoutWarning.value) {
     suggestedLayout.value = suggestLayout(searchTerm.value)

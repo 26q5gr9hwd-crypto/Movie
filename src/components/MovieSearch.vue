@@ -122,7 +122,7 @@ import { useAuthStore } from '@/store/auth'
 import { USER_LIST_TYPES_ENUM } from '@/constants'
 import { hasConsecutiveConsonants, suggestLayout, convertLayout } from '@/utils/keyboardLayout'
 import debounce from 'lodash/debounce'
-import { watchEffect, onMounted, ref, watch } from 'vue'
+import { watchEffect, onMounted, ref, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import SpinnerLoading from '@/components/SpinnerLoading.vue'
 
@@ -138,7 +138,7 @@ const searchPerformed = ref(false)
 const showModal = ref(false)
 const errorMessage = ref('')
 const errorCode = ref(null)
-
+const isMobile = computed(() => mainStore.isMobile)
 const history = ref([])
 
 const showLayoutWarning = ref(false)
@@ -183,6 +183,7 @@ const setSearchType = (type) => {
 const handleInput = (event) => {
   if (searchType.value === 'title') {
     searchTerm.value = event.target.value
+    if (isMobile.value) return
     showLayoutWarning.value = hasConsecutiveConsonants(searchTerm.value)
     if (showLayoutWarning.value) {
       suggestedLayout.value = suggestLayout(searchTerm.value)
