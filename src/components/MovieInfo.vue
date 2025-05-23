@@ -98,6 +98,11 @@
               target="_blank"
               rel="noopener noreferrer"
               class="rating-link"
+              :title="
+                movieInfo.rating_kinopoisk_vote_count
+                  ? `Оценок: ${formatRatingNumber(movieInfo.rating_kinopoisk_vote_count)}`
+                  : 'Нет данных о количестве голосов'
+              "
             >
               <img src="/src/assets/icon-kp-logo.svg" alt="КП" class="rating-logo" />
               <span>{{ movieInfo.rating_kinopoisk ? movieInfo.rating_kinopoisk : '—' }}</span>
@@ -116,6 +121,11 @@
               target="_blank"
               rel="noopener noreferrer"
               class="rating-link"
+              :title="
+                movieInfo.rating_kinopoisk_vote_count
+                  ? `Оценок: ${formatRatingNumber(movieInfo.rating_kinopoisk_vote_count)}`
+                  : 'Нет данных о количестве голосов'
+              "
             >
               <img src="/src/assets/icon-kp-logo.svg" alt="КП" class="rating-logo" />
               <span>{{ movieInfo.rating_kinopoisk ? movieInfo.rating_kinopoisk : '—' }}</span>
@@ -134,6 +144,11 @@
               target="_blank"
               rel="noopener noreferrer"
               class="rating-link"
+              :title="
+                movieInfo.rating_imdb_vote_count
+                  ? `Оценок: ${formatRatingNumber(movieInfo.rating_imdb_vote_count)}`
+                  : 'Нет данных о количестве голосов'
+              "
             >
               <img src="/src/assets/icon-imdb-logo.svg" alt="IMDb" class="rating-logo" />
               <span>{{ movieInfo.rating_imdb ? movieInfo.rating_imdb : '—' }}</span>
@@ -152,6 +167,11 @@
               target="_blank"
               rel="noopener noreferrer"
               class="rating-link"
+              :title="
+                movieInfo.rating_imdb_vote_count
+                  ? `Оценок: ${formatRatingNumber(movieInfo.rating_imdb_vote_count)}`
+                  : 'Нет данных о количестве голосов'
+              "
             >
               <img src="/src/assets/icon-imdb-logo.svg" alt="IMDb" class="rating-logo" />
               <span>{{ movieInfo.rating_imdb ? movieInfo.rating_imdb : '—' }}</span>
@@ -414,6 +434,11 @@ const setDocumentTitle = () => {
       'Информация о фильме'
     document.title = title
   }
+}
+
+const formatRatingNumber = (num) => {
+  if (!num) return '0'
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
 }
 
 const transformMoviesData = (movies) => {

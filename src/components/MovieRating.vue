@@ -4,6 +4,7 @@
       <a
         href="#"
         class="rating-link"
+        :class="{ 'has-rating': userRating }"
         @mouseenter="isHovered = true"
         @mouseleave="handleMouseLeave"
         @click.prevent="toggleTooltip"
@@ -27,7 +28,8 @@
             class="number-btn"
             :class="{
               active: num === userRating,
-              hover: num === hoverRating
+              hover: num === hoverRating,
+              'average-highlight': averageRating && num <= Math.round(averageRating)
             }"
             @click="setRating(num)"
             @mouseenter="hoverRating = num"
@@ -36,6 +38,7 @@
             {{ num }}
           </button>
         </div>
+        <div v-if="voteCount" class="tooltip-footer">Оценок: {{ voteCount }}</div>
       </div>
     </div>
     <Notification ref="notificationRef" />
@@ -65,10 +68,16 @@ const props = defineProps({
 const notificationRef = ref(null)
 const userRating = ref(null)
 const averageRating = ref(null)
+const voteCount = ref(null)
 const hoverRating = ref(0)
 const isHovered = ref(false)
 const isTooltipVisible = ref(false)
 let hideTimeout = null
+
+const formatRatingNumber = (num) => {
+  if (!num) return '0'
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+}
 
 const handleMouseLeave = () => {
   hideTimeout = setTimeout(() => {
@@ -102,6 +111,7 @@ const loadRating = async () => {
     const data = await getRating(props.kpId)
     userRating.value = data.user_rating
     averageRating.value = data.average_rating
+    voteCount.value = formatRatingNumber(data.vote_count)
   } catch (error) {
     console.error('Error loading rating:', error)
   }
@@ -162,6 +172,22 @@ onMounted(() => {
   position: relative;
 }
 
+.rating-link.has-rating {
+  position: relative;
+}
+
+.rating-link.has-rating::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: currentColor;
+  border-radius: 1px;
+  opacity: 0.6;
+}
+
 .rating-link {
   display: inline-flex;
   align-items: center;
@@ -174,6 +200,11 @@ onMounted(() => {
   background: rgba(0, 0, 0, 0.05);
   border-radius: 4px;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.rating-link:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .rating-logo {
@@ -181,6 +212,17 @@ onMounted(() => {
   height: 20px;
   margin-right: 5px;
   opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+.rating-link:hover .rating-logo {
+  opacity: 1;
+}
+
+.vote-count {
+  margin-left: 4px;
+  font-size: 14px;
+  color: rgba(224, 224, 224, 0.8);
 }
 
 .rating-tooltip {
@@ -196,6 +238,7 @@ onMounted(() => {
   padding: 8px;
   opacity: 0;
   transition: opacity 0.3s ease;
+  min-width: 220px;
 }
 
 .rating-display:hover .rating-tooltip {
@@ -205,6 +248,8 @@ onMounted(() => {
 .rating-numbers {
   display: flex;
   gap: 4px;
+  margin-bottom: 8px;
+  justify-content: center;
 }
 
 .number-btn {
@@ -218,21 +263,22 @@ onMounted(() => {
   font-size: 14px;
   font-weight: 700;
   font-family: Roboto, sans-serif;
+  position: relative;
 }
 
 .number-btn:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.1);
 }
 
 .number-btn.active {
   color: #fff;
-  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
 }
 
 .number-btn.hover {
   color: #fff;
-  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.1);
 }
 
 .number-btn.average-highlight {
@@ -248,68 +294,102 @@ onMounted(() => {
   color: rgb(224, 224, 224);
   font-size: 16px;
   font-family: Roboto, sans-serif;
+  transition: color 0.2s ease;
 }
 
+.rating-link:hover .average-rating {
+  color: #fff;
+}
+
+.tooltip-footer {
+  text-align: center;
+  font-size: 12px;
+  color: rgba(224, 224, 224, 0.8);
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Color effects for numbers */
 .number-btn:nth-child(1):hover {
   color: #ff4444;
+  text-shadow: 0 0 8px rgba(255, 68, 68, 0.5);
 }
 .number-btn:nth-child(2):hover {
   color: #ff6b6b;
+  text-shadow: 0 0 8px rgba(255, 107, 107, 0.5);
 }
 .number-btn:nth-child(3):hover {
   color: #ff8e8e;
+  text-shadow: 0 0 8px rgba(255, 142, 142, 0.5);
 }
 .number-btn:nth-child(4):hover {
   color: #ffb347;
+  text-shadow: 0 0 8px rgba(255, 179, 71, 0.5);
 }
 .number-btn:nth-child(5):hover {
   color: #ffcc33;
+  text-shadow: 0 0 8px rgba(255, 204, 51, 0.5);
 }
 .number-btn:nth-child(6):hover {
   color: #ffd700;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
 }
 .number-btn:nth-child(7):hover {
   color: #9acd32;
+  text-shadow: 0 0 8px rgba(154, 205, 50, 0.5);
 }
 .number-btn:nth-child(8):hover {
   color: #7cfc00;
+  text-shadow: 0 0 8px rgba(124, 252, 0, 0.5);
 }
 .number-btn:nth-child(9):hover {
   color: #32cd32;
+  text-shadow: 0 0 8px rgba(50, 205, 50, 0.5);
 }
 .number-btn:nth-child(10):hover {
   color: #00ff00;
+  text-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
 }
 
 .number-btn.active:nth-child(1) {
   background: #ff4444;
+  box-shadow: 0 0 12px rgba(255, 68, 68, 0.7);
 }
 .number-btn.active:nth-child(2) {
   background: #ff6b6b;
+  box-shadow: 0 0 12px rgba(255, 107, 107, 0.7);
 }
 .number-btn.active:nth-child(3) {
   background: #ff8e8e;
+  box-shadow: 0 0 12px rgba(255, 142, 142, 0.7);
 }
 .number-btn.active:nth-child(4) {
   background: #ffb347;
+  box-shadow: 0 0 12px rgba(255, 179, 71, 0.7);
 }
 .number-btn.active:nth-child(5) {
   background: #ffcc33;
+  box-shadow: 0 0 12px rgba(255, 204, 51, 0.7);
 }
 .number-btn.active:nth-child(6) {
   background: #ffd700;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.7);
 }
 .number-btn.active:nth-child(7) {
   background: #9acd32;
+  box-shadow: 0 0 12px rgba(154, 205, 50, 0.7);
 }
 .number-btn.active:nth-child(8) {
   background: #7cfc00;
+  box-shadow: 0 0 12px rgba(124, 252, 0, 0.7);
 }
 .number-btn.active:nth-child(9) {
   background: #32cd32;
+  box-shadow: 0 0 12px rgba(50, 205, 50, 0.7);
 }
 .number-btn.active:nth-child(10) {
   background: #00ff00;
+  box-shadow: 0 0 12px rgba(0, 255, 0, 0.7);
 }
 
 .mobile-tooltip {
@@ -318,5 +398,6 @@ onMounted(() => {
   left: 50%;
   transform: translate(-50%, -50%);
   margin-top: 0;
+  z-index: 1001;
 }
 </style>
