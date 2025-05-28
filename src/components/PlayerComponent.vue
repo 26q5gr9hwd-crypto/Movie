@@ -72,6 +72,7 @@
           v-if="!isMobile"
           ref="tooltipContainer"
           class="tooltip-container list-buttons-container"
+          data-tooltip-container="favorite"
         >
           <button
             v-if="showFavoriteTooltip"
@@ -92,6 +93,7 @@
             v-show="activeTooltip === 'favorite' && showFavoriteTooltip"
             ref="tooltip"
             class="custom-tooltip advanced-tooltip list-buttons-dropdown"
+            data-tooltip="favorite"
             @mouseenter="keepTooltipVisible"
             @mouseleave="hideTooltip"
           >
@@ -164,7 +166,7 @@
         </div>
 
         <template v-if="!isMobile">
-          <div class="tooltip-container">
+          <div class="tooltip-container" data-tooltip-container="dimming">
             <button
               class="dimming-btn"
               :class="{ active: dimmingEnabled }"
@@ -174,12 +176,12 @@
             >
               <span class="material-icons">{{ dimmingEnabled ? 'light_mode' : 'dark_mode' }}</span>
             </button>
-            <div v-show="activeTooltip === 'dimming'" class="custom-tooltip">
+            <div v-show="activeTooltip === 'dimming'" class="custom-tooltip" data-tooltip="dimming">
               {{ dimmingEnabled ? 'Отключить затемнение' : 'Включить затемнение' }}
             </div>
           </div>
 
-          <div class="tooltip-container">
+          <div class="tooltip-container" data-tooltip-container="blur">
             <button
               class="blur-btn"
               :class="{ 'electron-only': !isElectron }"
@@ -189,12 +191,12 @@
             >
               <span class="material-icons">blur_on</span>
             </button>
-            <div v-show="activeTooltip === 'blur'" class="custom-tooltip">
+            <div v-show="activeTooltip === 'blur'" class="custom-tooltip" data-tooltip="blur">
               {{ isElectron ? 'Блюр' : 'Блюр, функция доступна в приложении' }}
             </div>
           </div>
 
-          <div class="tooltip-container">
+          <div class="tooltip-container" data-tooltip-container="compressor">
             <button
               class="material-symbols-outlined"
               :class="{ 'electron-only': !isElectron }"
@@ -204,12 +206,16 @@
             >
               <span class="material-icons">graphic_eq</span>
             </button>
-            <div v-show="activeTooltip === 'compressor'" class="custom-tooltip">
+            <div
+              v-show="activeTooltip === 'compressor'"
+              class="custom-tooltip"
+              data-tooltip="compressor"
+            >
               {{ isElectron ? 'Компрессор' : 'Компрессор, функция доступна в приложении' }}
             </div>
           </div>
 
-          <div class="tooltip-container">
+          <div class="tooltip-container" data-tooltip-container="mirror">
             <button
               class="mirror-btn"
               :class="{ 'electron-only': !isElectron }"
@@ -219,12 +225,12 @@
             >
               <span class="material-icons">flip</span>
             </button>
-            <div v-show="activeTooltip === 'mirror'" class="custom-tooltip">
+            <div v-show="activeTooltip === 'mirror'" class="custom-tooltip" data-tooltip="mirror">
               {{ isElectron ? 'Зеркало' : 'Зеркало, функция доступна в приложении' }}
             </div>
           </div>
 
-          <div class="tooltip-container">
+          <div class="tooltip-container" data-tooltip-container="theater">
             <button
               class="theater-mode-btn"
               @mouseenter="showTooltip('theater')"
@@ -235,13 +241,13 @@
                 theaterMode ? 'fullscreen_exit' : 'aspect_ratio'
               }}</span>
             </button>
-            <div v-show="activeTooltip === 'theater'" class="custom-tooltip">
+            <div v-show="activeTooltip === 'theater'" class="custom-tooltip" data-tooltip="theater">
               {{ theaterMode ? 'Выйти из театрального режима' : 'Театральный режим' }}
               <span class="shortcut-hint">Alt+T</span>
             </div>
           </div>
 
-          <div class="tooltip-container">
+          <div class="tooltip-container" data-tooltip-container="aspect_ratio">
             <button
               class="aspect-ratio-dropdown-btn"
               @mouseenter="showTooltip('aspect_ratio')"
@@ -253,6 +259,7 @@
             <div
               v-show="activeTooltip === 'aspect_ratio'"
               class="custom-tooltip advanced-tooltip aspect-ratio-dropdown"
+              data-tooltip="aspect_ratio"
               @mouseenter="keepTooltipVisible"
               @mouseleave="hideTooltip"
             >
@@ -271,6 +278,7 @@
           <!-- Кнопка центрирования с SliderRound в подсказке -->
           <div
             class="tooltip-container"
+            data-tooltip-container="centering"
             @mouseenter="showTooltip('centering')"
             @mouseleave="tryHideTooltip"
           >
@@ -280,6 +288,7 @@
             <div
               v-show="activeTooltip === 'centering'"
               class="custom-tooltip advanced-tooltip"
+              data-tooltip="centering"
               @mouseenter="keepTooltipVisible"
               @mouseleave="hideTooltip"
             >
@@ -290,7 +299,7 @@
           </div>
 
           <!-- Кнопка для открытия в приложении -->
-          <div v-if="!isElectron" class="tooltip-container">
+          <div v-if="!isElectron" class="tooltip-container" data-tooltip-container="app_link">
             <button
               class="app-link-btn"
               @mouseenter="showTooltip('app_link')"
@@ -299,13 +308,17 @@
             >
               <span class="material-icons">open_in_new</span>
             </button>
-            <div v-show="activeTooltip === 'app_link'" class="custom-tooltip">
+            <div
+              v-show="activeTooltip === 'app_link'"
+              class="custom-tooltip"
+              data-tooltip="app_link"
+            >
               Открыть в приложении
             </div>
           </div>
 
           <!-- Кнопка для копирования ссылки на фильм (только в Electron) -->
-          <div v-if="isElectron" class="tooltip-container">
+          <div v-if="isElectron" class="tooltip-container" data-tooltip-container="copy_link">
             <button
               class="copy-link-btn"
               @mouseenter="showTooltip('copy_link')"
@@ -314,7 +327,11 @@
             >
               <span class="material-icons">content_copy</span>
             </button>
-            <div v-show="activeTooltip === 'copy_link'" class="custom-tooltip">
+            <div
+              v-show="activeTooltip === 'copy_link'"
+              class="custom-tooltip"
+              data-tooltip="copy_link"
+            >
               Скопировать ссылку
             </div>
           </div>
@@ -556,25 +573,27 @@ const notificationRef = ref(null)
 const tooltipContainer = ref(null)
 const tooltip = ref(null)
 
-const updateTooltipPosition = () => {
-  if (!tooltipContainer.value || !tooltip.value) return
+const updateTooltipPosition = (tooltipName) => {
+  const container = document.querySelector(`[data-tooltip-container="${tooltipName}"]`)
+  const tooltip = document.querySelector(`[data-tooltip="${tooltipName}"]`)
+  if (!container || !tooltip) return
 
-  const containerRect = tooltipContainer.value.getBoundingClientRect()
-  const tooltipRect = tooltip.value.getBoundingClientRect()
+  const containerRect = container.getBoundingClientRect()
+  const tooltipRect = tooltip.getBoundingClientRect()
   const viewportHeight = window.innerHeight
 
   if (containerRect.bottom + tooltipRect.height > viewportHeight) {
-    tooltip.value.style.top = 'auto'
-    tooltip.value.style.bottom = '100%'
-    tooltip.value.style.marginTop = '0'
-    tooltip.value.style.marginBottom = '12px'
-    tooltip.value.style.transform = 'translateX(-50%)'
+    tooltip.style.top = 'auto'
+    tooltip.style.bottom = '100%'
+    tooltip.style.marginTop = '0'
+    tooltip.style.marginBottom = '12px'
+    tooltip.style.transform = 'translateX(-50%)'
   } else {
-    tooltip.value.style.top = '100%'
-    tooltip.value.style.bottom = 'auto'
-    tooltip.value.style.marginTop = '12px'
-    tooltip.value.style.marginBottom = '0'
-    tooltip.value.style.transform = 'translateX(-50%)'
+    tooltip.style.top = '100%'
+    tooltip.style.bottom = 'auto'
+    tooltip.style.marginTop = '12px'
+    tooltip.style.marginBottom = '0'
+    tooltip.style.transform = 'translateX(-50%)'
   }
 }
 
@@ -583,7 +602,7 @@ const showTooltip = (tooltipName) => {
   tooltipHovered.value = false
   clearTimeout(hideTimeout)
   nextTick(() => {
-    updateTooltipPosition()
+    updateTooltipPosition(tooltipName)
   })
 }
 
@@ -1177,12 +1196,6 @@ html.no-scroll {
   transform: translateX(-50%) translateY(8px);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 1000;
-  top: calc(100% + 12px);
-}
-
-.custom-tooltip[style*='bottom: 100%'] {
-  bottom: calc(100% + 12px);
-  top: auto;
 }
 
 .custom-tooltip::before {
