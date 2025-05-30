@@ -1,110 +1,105 @@
 <template>
   <div class="comments-section">
-    <h2 class="comments-title">Комментарии</h2>
-
-    <form class="comment-form" @submit.prevent="submitComment">
-      <div class="textarea-container">
-        <textarea
-          ref="commentTextarea"
-          v-model="newComment"
-          class="comment-textarea"
-          :placeholder="getCommentPlaceholder"
-          :disabled="currentUser && currentUser.allow_comments !== 1"
-          rows="3"
-          maxlength="1500"
-          @input="autoResize"
-          @keydown="handleCommentKeydown"
-        ></textarea>
-      </div>
-      <div class="comment-footer">
-        <div class="comment-actions">
-          <button
-            class="submit-button"
-            type="submit"
-            :disabled="
-              !newComment.trim() ||
-              newComment.length > 1500 ||
-              (currentUser && currentUser.allow_comments !== 1)
-            "
-          >
-            Отправить
-          </button>
-        </div>
-        <div class="character-counter-container">
-          <div
-            class="character-counter-inline"
-            :class="{
-              'near-limit': newComment.length > 1400,
-              'at-limit': newComment.length >= 1500
-            }"
-          >
-            {{ newComment.length }}/1500
-          </div>
-          <button
-            type="button"
-            class="emoji-button-inline"
-            :class="{ active: showEmojiPicker }"
-            :disabled="currentUser && currentUser.allow_comments !== 1"
-            @mouseenter="handleButtonMouseEnter"
-            @mouseleave="handleButtonMouseLeave"
-          >
-            😊
-          </button>
-          <EmojiPicker
-            :is-visible="showEmojiPicker && canComment"
-            @emoji-selected="insertEmoji"
-            @mouse-enter="handleEmojiMouseEnter"
-            @mouse-leave="handleEmojiMouseLeave"
-            @close="closeEmojiPicker"
-          />
+    <div v-if="!showComments" class="spoiler-warning" @click="showComments = true">
+      <div class="spoiler-content">
+        <i class="fas fa-eye-slash"></i>
+        <h3>Комментарии скрыты</h3>
+        <p>Комментарии могут содержать спойлеры. Нажмите, чтобы показать.</p>
+        <div class="comments-count">
+          {{ totalCommentsCount }}
+          {{ getCommentWordForm(totalCommentsCount) }}
         </div>
       </div>
-    </form>
+    </div>
 
-    <div v-if="groupedComments.length > 0">
-      <div v-if="!showComments" class="spoiler-warning" @click="showComments = true">
-        <div class="spoiler-content">
+    <div v-else class="comments-container">
+      <div class="comments-header">
+        <button class="hide-comments-btn" @click="showComments = false">
           <i class="fas fa-eye-slash"></i>
-          <h3>Комментарии скрыты</h3>
-          <p>Комментарии могут содержать спойлеры. Нажмите, чтобы показать.</p>
-          <div class="comments-count">
-            {{ totalCommentsCount }}
-            {{ getCommentWordForm(totalCommentsCount) }}
-          </div>
-        </div>
+          Скрыть комментарии
+        </button>
       </div>
 
-      <div v-else class="comments-container">
-        <div class="comments-header">
-          <h3>Комментарии</h3>
-          <button class="hide-comments-btn" @click="showComments = false">
-            <i class="fas fa-eye-slash"></i>
-            Скрыть комментарии
-          </button>
+      <form class="comment-form" @submit.prevent="submitComment">
+        <div class="textarea-container">
+          <textarea
+            ref="commentTextarea"
+            v-model="newComment"
+            class="comment-textarea"
+            :placeholder="getCommentPlaceholder"
+            :disabled="currentUser && currentUser.allow_comments !== 1"
+            rows="3"
+            maxlength="1500"
+            @input="autoResize"
+            @keydown="handleCommentKeydown"
+          ></textarea>
         </div>
-
-        <div class="comments-list">
-          <template v-for="comment in groupedComments" :key="comment.id">
-            <CommentThread
-              :comment="comment"
-              :current-user="currentUser"
-              :reply-to="replyTo"
-              :reply-content="replyContent"
-              :editing-comment-id="editingCommentId"
-              :is-first-comment="false"
-              @reply="handleReply"
-              @start-edit="handleStartEdit"
-              @cancel-edit="handleCancelEdit"
-              @edit="handleEdit"
-              @delete="handleDelete"
-              @rate="handleRate"
-              @submit-reply="submitReply"
-              @cancel-reply="replyTo = null"
-              @update-reply-content="replyContent = $event"
-              @reply-keydown="handleReplyKeydown"
+        <div class="comment-footer">
+          <div class="comment-actions">
+            <button
+              class="submit-button"
+              type="submit"
+              :disabled="
+                !newComment.trim() ||
+                newComment.length > 1500 ||
+                (currentUser && currentUser.allow_comments !== 1)
+              "
+            >
+              Отправить
+            </button>
+          </div>
+          <div class="character-counter-container">
+            <div
+              class="character-counter-inline"
+              :class="{
+                'near-limit': newComment.length > 1400,
+                'at-limit': newComment.length >= 1500
+              }"
+            >
+              {{ newComment.length }}/1500
+            </div>
+            <button
+              type="button"
+              class="emoji-button-inline"
+              :class="{ active: showEmojiPicker }"
+              :disabled="currentUser && currentUser.allow_comments !== 1"
+              @mouseenter="handleButtonMouseEnter"
+              @mouseleave="handleButtonMouseLeave"
+            >
+              😊
+            </button>
+            <EmojiPicker
+              :is-visible="showEmojiPicker && canComment"
+              @emoji-selected="insertEmoji"
+              @mouse-enter="handleEmojiMouseEnter"
+              @mouse-leave="handleEmojiMouseLeave"
+              @close="closeEmojiPicker"
             />
-          </template>
+          </div>
         </div>
+      </form>
+
+      <div class="comments-list">
+        <template v-for="comment in groupedComments" :key="comment.id">
+          <CommentThread
+            :comment="comment"
+            :current-user="currentUser"
+            :reply-to="replyTo"
+            :reply-content="replyContent"
+            :editing-comment-id="editingCommentId"
+            :is-first-comment="false"
+            @reply="handleReply"
+            @start-edit="handleStartEdit"
+            @cancel-edit="handleCancelEdit"
+            @edit="handleEdit"
+            @delete="handleDelete"
+            @rate="handleRate"
+            @submit-reply="submitReply"
+            @cancel-reply="replyTo = null"
+            @update-reply-content="replyContent = $event"
+            @reply-keydown="handleReplyKeydown"
+          />
+        </template>
       </div>
     </div>
 
@@ -836,7 +831,6 @@ export default {
   align-items: center;
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid #444;
 }
 
 .comments-header h3 {
@@ -931,5 +925,20 @@ export default {
   opacity: 0.5;
   cursor: not-allowed;
   pointer-events: none;
+}
+
+.comment-form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #444;
+}
+
+.comment-form-header h3 {
+  margin: 0;
+  color: #fff;
+  font-size: 1.1rem;
 }
 </style>
