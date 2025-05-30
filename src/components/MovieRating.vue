@@ -191,9 +191,9 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 0;
   position: relative;
-  min-height: 40px;
+  min-height: 32px;
 }
 
 .rating-display {
@@ -201,23 +201,28 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   position: relative;
+  margin: 0;
+  padding: 0;
 }
 
 .rating-link {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   color: rgb(224, 224, 224);
   text-decoration: none;
   font-weight: 700;
   font-family: Roboto, sans-serif;
   font-size: 16px;
-  padding: 5px 10px;
+  padding: 0 10px;
+  margin: 0 0 5px 0;
   background: rgba(0, 0, 0, 0.7);
   border-radius: 5px;
   cursor: pointer;
   transition: all 0.2s ease;
   height: 32px;
   box-sizing: border-box;
+  line-height: 1;
 }
 
 .rating-link.has-rating {
@@ -511,13 +516,20 @@ onMounted(() => {
 }
 
 @media (max-width: 620px) {
+  .rating-container {
+    min-height: 28px;
+  }
+
   .rating-link {
-    padding: 4px 8px;
+    padding: 0 8px;
+    margin: 0 0 5px 0;
     font-size: 0.8em;
+    height: 28px;
   }
 
   .rating-link.has-rating {
-    padding: 4px 8px;
+    padding: 0 8px;
+    margin: 0 0 5px 0;
   }
 
   .rating-link.has-rating::after {
