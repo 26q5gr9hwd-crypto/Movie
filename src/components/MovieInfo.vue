@@ -339,7 +339,7 @@
               <div class="staff-names-container">
                 <div class="staff-names-list">
                   <a
-                    v-for="person in getStaffByProfession('DIRECTOR')"
+                    v-for="person in getStaffByProfession('DIRECTOR').slice(0, 5)"
                     :key="person.staff_id"
                     :href="`https://www.kinopoisk.ru/name/${person.staff_id}/`"
                     target="_blank"
@@ -348,15 +348,17 @@
                   >
                     {{ person.name_ru || person.name_en }}
                   </a>
+                  <a
+                    v-if="getStaffByProfession('DIRECTOR').length > 5"
+                    class="expand-actors-circle-button"
+                    :href="`https://www.kinopoisk.ru/film/${kp_id}/cast/`"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    :title="`Показать всех ${getStaffByProfession('DIRECTOR').length} режиссёров`"
+                  >
+                    +{{ getStaffByProfession('DIRECTOR').length - 5 }}
+                  </a>
                 </div>
-                <a
-                  class="show-all-staff-link"
-                  :href="`https://www.kinopoisk.ru/film/${kp_id}/cast/`"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  +
-                </a>
               </div>
             </div>
 
@@ -365,7 +367,7 @@
               <div class="staff-names-container">
                 <div class="staff-names-list">
                   <a
-                    v-for="person in getStaffByProfession('PRODUCER')"
+                    v-for="person in getStaffByProfession('PRODUCER').slice(0, 5)"
                     :key="person.staff_id"
                     :href="`https://www.kinopoisk.ru/name/${person.staff_id}/`"
                     target="_blank"
@@ -374,15 +376,17 @@
                   >
                     {{ person.name_ru || person.name_en }}
                   </a>
+                  <a
+                    v-if="getStaffByProfession('PRODUCER').length > 5"
+                    class="expand-actors-circle-button"
+                    :href="`https://www.kinopoisk.ru/film/${kp_id}/cast/`"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    :title="`Показать всех ${getStaffByProfession('PRODUCER').length} продюсеров`"
+                  >
+                    +{{ getStaffByProfession('PRODUCER').length - 5 }}
+                  </a>
                 </div>
-                <a
-                  class="show-all-staff-link"
-                  :href="`https://www.kinopoisk.ru/film/${kp_id}/cast/`"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  +
-                </a>
               </div>
             </div>
           </div>
@@ -405,6 +409,7 @@
             "
             :loading="false"
             :is-history="false"
+            class="related-movies-list"
           />
           <a
             v-if="sequelsAndPrequels.length > itemsPerRow"
@@ -423,6 +428,7 @@
             :movies-list="showAllSimilars ? similars : similars.slice(0, itemsPerRow)"
             :loading="false"
             :is-history="false"
+            class="related-movies-list"
           />
           <a
             v-if="similars.length > itemsPerRow"
@@ -477,7 +483,7 @@ const activeTrailerIndex = ref(null)
 const showAllSequels = ref(false)
 const showAllSimilars = ref(false)
 
-const itemsPerRow = ref(6)
+const itemsPerRow = ref(10)
 
 const nudityInfo = ref(null)
 const nudityInfoLoading = ref(false)
@@ -639,8 +645,8 @@ const similars = computed(() => transformMoviesData(movieInfo.value?.similars))
 
 const updateItemsPerRow = () => {
   const containerWidth = document.querySelector('.related-movies')?.clientWidth || 0
-  const itemWidth = 240 + 20
-  const newItemsPerRow = Math.floor(containerWidth / itemWidth) || 6
+  const itemWidth = 140 + 20
+  const newItemsPerRow = Math.floor(containerWidth / itemWidth) || 10
   itemsPerRow.value = Math.max(1, newItemsPerRow)
 }
 
@@ -1371,11 +1377,11 @@ const getStaffByProfession = (profession) => {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  margin: 0 auto;
   transition: all 0.2s ease;
   color: #fff;
   font-size: 24px;
   text-decoration: none;
+  flex-shrink: 0;
 }
 
 .expand-circle-button {
@@ -1491,23 +1497,19 @@ const getStaffByProfession = (profession) => {
 
 .staff-names-container {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 15px;
   margin-bottom: 15px;
+  width: 100%;
 }
 
 .staff-names-list {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 10px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  padding-bottom: 5px;
-}
-
-.staff-names-list::-webkit-scrollbar {
-  display: none;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
 }
 
 .staff-name-link {
@@ -1518,46 +1520,53 @@ const getStaffByProfession = (profession) => {
   border-radius: 4px;
   transition: all 0.2s ease;
   white-space: nowrap;
-}
-
-.staff-name-link:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
-}
-
-.show-all-staff-link {
-  color: #fff;
-  text-decoration: none;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 50%;
-  transition: all 0.2s ease;
-  white-space: nowrap;
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
+}
+
+.staff-list .expand-actors-circle-button {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
-  padding: 0;
-  border: none;
   cursor: pointer;
+  transition: all 0.2s ease;
+  color: #fff;
+  font-size: 24px;
+  text-decoration: none;
+  flex-shrink: 0;
 }
 
-.show-all-staff-link:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
+.staff-names-list .expand-actors-circle-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #fff;
+  font-size: 16px;
+  text-decoration: none;
+  flex-shrink: 0;
 }
 
 @media (max-width: 600px) {
   .staff-names-container {
-    flex-direction: column;
+    flex-direction: row;
     align-items: flex-start;
     gap: 10px;
   }
 
   .staff-names-list {
-    width: 100%;
+    width: auto;
+    flex: 1;
   }
 
   .staff-name-link {
@@ -1565,11 +1574,26 @@ const getStaffByProfession = (profession) => {
     padding: 4px 8px;
   }
 
-  .show-all-staff-link {
-    align-self: flex-start;
-    font-size: 16px;
+  .staff-list .expand-actors-circle-button {
+    width: 60px;
+    height: 60px;
+    font-size: 20px;
+  }
+
+  .staff-names-list .expand-actors-circle-button {
     width: 35px;
     height: 35px;
+    font-size: 14px;
+  }
+}
+
+.related-movies-list :deep(.grid) {
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+}
+
+@media (max-width: 620px) {
+  .related-movies-list :deep(.grid) {
+    grid-template-columns: 1fr;
   }
 }
 </style>
