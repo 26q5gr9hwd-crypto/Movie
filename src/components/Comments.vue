@@ -71,12 +71,59 @@
             >
               😊
             </button>
+            <button
+              type="button"
+              class="emoji-button-inline"
+              :class="{ active: showImagePicker }"
+              :disabled="currentUser && currentUser.allow_comments !== 1"
+              @mouseenter="handleImageButtonMouseEnter"
+              @mouseleave="handleButtonMouseLeave"
+            >
+              <svg
+                width="28"
+                height="28"
+                viewBox="0 0 28 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                class="seven-tv-icon"
+              >
+                <g id="logo">
+                  <path
+                    d="M20.7465 5.48825L21.9799 3.33745L22.646 2.20024L21.4125 0.0494437V0H14.8259L17.2928 4.3016L17.9836 5.48825H20.7465Z"
+                  />
+                  <path
+                    d="M7.15395 19.9258L14.5546 7.02104L15.4673 5.43884L13.0004 1.13724L12.3097 0.0247596H1.8995L0.666057 2.17556L0 3.31276L1.23344 5.46356V5.51301H9.12745L2.96025 16.267L2.09685 17.7998L3.33029 19.9506V20H7.15395"
+                  />
+                  <path
+                    d="M17.4655 19.9257H21.2398L26.1736 11.3225L27.037 9.83924L25.8036 7.68844V7.63899H22.0046L19.5377 11.9406L19.365 12.262L16.8981 7.96038L16.7255 7.63899L14.2586 11.9406L13.5679 13.1272L17.2682 19.5796L17.4655 19.9257Z"
+                  />
+                </g>
+              </svg>
+            </button>
+            <button
+              type="button"
+              class="emoji-button-inline spoiler-button"
+              :disabled="currentUser && currentUser.allow_comments !== 1"
+              @click="insertSpoiler"
+              title="Добавить спойлер"
+            >
+              <i class="fas fa-eye-slash"></i>
+            </button>
             <EmojiPicker
               :is-visible="showEmojiPicker && canComment"
               @emoji-selected="insertEmoji"
               @mouse-enter="handleEmojiMouseEnter"
               @mouse-leave="handleEmojiMouseLeave"
               @close="closeEmojiPicker"
+            />
+            <ImagePicker
+              :is-visible="showImagePicker && canComment"
+              :current-user="currentUser"
+              @image-selected="insertImage"
+              @mouse-enter="handleImageMouseEnter"
+              @mouse-leave="handleImageMouseLeave"
+              @close="closeImagePicker"
+              @login-required="openLogin"
             />
           </div>
         </div>
@@ -118,13 +165,15 @@ import { getComments, createComment, updateComment, deleteComment, rateComment }
 import CommentThread from './CommentThread.vue'
 import Notification from '@/components/notification/ToastMessage.vue'
 import EmojiPicker from '@/components/EmojiPicker.vue'
+import ImagePicker from '@/components/ImagePicker.vue'
 
 export default {
   name: 'Comments',
   components: {
     CommentThread,
     Notification,
-    EmojiPicker
+    EmojiPicker,
+    ImagePicker
   },
   props: {
     movieId: {
@@ -145,7 +194,9 @@ export default {
     const commentTextarea = ref(null)
     const showComments = ref(false)
     const showEmojiPicker = ref(false)
+    const showImagePicker = ref(false)
     const isEmojiHovered = ref(false)
+    const isImageHovered = ref(false)
     const isButtonHovered = ref(false)
     const isInsertingEmoji = ref(false)
 
@@ -476,6 +527,117 @@ export default {
       }
     }
 
+    const insertImage = (imageUrl) => {
+      if (commentTextarea.value) {
+        const start = commentTextarea.value.selectionStart
+        const end = commentTextarea.value.selectionEnd
+        const imageTag = `[img]${imageUrl}[/img]`
+        newComment.value = newComment.value.slice(0, start) + imageTag + newComment.value.slice(end)
+
+        nextTick(() => {
+          commentTextarea.value.focus()
+          commentTextarea.value.setSelectionRange(start + imageTag.length, start + imageTag.length)
+          autoResize()
+        })
+      }
+    }
+
+    const insertSpoiler = () => {
+      if (commentTextarea.value) {
+        const start = commentTextarea.value.selectionStart
+        const end = commentTextarea.value.selectionEnd
+        const selectedText = newComment.value.slice(start, end)
+
+        let spoilerTag
+        if (selectedText.trim()) {
+          spoilerTag = `[spoiler]${selectedText}[/spoiler]`
+        } else {
+          spoilerTag = '[spoiler][/spoiler]'
+        }
+
+        newComment.value =
+          newComment.value.slice(0, start) + spoilerTag + newComment.value.slice(end)
+
+        nextTick(() => {
+          commentTextarea.value.focus()
+          if (selectedText.trim()) {
+            commentTextarea.value.setSelectionRange(
+              start + spoilerTag.length,
+              start + spoilerTag.length
+            )
+          } else {
+            const cursorPosition = start + '[spoiler]'.length
+            commentTextarea.value.setSelectionRange(cursorPosition, cursorPosition)
+          }
+          autoResize()
+        })
+      }
+    }
+
+    const formatCommentContent = (content) => {
+      if (!content) return ''
+
+      const isValidImageUrl = (url) => {
+        try {
+          const urlObj = new URL(url)
+          const isValid = urlObj.hostname === 'cdn.7tv.app' && urlObj.protocol === 'https:'
+
+          if (!isValid) {
+            console.warn('URL изображения отклонен:', {
+              url: url,
+              hostname: urlObj.hostname,
+              protocol: urlObj.protocol,
+              reason:
+                urlObj.hostname !== 'cdn.7tv.app' ? 'неразрешенный домен' : 'неразрешенный протокол'
+            })
+          }
+
+          return isValid
+        } catch (error) {
+          console.warn('Недопустимый URL изображения:', url, 'Ошибка:', error.message)
+          return false
+        }
+      }
+
+      const escapeHtml = (text) => {
+        const div = document.createElement('div')
+        div.textContent = text
+        return div.innerHTML
+      }
+
+      let formattedContent = content.replace(/\[img\](.*?)\[\/img\]/g, (match, url) => {
+        const trimmedUrl = url.trim()
+        if (isValidImageUrl(trimmedUrl)) {
+          const safeUrl = escapeHtml(trimmedUrl)
+          return `<img src="${safeUrl}" alt="7TV emote" class="inline-emoji" loading="lazy" />`
+        }
+        return `[недопустимое изображение: ${escapeHtml(trimmedUrl)}]`
+      })
+
+      formattedContent = formattedContent.replace(
+        /\[spoiler\](.*?)\[\/spoiler\]/gs,
+        (match, spoilerText, offset, string) => {
+          const escapedText = escapeHtml(spoilerText.trim())
+
+          const beforeChar = offset > 0 ? string[offset - 1] : ' '
+          const afterChar =
+            offset + match.length < string.length ? string[offset + match.length] : ' '
+
+          const needSpaceBefore =
+            beforeChar && beforeChar !== ' ' && beforeChar !== '\n' && beforeChar !== '\t'
+          const needSpaceAfter =
+            afterChar && afterChar !== ' ' && afterChar !== '\n' && afterChar !== '\t'
+
+          const spaceBefore = needSpaceBefore ? ' ' : ''
+          const spaceAfter = needSpaceAfter ? ' ' : ''
+
+          return `${spaceBefore}<span class="spoiler-text" onclick="this.classList.toggle('revealed')" title="Нажмите, чтобы показать спойлер">${escapedText}</span>${spaceAfter}`
+        }
+      )
+
+      return formattedContent
+    }
+
     const handleEmojiMouseEnter = () => {
       isEmojiHovered.value = true
     }
@@ -496,8 +658,9 @@ export default {
     const handleButtonMouseLeave = () => {
       isButtonHovered.value = false
       setTimeout(() => {
-        if (!isEmojiHovered.value && !isButtonHovered.value) {
+        if (!isEmojiHovered.value && !isImageHovered.value && !isButtonHovered.value) {
           showEmojiPicker.value = false
+          showImagePicker.value = false
         }
       }, 300)
     }
@@ -505,6 +668,30 @@ export default {
     const handleButtonMouseEnter = () => {
       isButtonHovered.value = true
       showEmojiPicker.value = true
+      showImagePicker.value = false
+    }
+
+    const handleImageMouseEnter = () => {
+      isImageHovered.value = true
+    }
+
+    const handleImageMouseLeave = () => {
+      isImageHovered.value = false
+      setTimeout(() => {
+        if (!isImageHovered.value && !isButtonHovered.value) {
+          showImagePicker.value = false
+        }
+      }, 300)
+    }
+
+    const closeImagePicker = () => {
+      showImagePicker.value = false
+    }
+
+    const handleImageButtonMouseEnter = () => {
+      isButtonHovered.value = true
+      showImagePicker.value = true
+      showEmojiPicker.value = false
     }
 
     const getCommentPlaceholder = computed(() => {
@@ -533,11 +720,29 @@ export default {
       editingCommentId.value = null
     }
 
+    const closeAllPickers = () => {
+      showEmojiPicker.value = false
+      showImagePicker.value = false
+    }
+
+    const handleGlobalClick = (event) => {
+      if (
+        !event.target.closest('.emoji-picker') &&
+        !event.target.closest('.image-picker') &&
+        !event.target.closest('.emoji-button-inline')
+      ) {
+        closeAllPickers()
+      }
+    }
+
     onMounted(() => {
       loadComments()
+      document.addEventListener('click', handleGlobalClick)
     })
 
-    onBeforeUnmount(() => {})
+    onBeforeUnmount(() => {
+      document.removeEventListener('click', handleGlobalClick)
+    })
 
     return {
       comments,
@@ -562,16 +767,24 @@ export default {
       totalCommentsCount,
       getCommentWordForm,
       showEmojiPicker,
+      showImagePicker,
       insertEmoji,
+      insertImage,
+      formatCommentContent,
       handleEmojiMouseEnter,
       handleEmojiMouseLeave,
+      handleImageMouseEnter,
+      handleImageMouseLeave,
       closeEmojiPicker,
+      closeImagePicker,
       handleButtonMouseLeave,
       handleButtonMouseEnter,
+      handleImageButtonMouseEnter,
       getCommentPlaceholder,
       canComment,
       handleStartEdit,
-      handleCancelEdit
+      handleCancelEdit,
+      insertSpoiler
     }
   }
 }
@@ -923,6 +1136,7 @@ export default {
   font-size: 1rem;
   color: #999;
   transition: color 0.2s ease;
+  margin-left: 0.25rem;
 }
 
 .emoji-button-inline:hover {
@@ -952,5 +1166,77 @@ export default {
   margin: 0;
   color: #fff;
   font-size: 1.1rem;
+}
+
+.seven-tv-icon {
+  height: 1.2em;
+  width: auto;
+  vertical-align: middle;
+  fill: currentColor;
+}
+
+.inline-emoji {
+  display: inline-block;
+  vertical-align: middle;
+  height: 1.2em;
+  width: auto;
+  margin: 0 0.1em;
+}
+
+:deep(.spoiler-text) {
+  background: rgba(64, 64, 64, 0.8);
+  color: transparent;
+  cursor: pointer;
+  padding: 0.2em 0.6em;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  user-select: none;
+  position: relative;
+  display: inline-block;
+  min-width: 60px;
+  text-align: center;
+}
+
+:deep(.spoiler-text:hover) {
+  background: rgba(64, 64, 64, 0.9);
+}
+
+:deep(.spoiler-text::before) {
+  content: 'спойлер';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #999;
+  font-size: 0.85em;
+  white-space: nowrap;
+  pointer-events: none;
+  font-weight: 500;
+}
+
+:deep(.spoiler-text.revealed) {
+  background: transparent;
+  color: inherit;
+  user-select: text;
+  min-width: auto;
+  text-align: left;
+  padding: 0;
+}
+
+:deep(.spoiler-text.revealed::before) {
+  display: none;
+}
+
+.spoiler-button {
+  color: #999;
+}
+
+.spoiler-button:hover {
+  color: #fff;
+}
+
+.spoiler-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>

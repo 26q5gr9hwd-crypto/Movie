@@ -18,11 +18,11 @@
           ref="replyTextarea"
           class="comment-textarea"
           :value="replyContent"
-          @input="handleReplyInput"
           :placeholder="getReplyPlaceholder"
           :disabled="currentUser && currentUser.allow_comments !== 1"
           rows="3"
           maxlength="1500"
+          @input="handleReplyInput"
           @keydown="$emit('reply-keydown', $event)"
         ></textarea>
       </div>
@@ -54,19 +54,64 @@
           <button
             type="button"
             class="emoji-button-inline"
+            :class="{ active: showEmojiPicker }"
             @mouseenter="handleButtonMouseEnter"
             @mouseleave="handleButtonMouseLeave"
-            :class="{ active: showEmojiPicker }"
-            :disabled="currentUser && currentUser.allow_comments !== 1"
           >
             😊
           </button>
+          <button
+            type="button"
+            class="emoji-button-inline"
+            :class="{ active: showImagePicker }"
+            @mouseenter="handleImageButtonMouseEnter"
+            @mouseleave="handleButtonMouseLeave"
+          >
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 28 20"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              class="seven-tv-icon"
+            >
+              <g id="logo">
+                <path
+                  d="M20.7465 5.48825L21.9799 3.33745L22.646 2.20024L21.4125 0.0494437V0H14.8259L17.2928 4.3016L17.9836 5.48825H20.7465Z"
+                />
+                <path
+                  d="M7.15395 19.9258L14.5546 7.02104L15.4673 5.43884L13.0004 1.13724L12.3097 0.0247596H1.8995L0.666057 2.17556L0 3.31276L1.23344 5.46356V5.51301H9.12745L2.96025 16.267L2.09685 17.7998L3.33029 19.9506V20H7.15395"
+                />
+                <path
+                  d="M17.4655 19.9257H21.2398L26.1736 11.3225L27.037 9.83924L25.8036 7.68844V7.63899H22.0046L19.5377 11.9406L19.365 12.262L16.8981 7.96038L16.7255 7.63899L14.2586 11.9406L13.5679 13.1272L17.2682 19.5796L17.4655 19.9257Z"
+                />
+              </g>
+            </svg>
+          </button>
+          <button
+            type="button"
+            class="emoji-button-inline spoiler-button"
+            :disabled="currentUser && currentUser.allow_comments !== 1"
+            @click="insertSpoiler"
+            title="Добавить спойлер"
+          >
+            <i class="fas fa-eye-slash"></i>
+          </button>
           <EmojiPicker
-            :is-visible="showEmojiPicker && canReply"
+            :is-visible="showEmojiPicker"
             @emoji-selected="insertEmoji"
             @mouse-enter="handleEmojiMouseEnter"
             @mouse-leave="handleEmojiMouseLeave"
             @close="closeEmojiPicker"
+          />
+          <ImagePicker
+            :is-visible="showImagePicker"
+            :current-user="currentUser"
+            @image-selected="insertImage"
+            @mouse-enter="handleImageMouseEnter"
+            @mouse-leave="handleImageMouseLeave"
+            @close="closeImagePicker"
+            @login-required="openLogin"
           />
         </div>
       </div>
@@ -75,8 +120,8 @@
     <div v-if="comment.replies && comment.replies.length > 0" class="replies-container">
       <button
         class="collapse-toggle"
-        @click="toggleCollapsed"
         :title="isCollapsed ? 'Развернуть ответы' : 'Свернуть ответы'"
+        @click="toggleCollapsed"
       >
         <span class="collapse-icon" :class="{ expanded: !isCollapsed }">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
@@ -91,8 +136,8 @@
 
       <div
         class="vertical-line-clickable"
-        @click="toggleCollapsed"
         :title="isCollapsed ? 'Развернуть ответы' : 'Свернуть ответы'"
+        @click="toggleCollapsed"
       >
         <div class="vertical-line-visual" :class="{ collapsed: isCollapsed }"></div>
       </div>
@@ -123,14 +168,17 @@
 </template>
 
 <script>
+import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import CommentItem from './CommentItem.vue'
-import EmojiPicker from './EmojiPicker.vue'
+import EmojiPicker from '@/components/EmojiPicker.vue'
+import ImagePicker from '@/components/ImagePicker.vue'
 
 export default {
   name: 'CommentThread',
   components: {
     CommentItem,
-    EmojiPicker
+    EmojiPicker,
+    ImagePicker
   },
   props: {
     comment: {
@@ -166,12 +214,195 @@ export default {
     'update-reply-content',
     'reply-keydown'
   ],
-  data() {
+  setup(props, { emit }) {
+    const replyTextarea = ref(null)
+    const showEmojiPicker = ref(false)
+    const showImagePicker = ref(false)
+    const isButtonHovered = ref(false)
+    const isEmojiHovered = ref(false)
+    const isImageHovered = ref(false)
+    const isCollapsed = ref(false)
+
+    const handleReplyInput = (event) => {
+      emit('update-reply-content', event.target.value)
+      const textarea = event.target
+      if (textarea) {
+        textarea.style.height = 'auto'
+        textarea.style.height = `${Math.min(textarea.scrollHeight, 200)}px`
+      }
+    }
+
+    const insertEmoji = (emoji) => {
+      const textarea = replyTextarea.value
+      if (textarea) {
+        const start = textarea.selectionStart
+        const end = textarea.selectionEnd
+        const value = textarea.value
+        const before = value.substring(0, start)
+        const after = value.substring(end)
+        textarea.value = before + emoji + after
+        emit('update-reply-content', textarea.value)
+
+        nextTick(() => {
+          textarea.focus()
+          textarea.setSelectionRange(start + emoji.length, start + emoji.length)
+          handleReplyInput({ target: textarea })
+        })
+      }
+    }
+
+    const handleEmojiMouseEnter = () => {
+      isEmojiHovered.value = true
+    }
+
+    const handleEmojiMouseLeave = () => {
+      isEmojiHovered.value = false
+      setTimeout(() => {
+        if (!isEmojiHovered.value && !isButtonHovered.value) {
+          showEmojiPicker.value = false
+        }
+      }, 300)
+    }
+
+    const handleButtonMouseEnter = () => {
+      isButtonHovered.value = true
+      showEmojiPicker.value = true
+      showImagePicker.value = false
+    }
+
+    const handleButtonMouseLeave = () => {
+      isButtonHovered.value = false
+      setTimeout(() => {
+        if (!isEmojiHovered.value && !isImageHovered.value && !isButtonHovered.value) {
+          showEmojiPicker.value = false
+          showImagePicker.value = false
+        }
+      }, 300)
+    }
+
+    const closeEmojiPicker = () => {
+      showEmojiPicker.value = false
+    }
+
+    const handleImageMouseEnter = () => {
+      isImageHovered.value = true
+    }
+
+    const handleImageMouseLeave = () => {
+      isImageHovered.value = false
+      setTimeout(() => {
+        if (!isImageHovered.value && !isButtonHovered.value) {
+          showImagePicker.value = false
+        }
+      }, 300)
+    }
+
+    const closeImagePicker = () => {
+      showImagePicker.value = false
+    }
+
+    const handleImageButtonMouseEnter = () => {
+      isButtonHovered.value = true
+      showImagePicker.value = true
+      showEmojiPicker.value = false
+    }
+
+    const insertImage = (imageUrl) => {
+      const textarea = replyTextarea.value
+      if (textarea) {
+        const start = textarea.selectionStart
+        const end = textarea.selectionEnd
+        const imageTag = `[img]${imageUrl}[/img]`
+        const newValue = textarea.value.slice(0, start) + imageTag + textarea.value.slice(end)
+        textarea.value = newValue
+        emit('update-reply-content', newValue)
+
+        nextTick(() => {
+          textarea.focus()
+          textarea.setSelectionRange(start + imageTag.length, start + imageTag.length)
+          handleReplyInput({ target: textarea })
+        })
+      }
+    }
+
+    const insertSpoiler = () => {
+      const textarea = replyTextarea.value
+      if (textarea) {
+        const start = textarea.selectionStart
+        const end = textarea.selectionEnd
+        const selectedText = textarea.value.slice(start, end)
+
+        let spoilerTag
+        if (selectedText.trim()) {
+          spoilerTag = `[spoiler]${selectedText}[/spoiler]`
+        } else {
+          spoilerTag = '[spoiler][/spoiler]'
+        }
+
+        const newValue = textarea.value.slice(0, start) + spoilerTag + textarea.value.slice(end)
+        textarea.value = newValue
+        emit('update-reply-content', newValue)
+
+        nextTick(() => {
+          textarea.focus()
+          if (selectedText.trim()) {
+            textarea.setSelectionRange(start + spoilerTag.length, start + spoilerTag.length)
+          } else {
+            const cursorPosition = start + '[spoiler]'.length
+            textarea.setSelectionRange(cursorPosition, cursorPosition)
+          }
+          handleReplyInput({ target: textarea })
+        })
+      }
+    }
+
+    const toggleCollapsed = () => {
+      isCollapsed.value = !isCollapsed.value
+    }
+
+    const closeAllPickers = () => {
+      showEmojiPicker.value = false
+      showImagePicker.value = false
+    }
+
+    const handleGlobalClick = (event) => {
+      if (
+        !event.target.closest('.emoji-picker') &&
+        !event.target.closest('.image-picker') &&
+        !event.target.closest('.emoji-button-inline')
+      ) {
+        closeAllPickers()
+      }
+    }
+
+    onMounted(() => {
+      document.addEventListener('click', handleGlobalClick)
+    })
+
+    onBeforeUnmount(() => {
+      document.removeEventListener('click', handleGlobalClick)
+    })
+
     return {
-      isCollapsed: true,
-      showEmojiPicker: false,
-      isButtonHovered: false,
-      isEmojiHovered: false
+      replyTextarea,
+      showEmojiPicker,
+      showImagePicker,
+      isCollapsed,
+      insertEmoji,
+      insertImage,
+      insertSpoiler,
+      handleEmojiMouseEnter,
+      handleEmojiMouseLeave,
+      handleImageMouseEnter,
+      handleImageMouseLeave,
+      handleButtonMouseEnter,
+      handleButtonMouseLeave,
+      closeEmojiPicker,
+      closeImagePicker,
+      handleImageButtonMouseEnter,
+      handleReplyInput,
+      toggleCollapsed,
+      closeAllPickers
     }
   },
   computed: {
@@ -187,89 +418,74 @@ export default {
         return 'У вас нет прав на создание комментариев'
       }
       return 'Напишите ваш ответ...'
-    }
-  },
-  watch: {
-    replyTo: {
-      handler(newReplyTo) {
-        if (newReplyTo && newReplyTo.id === this.comment.id) {
-          this.$nextTick(() => {
-            if (this.$refs.replyTextarea) {
-              this.$refs.replyTextarea.focus()
-            }
-          })
-        }
-      },
-      immediate: true
     },
-    'comment.replies': {
-      handler(newReplies, oldReplies) {
-        if (newReplies && oldReplies && newReplies.length > oldReplies.length) {
-          this.isCollapsed = false
-        }
-      },
-      deep: true
-    }
-  },
-  methods: {
-    toggleCollapsed() {
-      this.isCollapsed = !this.isCollapsed
-    },
-    handleReplyInput(event) {
-      this.$emit('update-reply-content', event.target.value)
-      const textarea = event.target
-      if (textarea) {
-        textarea.style.height = 'auto'
-        textarea.style.height = `${Math.min(textarea.scrollHeight, 200)}px`
-      }
-    },
-    insertEmoji(emoji) {
-      const textarea = this.$refs.replyTextarea
-      if (textarea) {
-        const start = textarea.selectionStart
-        const end = textarea.selectionEnd
-        const value = textarea.value
-        const before = value.substring(0, start)
-        const after = value.substring(end)
-        textarea.value = before + emoji + after
-        this.$emit('update-reply-content', textarea.value)
+    formattedContent() {
+      if (!this.comment.content) return ''
 
-        this.$nextTick(() => {
-          textarea.focus()
-          textarea.setSelectionRange(start + emoji.length, start + emoji.length)
-          this.handleReplyInput({ target: textarea })
-        })
+      const isValidImageUrl = (url) => {
+        try {
+          const urlObj = new URL(url)
+          const isValid = urlObj.hostname === 'cdn.7tv.app' && urlObj.protocol === 'https:'
+
+          if (!isValid) {
+            console.warn('URL изображения отклонен:', {
+              url: url,
+              hostname: urlObj.hostname,
+              protocol: urlObj.protocol,
+              reason:
+                urlObj.hostname !== 'cdn.7tv.app' ? 'неразрешенный домен' : 'неразрешенный протокол'
+            })
+          }
+
+          return isValid
+        } catch (error) {
+          console.warn('Недопустимый URL изображения:', url, 'Ошибка:', error.message)
+          return false
+        }
       }
-    },
-    handleEmojiMouseEnter() {
-      this.isEmojiHovered = true
-    },
-    handleEmojiMouseLeave() {
-      this.isEmojiHovered = false
-      setTimeout(() => {
-        if (!this.isEmojiHovered && !this.isButtonHovered) {
-          this.showEmojiPicker = false
+
+      const escapeHtml = (text) => {
+        const div = document.createElement('div')
+        div.textContent = text
+        return div.innerHTML
+      }
+
+      let processedContent = this.comment.content.replace(
+        /\[img\](.*?)\[\/img\]/g,
+        (match, url) => {
+          const trimmedUrl = url.trim()
+          if (isValidImageUrl(trimmedUrl)) {
+            const safeUrl = escapeHtml(trimmedUrl)
+            return `<img src="${safeUrl}" alt="7TV emote" class="inline-emoji" loading="lazy" />`
+          }
+          return `[недопустимое изображение: ${escapeHtml(trimmedUrl)}]`
         }
-      }, 300)
-    },
-    handleButtonMouseEnter() {
-      this.isButtonHovered = true
-      this.showEmojiPicker = true
-    },
-    handleButtonMouseLeave() {
-      this.isButtonHovered = false
-      setTimeout(() => {
-        if (!this.isEmojiHovered && !this.isButtonHovered) {
-          this.showEmojiPicker = false
+      )
+
+      processedContent = processedContent.replace(
+        /\[spoiler\](.*?)\[\/spoiler\]/gs,
+        (match, spoilerText, offset, string) => {
+          const escapedText = escapeHtml(spoilerText.trim())
+
+          const beforeChar = offset > 0 ? string[offset - 1] : ' '
+          const afterChar =
+            offset + match.length < string.length ? string[offset + match.length] : ' '
+
+          const needSpaceBefore =
+            beforeChar && beforeChar !== ' ' && beforeChar !== '\n' && beforeChar !== '\t'
+          const needSpaceAfter =
+            afterChar && afterChar !== ' ' && afterChar !== '\n' && afterChar !== '\t'
+
+          const spaceBefore = needSpaceBefore ? ' ' : ''
+          const spaceAfter = needSpaceAfter ? ' ' : ''
+
+          return `${spaceBefore}<span class="spoiler-text" onclick="this.classList.toggle('revealed')" title="Нажмите, чтобы показать спойлер">${escapedText}</span>${spaceAfter}`
         }
-      }, 300)
-    },
-    closeEmojiPicker() {
-      this.showEmojiPicker = false
+      )
+
+      return processedContent
     }
-  },
-  mounted() {},
-  beforeUnmount() {}
+  }
 }
 </script>
 
@@ -532,5 +748,84 @@ export default {
 
 .vertical-line-visual.collapsed {
   background: rgba(76, 175, 80, 0.5);
+}
+
+.comment-content {
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.5;
+  color: #fff;
+}
+
+.comment-content :deep(img.inline-emoji) {
+  display: inline-block;
+  vertical-align: middle;
+  height: 1.2em;
+  width: auto;
+  margin: 0 0.1em;
+}
+
+.seven-tv-icon {
+  height: 1.2em;
+  width: auto;
+  vertical-align: middle;
+  fill: currentColor;
+}
+
+:deep(.spoiler-text) {
+  background: rgba(64, 64, 64, 0.8);
+  color: transparent;
+  cursor: pointer;
+  padding: 0.2em 0.6em;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  user-select: none;
+  position: relative;
+  display: inline-block;
+  min-width: 60px;
+  text-align: center;
+}
+
+:deep(.spoiler-text:hover) {
+  background: rgba(64, 64, 64, 0.9);
+}
+
+:deep(.spoiler-text::before) {
+  content: 'спойлер';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #999;
+  font-size: 0.85em;
+  white-space: nowrap;
+  pointer-events: none;
+  font-weight: 500;
+}
+
+:deep(.spoiler-text.revealed) {
+  background: transparent;
+  color: inherit;
+  user-select: text;
+  min-width: auto;
+  text-align: left;
+  padding: 0;
+}
+
+:deep(.spoiler-text.revealed::before) {
+  display: none;
+}
+
+.spoiler-button {
+  color: #999;
+}
+
+.spoiler-button:hover {
+  color: #fff;
+}
+
+.spoiler-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>
