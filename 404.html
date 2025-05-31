@@ -1,50 +1,16 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Redirecting...</title>
-    <script>
-      const fullPath = window.location.pathname
-      const search = window.location.search
-      const hash = window.location.hash
-      const hostname = window.location.hostname
-
-      let basePath = ''
-      let appRoute = fullPath
-
-      const isGitHubPages = hostname.includes('github.io')
-
-      if (isGitHubPages) {
-        if (fullPath.startsWith('/reyohoho')) {
-          basePath = '/reyohoho'
-          appRoute = fullPath.substring(basePath.length)
-        }
-        else if (fullPath !== '/' && !fullPath.startsWith('/reyohoho')) {
-          basePath = '/reyohoho'
-          appRoute = fullPath
-        }
-        else {
-          basePath = '/reyohoho'
-          appRoute = ''
-        }
-      }
-
-      if (!appRoute || appRoute === '/') {
-        appRoute = ''
-      }
-
-      if (appRoute.startsWith('/')) {
-        appRoute = appRoute.substring(1)
-      }
-
-      const newUrl = `${basePath}/#/${appRoute}${search}${hash}`
-
-      console.log('Redirecting from:', window.location.href, 'to:', newUrl)
-      window.location.href = newUrl
-    </script>
-  </head>
-  <body>
-    <p>Redirecting...</p>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redirecting...</title>
+  <script>
+    const path = window.location.pathname;
+    const id = path.split('/').pop();
+    window.location.href = `/reyohoho/#${id}`;
+  </script>
+</head>
+<body>
+  <p>Redirecting...</p>
+</body>
 </html>
