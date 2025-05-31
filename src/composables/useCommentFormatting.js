@@ -1,4 +1,15 @@
+import { getBaseURL } from '@/api/axios'
+
 export function useCommentFormatting() {
+  let cachedBaseURL = null
+
+  const initializeBaseURL = async () => {
+    if (!cachedBaseURL) {
+      cachedBaseURL = await getBaseURL()
+    }
+    return cachedBaseURL
+  }
+
   const isValidImageUrl = (url) => {
     try {
       const urlObj = new URL(url)
@@ -14,9 +25,15 @@ export function useCommentFormatting() {
           reason:
             urlObj.hostname !== 'cdn.7tv.app' ? 'неразрешенный домен' : 'неразрешенный протокол'
         })
+        return false
       }
 
-      return isValid
+      if (cachedBaseURL) {
+        const modifiedUrl = `${cachedBaseURL}${urlObj.pathname}${urlObj.search}${urlObj.hash}`
+        return modifiedUrl
+      }
+
+      return url
     } catch (error) {
       console.warn('Недопустимый URL изображения:', url, 'Ошибка:', error.message)
       return false
@@ -41,8 +58,10 @@ export function useCommentFormatting() {
 
     processedContent = processedContent.replace(/\[img\](.*?)\[\/img\]/g, (match, url) => {
       const trimmedUrl = url.trim()
-      if (isValidImageUrl(trimmedUrl)) {
-        const safeUrl = escapeHtml(trimmedUrl)
+      const validationResult = isValidImageUrl(trimmedUrl)
+
+      if (validationResult && validationResult !== false) {
+        const safeUrl = escapeHtml(validationResult)
         return `<img src="${safeUrl}" alt="7TV emote" class="inline-emoji" loading="lazy" />`
       }
       return `[недопустимое изображение: ${escapeHtml(trimmedUrl)}]`
@@ -151,6 +170,7 @@ export function useCommentFormatting() {
     formatContent,
     formatContentWithTruncation,
     isValidImageUrl,
-    escapeHtml
+    escapeHtml,
+    initializeBaseURL
   }
 }
