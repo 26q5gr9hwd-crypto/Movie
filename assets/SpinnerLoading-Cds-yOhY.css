@@ -1,0 +1,1 @@
+.spinner-wrapper[data-v-dd0f1b6e]{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;justify-content:center;align-items:center;pointer-events:none;min-height:100%}.spinner[data-v-dd0f1b6e]{width:70px;height:70px;animation:spin-dd0f1b6e 1s linear infinite;pointer-events:none}@keyframes spin-dd0f1b6e{0%{transform:rotate(0)}to{transform:rotate(360deg)}}
