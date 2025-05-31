@@ -258,6 +258,11 @@
         <div class="additional-info">
           <h2 class="additional-info-title">Подробнее</h2>
           <div class="info-content">
+            <div v-if="movieInfo.poster_url" class="movie-poster-container desktop-only">
+              <a :href="movieInfo.poster_url" target="_blank" rel="noopener noreferrer">
+                <img :src="movieInfo.poster_url" alt="Постер фильма" class="movie-poster" />
+              </a>
+            </div>
             <div class="details-container">
               <ul class="info-list">
                 <li v-if="movieInfo.type && TYPES_ENUM[movieInfo.type]">
@@ -284,14 +289,13 @@
                   <strong>Продолжительность:</strong> {{ formatTime(movieInfo.film_length) }}
                 </li>
               </ul>
+              <div class="content-info">
+                <p v-if="movieInfo.description" class="content-description-text">
+                  {{ movieInfo.description }}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-
-        <div class="content-info">
-          <p v-if="movieInfo.description" class="content-description-text">
-            {{ movieInfo.description }}
-          </p>
         </div>
 
         <div v-if="isCommentsEnabled" class="comments-section">
@@ -768,6 +772,34 @@ const getStaffByProfession = (profession) => {
   max-width: 100%;
 }
 
+.content-title-container {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  justify-content: center;
+}
+
+.movie-poster-thumbnail {
+  width: 60px;
+  height: 90px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease;
+}
+
+.movie-poster-thumbnail:hover {
+  transform: scale(1.05);
+}
+
+.movie-poster-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .content-title {
   font-size: 55px;
   margin: 0;
@@ -832,11 +864,32 @@ const getStaffByProfession = (profession) => {
 
 .info-content {
   display: flex;
-  gap: 20px;
+  gap: 15px;
+  align-items: flex-start;
+}
+
+.movie-poster-container {
+  flex-shrink: 0;
+  width: 200px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease;
+}
+
+.movie-poster-container:hover {
+  transform: scale(1.02);
+}
+
+.movie-poster {
+  width: 100%;
+  height: auto;
+  display: block;
 }
 
 .details-container {
-  flex: 3;
+  flex: 1;
+  min-width: 0;
 }
 
 .info-list {
@@ -853,11 +906,12 @@ const getStaffByProfession = (profession) => {
   font-size: 16px;
   line-height: 1.6;
   color: #ccc;
+  margin-top: 20px;
 }
 
-.content-description-text,
-.content-short-description {
-  margin: 0 0 10px;
+.content-description-text {
+  margin: 0;
+  white-space: pre-wrap;
 }
 
 .error-message {
@@ -920,6 +974,17 @@ const getStaffByProfession = (profession) => {
 
   .info-content {
     flex-direction: column;
+    align-items: center;
+  }
+
+  .content-title-container {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .movie-poster-thumbnail {
+    width: 50px;
+    height: 75px;
   }
 }
 
@@ -1594,6 +1659,17 @@ const getStaffByProfession = (profession) => {
 @media (max-width: 620px) {
   .related-movies-list :deep(.grid) {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .info-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .desktop-only {
+    display: none;
   }
 }
 </style>
