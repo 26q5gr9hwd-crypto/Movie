@@ -1202,4 +1202,87 @@ export default {
   cursor: not-allowed;
   border-color: rgba(128, 128, 128, 0.3);
 }
+
+@media (max-width: 768px) {
+  .comment-footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .character-counter-container {
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .comment-actions {
+    justify-content: flex-start;
+  }
+
+  .character-counter-inline {
+    order: -1;
+    margin-right: auto;
+    margin-bottom: 0.25rem;
+  }
+
+  .emoji-button-inline {
+    flex-shrink: 0;
+    padding: 0.375rem 0.5rem;
+    min-width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .character-counter-container {
+    justify-content: flex-start;
+    gap: 0.25rem;
+  }
+
+  .emoji-button-inline {
+    padding: 0.25rem 0.375rem;
+    min-width: 40px;
+    height: 40px;
+    font-size: 0.9rem;
+  }
+
+  .character-counter-inline {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
+    width: 100%;
+    text-align: center;
+  }
+
+  .submit-button {
+    min-height: 44px;
+    padding: 0.5rem 1rem;
+    width: 100%;
+  }
+
+  .comment-form {
+    margin-bottom: 1rem;
+  }
+
+  .comment-textarea {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 360px) {
+  .emoji-button-inline {
+    min-width: 36px;
+    height: 36px;
+    padding: 0.2rem 0.3rem;
+    font-size: 0.8rem;
+  }
+
+  .character-counter-inline {
+    font-size: 0.65rem;
+  }
+}
 </style>

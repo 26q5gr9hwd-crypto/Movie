@@ -710,4 +710,93 @@ export default {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+@media (max-width: 768px) {
+  .reply-footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .character-counter-container {
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .reply-actions {
+    justify-content: flex-start;
+  }
+
+  .character-counter-inline {
+    order: -1;
+    margin-right: auto;
+    margin-bottom: 0.25rem;
+  }
+
+  .emoji-button-inline {
+    flex-shrink: 0;
+    padding: 0.375rem 0.5rem;
+    min-width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .character-counter-container {
+    justify-content: flex-start;
+    gap: 0.25rem;
+  }
+
+  .emoji-button-inline {
+    padding: 0.25rem 0.375rem;
+    min-width: 40px;
+    height: 40px;
+    font-size: 0.9rem;
+  }
+
+  .character-counter-inline {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
+    width: 100%;
+    text-align: center;
+  }
+
+  .submit-button {
+    min-height: 44px;
+    padding: 0.5rem 1rem;
+    width: auto;
+    min-width: 80px;
+  }
+
+  .cancel-reply {
+    min-height: 44px;
+    padding: 0.5rem 1rem;
+    min-width: 60px;
+  }
+
+  .reply-form {
+    margin-bottom: 1rem;
+  }
+
+  .comment-textarea {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 360px) {
+  .emoji-button-inline {
+    min-width: 36px;
+    height: 36px;
+    padding: 0.2rem 0.3rem;
+    font-size: 0.8rem;
+  }
+
+  .character-counter-inline {
+    font-size: 0.65rem;
+  }
+}
 </style>
