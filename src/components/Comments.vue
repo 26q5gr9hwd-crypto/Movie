@@ -144,7 +144,7 @@
       </form>
 
       <div class="comments-list">
-        <template v-for="comment in groupedComments" :key="comment.id">
+        <template v-for="comment in displayedComments" :key="comment.id">
           <CommentThread
             :comment="comment"
             :current-user="currentUser"
@@ -164,6 +164,12 @@
             @reply-keydown="handleReplyKeydown"
           />
         </template>
+        <div v-if="hasMoreComments" class="show-more-comments">
+          <button class="show-more-btn" @click="showMoreComments">
+            Показать еще {{ remainingCommentsCount }}
+            {{ getCommentWordForm(remainingCommentsCount) }}
+          </button>
+        </div>
       </div>
     </div>
 
@@ -183,6 +189,7 @@ import ImagePicker from '@/components/ImagePicker.vue'
 import LinkModal from '@/components/LinkModal.vue'
 import { useCommentActions } from '@/composables/useCommentActions'
 import { getCommentWordForm } from '@/utils/textUtils'
+import { useMainStore } from '@/store/main'
 
 export default {
   name: 'Comments',
@@ -202,6 +209,7 @@ export default {
   setup(props) {
     const authStore = useAuthStore()
     const router = useRouter()
+    const mainStore = useMainStore()
     const comments = ref([])
     const newComment = ref('')
     const replyTo = ref(null)
@@ -210,8 +218,10 @@ export default {
     const currentUser = ref(authStore.user)
     const notificationRef = ref(null)
     const commentTextarea = ref(null)
-    const showComments = ref(false)
+    const showComments = ref(mainStore.isAutoShowComments)
     const isInsertingEmoji = ref(false)
+    const commentsPerPage = ref(3)
+    const displayedCommentsCount = ref(3)
 
     const {
       showEmojiPicker,
@@ -262,6 +272,22 @@ export default {
 
       return countCommentsRecursively(groupedComments.value)
     })
+
+    const displayedComments = computed(() => {
+      return groupedComments.value.slice(0, displayedCommentsCount.value)
+    })
+
+    const hasMoreComments = computed(() => {
+      return groupedComments.value.length > displayedCommentsCount.value
+    })
+
+    const remainingCommentsCount = computed(() => {
+      return groupedComments.value.length - displayedCommentsCount.value
+    })
+
+    const showMoreComments = () => {
+      displayedCommentsCount.value += commentsPerPage.value
+    }
 
     const loadComments = async () => {
       try {
@@ -603,6 +629,10 @@ export default {
     return {
       comments,
       groupedComments,
+      displayedComments,
+      hasMoreComments,
+      remainingCommentsCount,
+      showMoreComments,
       newComment,
       replyTo,
       replyContent,
@@ -1142,5 +1172,34 @@ export default {
 .link-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.show-more-comments {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.show-more-btn {
+  padding: 0.5rem 1rem;
+  background: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.8rem;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.show-more-btn:hover:not(:disabled) {
+  background: #66bb6a;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2);
+}
+
+.show-more-btn:disabled {
+  background: #666;
+  cursor: not-allowed;
+  border-color: rgba(128, 128, 128, 0.3);
 }
 </style>

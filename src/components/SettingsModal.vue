@@ -72,6 +72,7 @@
       <div class="settings-group">
         <h2>Комментарии</h2>
         <SliderRound v-model="isCommentsEnabled">Показывать блок комментариев</SliderRound>
+        <SliderRound v-model="isAutoShowComments">Автоматически показывать комментарии</SliderRound>
       </div>
 
       <div class="settings-group">
@@ -168,6 +169,11 @@ const showFavoriteTooltip = computed({
 const isCommentsEnabled = computed({
   get: () => mainStore.isCommentsEnabled,
   set: (value) => mainStore.setCommentsEnabled(value)
+})
+
+const isAutoShowComments = computed({
+  get: () => mainStore.isAutoShowComments,
+  set: (value) => mainStore.setAutoShowComments(value)
 })
 
 // Навигация

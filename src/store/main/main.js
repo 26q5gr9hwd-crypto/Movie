@@ -8,6 +8,7 @@ export const useMainStore = defineStore(MAIN_STORE_NAME, {
     history: [],
     isHistoryAllowed: true,
     isCommentsEnabled: true,
+    isAutoShowComments: false,
     isMobile: false,
     dimmingEnabled: false,
     isCtrlFEnabled: true
@@ -75,12 +76,22 @@ export const useMainStore = defineStore(MAIN_STORE_NAME, {
 
     setCommentsEnabled(value) {
       this.isCommentsEnabled = value
+    },
+
+    setAutoShowComments(value) {
+      this.isAutoShowComments = value
     }
   },
 
   persist: {
     key: MAIN_STORE_NAME,
-    pick: ['history', 'isHistoryAllowed', 'isCommentsEnabled', 'isCtrlFEnabled'],
+    pick: [
+      'history',
+      'isHistoryAllowed',
+      'isCommentsEnabled',
+      'isAutoShowComments',
+      'isCtrlFEnabled'
+    ],
     beforeHydrate: beforeHydrateLegacyVuex
   }
 })
