@@ -8,24 +8,39 @@
       const fullPath = window.location.pathname
       const search = window.location.search
       const hash = window.location.hash
+      const hostname = window.location.hostname
 
       let basePath = ''
-      if (window.location.pathname.startsWith('/reyohoho')) {
-        basePath = '/reyohoho'
-      }
-
       let appRoute = fullPath
-      if (basePath && fullPath.startsWith(basePath)) {
-        appRoute = fullPath.substring(basePath.length)
+
+      const isGitHubPages = hostname.includes('github.io')
+
+      if (isGitHubPages) {
+        if (fullPath.startsWith('/reyohoho')) {
+          basePath = '/reyohoho'
+          appRoute = fullPath.substring(basePath.length)
+        }
+        else if (fullPath !== '/' && !fullPath.startsWith('/reyohoho')) {
+          basePath = '/reyohoho'
+          appRoute = fullPath
+        }
+        else {
+          basePath = '/reyohoho'
+          appRoute = ''
+        }
       }
 
       if (!appRoute || appRoute === '/') {
         appRoute = ''
       }
 
+      if (appRoute.startsWith('/')) {
+        appRoute = appRoute.substring(1)
+      }
+
       const newUrl = `${basePath}/#/${appRoute}${search}${hash}`
 
-      console.log('Redirecting from:', fullPath, 'to:', newUrl)
+      console.log('Redirecting from:', window.location.href, 'to:', newUrl)
       window.location.href = newUrl
     </script>
   </head>

@@ -47,18 +47,29 @@
           console.log('SPA Fallback - Original URL:', window.location.href)
 
           let basePath = ''
+          let appRoute = fullPath
 
-          if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+          const isGitHubPages = hostname.includes('github.io')
+          const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1'
+
+          if (isGitHubPages) {
             if (fullPath.startsWith('/reyohoho')) {
               basePath = '/reyohoho'
-            } else if (fullPath.startsWith('/repo')) {
-              basePath = '/repo'
+              appRoute = fullPath.substring(basePath.length)
             }
-          }
-
-          let appRoute = fullPath
-          if (basePath && fullPath.startsWith(basePath)) {
-            appRoute = fullPath.substring(basePath.length)
+            else if (fullPath !== '/' && !fullPath.startsWith('/reyohoho')) {
+              basePath = '/reyohoho'
+              appRoute = fullPath
+            }
+            else {
+              basePath = '/reyohoho'
+              appRoute = ''
+            }
+          } else if (!isLocalhost) {
+            if (fullPath.startsWith('/repo')) {
+              basePath = '/repo'
+              appRoute = fullPath.substring(basePath.length)
+            }
           }
 
           if (!appRoute || appRoute === '/') {
