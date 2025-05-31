@@ -92,7 +92,7 @@ export function useCommentFormatting() {
     return processedContent
   }
 
-  const formatContentWithTruncation = (content, maxLength = 300, isExpanded = false) => {
+  const formatContentWithTruncation = (content, maxLength = 500, isExpanded = false) => {
     if (!content) return ''
 
     let processedContent = content

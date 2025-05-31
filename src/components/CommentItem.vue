@@ -435,11 +435,11 @@ export default {
       }
     }
 
-    const isLongComment = computed(() => props.comment?.content?.length > 300)
+    const isLongComment = computed(() => props.comment?.content?.length > 500)
     const isExpanded = ref(false)
 
     const formattedContent = computed(() => {
-      return formatContentWithTruncation(props.comment?.content, 300, isExpanded.value)
+      return formatContentWithTruncation(props.comment?.content, 500, isExpanded.value)
     })
 
     const toggleExpanded = () => {
