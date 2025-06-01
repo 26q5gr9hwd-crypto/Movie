@@ -6,15 +6,17 @@
         <div class="filter-card time-card">
           <div class="button-group time-buttons">
             <i class="material-icons card-icon">schedule</i>
-            <button
-              v-for="(btn, idx) in timeFilters"
-              :key="idx"
-              class="filter-btn time-btn"
-              :class="{ active: activeTimeFilter === btn.apiUrl }"
-              @click="changeTimeFilter(btn.apiUrl)"
-            >
-              {{ btn.label }}
-            </button>
+            <template v-for="(btn, idx) in timeFilters" :key="idx">
+              <div v-if="btn.type === 'separator'" class="filter-separator"></div>
+              <button
+                v-else
+                class="filter-btn time-btn"
+                :class="{ active: activeTimeFilter === btn.apiUrl }"
+                @click="changeTimeFilter(btn.apiUrl)"
+              >
+                {{ btn.label }}
+              </button>
+            </template>
           </div>
         </div>
 
@@ -67,7 +69,9 @@ const timeFilters = [
   { label: '24 часа', apiUrl: '24h' },
   { label: '7 дней', apiUrl: '7d' },
   { label: '30 дней', apiUrl: '30d' },
-  { label: 'Всё время', apiUrl: 'all' }
+  { label: 'Всё время', apiUrl: 'all' },
+  { label: '---', apiUrl: 'separator', type: 'separator' },
+  { label: 'Обсуждаемое за месяц', apiUrl: 'discussed' }
 ]
 
 // Фильтры по типу контента
@@ -207,6 +211,14 @@ onMounted(fetchMovies)
 
 .button-group::-webkit-scrollbar {
   display: none;
+}
+
+.filter-separator {
+  width: 1px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.2);
+  margin: 0 4px;
+  flex-shrink: 0;
 }
 
 .filter-btn {
