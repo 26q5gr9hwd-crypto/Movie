@@ -34,7 +34,8 @@ export default defineConfig(({ mode }) => {
         additionalLegacyPolyfills: ['regenerator-runtime/runtime']
       }),
       VitePWA({
-        registerType: 'prompt',
+        registerType: 'autoUpdate',
+        injectRegister: 'inline',
         includeAssets: ['favicon.ico', 'robots.txt', 'icons/*'],
         workbox: {
           clientsClaim: true,
