@@ -7,7 +7,9 @@ export const usePlayerStore = defineStore(PLAYER_STORE_NAME, {
     preferredPlayer: null,
     aspectRatio: '16:9',
     isCentered: false,
-    showFavoriteTooltip: true
+    showFavoriteTooltip: true,
+    compressorEnabled: false,
+    mirrorEnabled: false
   }),
 
   actions: {
@@ -22,6 +24,12 @@ export const usePlayerStore = defineStore(PLAYER_STORE_NAME, {
     },
     setFavoriteTooltip(value) {
       this.showFavoriteTooltip = value
+    },
+    updateCompressor(value) {
+      this.compressorEnabled = value
+    },
+    updateMirror(value) {
+      this.mirrorEnabled = value
     }
   },
 

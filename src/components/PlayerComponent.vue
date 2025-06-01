@@ -199,7 +199,7 @@
           <div class="tooltip-container" data-tooltip-container="compressor">
             <button
               class="material-symbols-outlined"
-              :class="{ 'electron-only': !isElectron }"
+              :class="{ active: compressorEnabled, 'electron-only': !isElectron }"
               @mouseenter="showTooltip('compressor')"
               @mouseleave="activeTooltip = null"
               @click="toggleCompressor"
@@ -211,14 +211,14 @@
               class="custom-tooltip"
               data-tooltip="compressor"
             >
-              {{ isElectron ? 'Компрессор' : 'Компрессор, функция доступна в приложении' }}
+              Компрессор
             </div>
           </div>
 
           <div class="tooltip-container" data-tooltip-container="mirror">
             <button
               class="mirror-btn"
-              :class="{ 'electron-only': !isElectron }"
+              :class="{ active: mirrorEnabled, 'electron-only': !isElectron }"
               @mouseenter="showTooltip('mirror')"
               @mouseleave="activeTooltip = null"
               @click="toggleMirror"
@@ -226,7 +226,7 @@
               <span class="material-icons">flip</span>
             </button>
             <div v-show="activeTooltip === 'mirror'" class="custom-tooltip" data-tooltip="mirror">
-              {{ isElectron ? 'Зеркало' : 'Зеркало, функция доступна в приложении' }}
+              Зеркало
             </div>
           </div>
 
@@ -572,6 +572,16 @@ const notificationRef = ref(null)
 
 const tooltipContainer = ref(null)
 const tooltip = ref(null)
+const mirrorCheckInterval = ref(null)
+const currentMirrorState = ref(false)
+const currentCompressorState = ref(false)
+
+const audioContext = ref(null)
+const compressorNode = ref(null)
+const mediaSource = ref(null)
+const gainNode = ref(null)
+const bypassGainNode = ref(null)
+const currentVideoElement = ref(null)
 
 const updateTooltipPosition = (tooltipName) => {
   const container = document.querySelector(`[data-tooltip-container="${tooltipName}"]`)
@@ -732,16 +742,165 @@ const closePlayerModal = () => {
   showPlayerModal.value = false
 }
 
-const handlePlayerSelect = (player) => {
-  if (selectedPlayerInternal.value?.key === player.key) {
-    closePlayerModal()
-    return
-  }
+const initializeAudioContext = () => {
+  try {
+    if (!audioContext.value) {
+      audioContext.value = new (window.AudioContext || window.webkitAudioContext)()
+    }
 
-  selectedPlayerInternal.value = player
-  iframeLoading.value = true
-  playerStore.updatePreferredPlayer(normalizeKey(player.key))
-  emit('update:selectedPlayer', player)
+    if (!compressorNode.value) {
+      compressorNode.value = audioContext.value.createDynamicsCompressor()
+      compressorNode.value.threshold.value = -50
+      compressorNode.value.knee.value = 40
+      compressorNode.value.ratio.value = 12
+      compressorNode.value.attack.value = 0
+      compressorNode.value.release.value = 0.25
+
+      gainNode.value = audioContext.value.createGain()
+      bypassGainNode.value = audioContext.value.createGain()
+
+      gainNode.value.gain.value = 0
+      bypassGainNode.value.gain.value = 1
+
+      compressorNode.value.connect(gainNode.value)
+      gainNode.value.connect(audioContext.value.destination)
+
+      bypassGainNode.value.connect(audioContext.value.destination)
+    }
+
+    return true
+  } catch (e) {
+    console.log('Error initializing audio context:', e)
+    return false
+  }
+}
+
+const setupVideoAudio = async (video) => {
+  try {
+    if (!audioContext.value || currentVideoElement.value === video) return true
+
+    const iframe = playerIframe.value
+    const iframeSrc = iframe?.src || ''
+
+    if (
+      iframeSrc.includes('videoframe') ||
+      iframeSrc.includes('kinoserial.net') ||
+      iframeSrc.includes('allarknow')
+    ) {
+      console.log('Player detected as unsupported for compressor:', iframeSrc)
+      currentVideoElement.value = video
+      mediaSource.value = null
+      currentCompressorState.value = false
+
+      if (isElectron.value) {
+        window.electronAPI.showToast('Компрессор не поддерживается этим плеером')
+      }
+      return false
+    }
+
+    if (mediaSource.value) {
+      try {
+        mediaSource.value.disconnect()
+      } catch {
+        // ignore
+      }
+    }
+
+    const attemptConnection = async (delay = 0) => {
+      if (delay > 0) {
+        await new Promise((resolve) => setTimeout(resolve, delay))
+      }
+
+      try {
+        mediaSource.value = audioContext.value.createMediaElementSource(video)
+        currentVideoElement.value = video
+
+        mediaSource.value.connect(compressorNode.value)
+        mediaSource.value.connect(bypassGainNode.value)
+
+        console.log(`Video audio setup completed (attempt with ${delay}ms delay)`)
+        return true
+      } catch (e) {
+        if (e.name === 'InvalidStateError' && e.message.includes('already connected')) {
+          console.log(`MediaElementSource already connected (${delay}ms delay attempt)`)
+          return false
+        } else {
+          throw e
+        }
+      }
+    }
+
+    if (await attemptConnection(0)) return true
+
+    if (await attemptConnection(100)) return true
+
+    if (await attemptConnection(300)) return true
+
+    if (await attemptConnection(800)) return true
+
+    console.log(
+      'Video element has internal audio processing, compressor not available for this player'
+    )
+    currentVideoElement.value = video
+    mediaSource.value = null
+    currentCompressorState.value = false
+
+    if (isElectron.value) {
+      window.electronAPI.showToast('Компрессор не поддерживается этим плеером')
+    }
+    return false
+  } catch (e) {
+    console.log('Error setting up video audio:', e)
+    return false
+  }
+}
+
+const applyCompressorEffect = async (enabled) => {
+  if (!playerIframe.value) return
+
+  try {
+    const iframe = playerIframe.value
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document
+    if (!iframeDoc) return
+
+    const videos = iframeDoc.querySelectorAll('video')
+    if (videos.length === 0) return
+
+    const video = videos[0]
+
+    if (!initializeAudioContext()) return
+
+    const audioSetupSuccess = await setupVideoAudio(video)
+    if (!audioSetupSuccess || !mediaSource.value) {
+      console.log('Compressor not available for this player')
+      return
+    }
+
+    if (enabled && !currentCompressorState.value) {
+      gainNode.value.gain.setValueAtTime(1, audioContext.value.currentTime)
+      bypassGainNode.value.gain.setValueAtTime(0, audioContext.value.currentTime)
+      currentCompressorState.value = true
+
+      if (isElectron.value) {
+        window.electronAPI.showToast('Компрессор включён')
+      }
+      console.log('Compressor enabled')
+    } else if (!enabled && currentCompressorState.value) {
+      gainNode.value.gain.setValueAtTime(0, audioContext.value.currentTime)
+      bypassGainNode.value.gain.setValueAtTime(1, audioContext.value.currentTime)
+      currentCompressorState.value = false
+
+      if (isElectron.value) {
+        window.electronAPI.showToast('Компрессор отключён')
+      }
+      console.log('Compressor disabled')
+    }
+  } catch (e) {
+    console.log('Compressor error:', e)
+    if (isElectron.value) {
+      window.electronAPI.showToast('Ошибка при включении компрессора')
+    }
+  }
 }
 
 const toggleBlur = () => {
@@ -755,7 +914,8 @@ const toggleBlur = () => {
 
 const toggleCompressor = () => {
   if (isElectron.value) {
-    window.electronAPI.sendHotKey('F3')
+    compressorEnabled.value = !compressorEnabled.value
+    applyCompressorEffect(compressorEnabled.value)
   } else {
     showMessageToast('Доступно только в приложении ReYohoho Desktop')
     window.open('https://t.me/ReYohoho/126', '_blank')
@@ -764,7 +924,8 @@ const toggleCompressor = () => {
 
 const toggleMirror = () => {
   if (isElectron.value) {
-    window.electronAPI.sendHotKey('F4')
+    mirrorEnabled.value = !mirrorEnabled.value
+    applyMirrorEffect(mirrorEnabled.value)
   } else {
     showMessageToast('Доступно только в приложении ReYohoho Desktop')
     window.open('https://t.me/ReYohoho/126', '_blank')
@@ -802,6 +963,100 @@ const toggleDimming = () => {
   }
 }
 
+const compressorEnabled = computed({
+  get: () => playerStore.compressorEnabled,
+  set: (value) => playerStore.updateCompressor(value)
+})
+
+const mirrorEnabled = computed({
+  get: () => playerStore.mirrorEnabled,
+  set: (value) => playerStore.updateMirror(value)
+})
+
+const applyMirrorEffect = (enabled) => {
+  if (!playerIframe.value) return
+
+  try {
+    const iframe = playerIframe.value
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document
+    if (!iframeDoc) return
+
+    const videos = iframeDoc.querySelectorAll('video')
+    if (videos.length > 0) {
+      videos.forEach((video) => {
+        if (enabled) {
+          video.style.transform = 'scaleX(-1)'
+        } else {
+          video.style.transform = 'scaleX(1)'
+        }
+      })
+
+      currentMirrorState.value = enabled
+
+      if (isElectron.value) {
+        const message = enabled ? 'Зеркало включено' : 'Зеркало отключено'
+        window.electronAPI.showToast(message)
+      }
+    }
+  } catch {
+    // ignore
+  }
+}
+
+const startMirrorMonitoring = () => {
+  if (mirrorCheckInterval.value) {
+    clearInterval(mirrorCheckInterval.value)
+  }
+
+  mirrorCheckInterval.value = setInterval(() => {
+    if (!playerIframe.value) return
+
+    try {
+      const iframe = playerIframe.value
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow.document
+      if (!iframeDoc) return
+
+      const videos = iframeDoc.querySelectorAll('video')
+      if (videos.length > 0) {
+        const video = videos[0]
+
+        const transform = video.style.transform
+        const isCurrentlyMirrored = transform === 'scaleX(-1)'
+
+        if (mirrorEnabled.value && !isCurrentlyMirrored) {
+          video.style.transform = 'scaleX(-1)'
+          currentMirrorState.value = true
+        } else if (!mirrorEnabled.value && isCurrentlyMirrored) {
+          video.style.transform = 'scaleX(1)'
+          currentMirrorState.value = false
+        }
+
+        if (currentVideoElement.value !== video) {
+          console.log('Video element changed, reinitializing compressor')
+          currentVideoElement.value = null
+          currentCompressorState.value = false
+
+          if (compressorEnabled.value) {
+            setTimeout(() => {
+              applyCompressorEffect(true)
+            }, 500)
+          }
+        } else if (compressorEnabled.value !== currentCompressorState.value && mediaSource.value) {
+          console.log('Compressor state mismatch, reapplying')
+          applyCompressorEffect(compressorEnabled.value)
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }, 1000)
+}
+
+const onIframeLoad = () => {
+  iframeLoading.value = false
+  startMirrorMonitoring()
+}
+
 const onKeyDown = (event) => {
   if (event.key === 'Escape' && theaterMode.value) {
     toggleTheaterMode()
@@ -832,10 +1087,6 @@ const copyMovieLink = () => {
   notificationRef.value.showNotification('Ссылка на фильм скопирована')
 }
 
-const onIframeLoad = () => {
-  iframeLoading.value = false
-}
-
 function cleanName(name) {
   const cleanedName = name
     .replace(/^REYOHOHO_PLAYER>HDREZKA>/, 'HDRezka - ')
@@ -849,9 +1100,55 @@ const shouldShowPmVideo = computed(() => {
   return !selectedPlayerInternal.value?.key?.toUpperCase().includes('TORRENTS')
 })
 
+const cleanupAudioContext = () => {
+  try {
+    if (mediaSource.value) {
+      mediaSource.value.disconnect()
+      mediaSource.value = null
+    }
+    if (audioContext.value) {
+      audioContext.value.close()
+      audioContext.value = null
+    }
+    compressorNode.value = null
+    gainNode.value = null
+    bypassGainNode.value = null
+    currentVideoElement.value = null
+    currentCompressorState.value = false
+  } catch (e) {
+    console.log('Error cleaning up audio context:', e)
+  }
+}
+
+const handlePlayerSelect = (player) => {
+  if (selectedPlayerInternal.value?.key === player.key) {
+    closePlayerModal()
+    return
+  }
+
+  selectedPlayerInternal.value = player
+  iframeLoading.value = true
+  currentMirrorState.value = false
+  currentCompressorState.value = false
+  currentVideoElement.value = null
+  if (mirrorCheckInterval.value) {
+    clearInterval(mirrorCheckInterval.value)
+    mirrorCheckInterval.value = null
+  }
+  playerStore.updatePreferredPlayer(normalizeKey(player.key))
+  emit('update:selectedPlayer', player)
+}
+
 watch(selectedPlayerInternal, (newVal) => {
   if (newVal) {
     iframeLoading.value = true
+    currentMirrorState.value = false
+    currentCompressorState.value = false
+    currentVideoElement.value = null
+    if (mirrorCheckInterval.value) {
+      clearInterval(mirrorCheckInterval.value)
+      mirrorCheckInterval.value = null
+    }
     playerStore.updatePreferredPlayer(normalizeKey(newVal.key))
     emit('update:selectedPlayer', newVal)
 
@@ -882,6 +1179,13 @@ watch(
   async (newKpId) => {
     if (newKpId && newKpId !== kp_id.value) {
       kp_id.value = newKpId
+      currentMirrorState.value = false
+      currentCompressorState.value = false
+      currentVideoElement.value = null
+      if (mirrorCheckInterval.value) {
+        clearInterval(mirrorCheckInterval.value)
+        mirrorCheckInterval.value = null
+      }
       if (isCentered.value) centerPlayer()
     }
   },
@@ -972,6 +1276,10 @@ onBeforeUnmount(() => {
   window.removeEventListener('mousemove', showCloseButton)
   document.removeEventListener('keydown', onKeyDown)
   document.body.classList.remove('no-scroll')
+  if (mirrorCheckInterval.value) {
+    clearInterval(mirrorCheckInterval.value)
+  }
+  cleanupAudioContext()
 })
 </script>
 
