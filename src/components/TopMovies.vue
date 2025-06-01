@@ -239,17 +239,17 @@ onMounted(fetchMovies)
 
 /* Активные состояния */
 .time-btn.active {
-  background: #ff6b35;
+  background: var(--accent-color);
   border-color: transparent;
   color: white;
-  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.2);
+  box-shadow: 0 2px 8px var(--accent-transparent);
 }
 
 .type-btn.active {
-  background: #4a90e2;
+  background: var(--accent-color);
   border-color: transparent;
   color: white;
-  box-shadow: 0 2px 8px rgba(74, 144, 226, 0.2);
+  box-shadow: 0 2px 8px var(--accent-transparent);
 }
 
 /* Адаптивность */

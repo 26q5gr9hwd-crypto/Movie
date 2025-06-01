@@ -217,6 +217,8 @@ const resetSearch = () => {
   searchTerm.value = ''
   movies.value = []
   searchPerformed.value = false
+  showLayoutWarning.value = false
+  searchInput.value?.focus()
 }
 
 const search = () => {
@@ -407,7 +409,7 @@ const focusFirstMovieCard = () => {
 }
 
 .search-type-buttons button.active::after {
-  background-color: #ffffff;
+  background-color: var(--accent-color);
 }
 
 .search-type-buttons button:hover {
@@ -436,6 +438,12 @@ const focusFirstMovieCard = () => {
   background: rgba(30, 30, 30, 0.8);
   color: #fff;
   transition: border-color 0.3s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px var(--accent-transparent);
 }
 
 .search-input.wrong-layout {

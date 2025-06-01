@@ -375,7 +375,7 @@ export default {
   gap: 1rem;
   width: calc(100% - 3rem);
   position: relative;
-  border-left: 3px solid rgba(76, 175, 80, 0.3);
+  border-left: 3px solid var(--accent-transparent);
   padding-left: 1rem;
   margin-top: 0.5rem;
   overflow: visible;
@@ -388,7 +388,7 @@ export default {
   padding: 1rem;
   background: #2a2a2a;
   border-radius: 0.5rem;
-  border-left: 3px solid rgba(76, 175, 80, 0.5);
+  border-left: 3px solid var(--accent-semi-transparent);
   width: calc(100% - 3rem);
   overflow: visible;
   position: relative;
@@ -453,7 +453,7 @@ export default {
 
 .submit-button {
   padding: 0.25rem 0.5rem;
-  background: #4a90e2;
+  background: var(--accent-color);
   color: white;
   border: none;
   border-radius: 0.25rem;
@@ -462,7 +462,7 @@ export default {
 }
 
 .submit-button:hover:not(:disabled) {
-  background: #357abd;
+  background: var(--accent-hover);
 }
 
 .submit-button:disabled {
@@ -495,7 +495,7 @@ export default {
 
 .comment-textarea:focus {
   outline: none;
-  border-color: #666;
+  border-color: var(--accent-color);
 }
 
 .comment-textarea:disabled {
@@ -520,7 +520,7 @@ export default {
 }
 
 .emoji-button-inline.active {
-  color: #4caf50;
+  color: var(--accent-color);
 }
 
 .emoji-button-inline:disabled {
@@ -534,7 +534,7 @@ export default {
   align-items: center;
   gap: 0.5rem;
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(76, 175, 80, 0.2);
+  border: 1px solid var(--accent-transparent);
   border-radius: 0.5rem;
   padding: 0.5rem 0.75rem;
   margin: 0.5rem 0;
@@ -549,8 +549,8 @@ export default {
 }
 
 .collapse-toggle:hover {
-  background: rgba(76, 175, 80, 0.1);
-  border-color: rgba(76, 175, 80, 0.4);
+  background: var(--accent-transparent);
+  border-color: var(--accent-semi-transparent);
   color: #fff;
   transform: translateY(-1px);
 }
@@ -560,7 +560,7 @@ export default {
   align-items: center;
   justify-content: center;
   transition: transform 0.3s ease;
-  color: #4caf50;
+  color: var(--accent-color);
 }
 
 .collapse-icon.expanded {
@@ -596,7 +596,7 @@ export default {
 }
 
 .vertical-line-clickable:hover {
-  background: rgba(76, 175, 80, 0.1);
+  background: var(--accent-transparent);
 }
 
 .vertical-line-visual {
@@ -605,18 +605,18 @@ export default {
   top: 0;
   width: 3px;
   height: 100%;
-  background: rgba(76, 175, 80, 0.3);
+  background: var(--accent-transparent);
   transform: translateX(-50%);
   transition: all 0.2s ease;
 }
 
 .vertical-line-clickable:hover .vertical-line-visual {
-  background: rgba(76, 175, 80, 0.6);
+  background: var(--accent-semi-transparent);
   width: 4px;
 }
 
 .vertical-line-visual.collapsed {
-  background: rgba(76, 175, 80, 0.5);
+  background: var(--accent-semi-transparent);
 }
 
 .comment-content {
@@ -690,7 +690,7 @@ export default {
 }
 
 .spoiler-button:hover {
-  color: #fff;
+  color: var(--accent-hover);
 }
 
 .spoiler-button:disabled {
@@ -703,7 +703,7 @@ export default {
 }
 
 .link-button:hover {
-  color: #fff;
+  color: var(--accent-hover);
 }
 
 .link-button:disabled {

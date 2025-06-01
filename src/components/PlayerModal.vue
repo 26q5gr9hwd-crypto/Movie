@@ -220,14 +220,16 @@ h2 {
 
 .player-item:hover,
 .group-item:hover {
-  background-color: #555;
+  background-color: var(--accent-transparent);
+  border: 1px solid var(--accent-semi-transparent);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
 }
 
 .player-item.active,
 .group-item.active {
-  background-color: #4caf50;
-  box-shadow: 0 0 5px rgba(76, 175, 80, 0.7);
+  background-color: var(--accent-color);
+  box-shadow: 0 0 5px var(--accent-semi-transparent);
 }
 
 .warning-icon {

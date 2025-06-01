@@ -161,7 +161,7 @@ export default {
 .logout-btn {
   margin-top: 30px;
   padding: 10px 20px;
-  background-color: #ff4444;
+  background-color: var(--accent-color);
   color: white;
   border: none;
   border-radius: 5px;
@@ -171,7 +171,7 @@ export default {
 }
 
 .logout-btn:hover {
-  background-color: #cc0000;
+  background-color: var(--accent-hover);
 }
 
 .loading {
@@ -214,7 +214,7 @@ export default {
 
 .dialog-header {
   padding: 16px 20px;
-  border-bottom: 1px solid #4caf50;
+  border-bottom: 1px solid var(--accent-color);
 }
 
 .dialog-header h3 {

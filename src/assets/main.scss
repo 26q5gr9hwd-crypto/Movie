@@ -1,14 +1,45 @@
 @use './controls.scss';
 @import url('https://fonts.googleapis.com/css2?family=Neucha&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
 
+:root {
+  --accent-color: #6c5ce7;
+  --accent-hover: #5a4fcf;
+  --accent-light: #8a7ce8;
+  --accent-dark: #5548c4;
+  --accent-transparent: #6c5ce730;
+  --accent-semi-transparent: #6c5ce780;
+
+  --secondary-color: #74b9ff;
+  --secondary-hover: #0984e3;
+  --success-color: #4caf50;
+  --success-hover: #45a049;
+  --error-color: #e17055;
+  --error-hover: #d65847;
+  --warning-color: #fdcb6e;
+  --warning-hover: #fcbf49;
+
+  --text-color: #ffffff;
+  --text-muted: #999999;
+  --text-secondary: #cccccc;
+
+  --bg-primary: #000000;
+  --bg-secondary: #1e1e1e;
+  --bg-tertiary: #2d2d2d;
+  --bg-modal: rgba(30, 30, 30, 0.95);
+
+  --border-color: #444444;
+  --border-hover: #666666;
+  --border-focus: var(--accent-color);
+}
+
 html {
   scroll-behavior: smooth;
 }
 
 body {
   font-family: 'Roboto', sans-serif;
-  color: #fff;
-  background-color: #000;
+  color: var(--text-color);
+  background-color: var(--bg-primary);
   margin: 0 auto;
   padding: 0px 0px 0px 80px;
 }

@@ -33,7 +33,6 @@
         <div
           v-if="notification.comment_content || notification.reply_content"
           class="comment-preview"
-          @click="goToComment"
         >
           <div v-if="notification.comment_content" class="original-comment">
             <i class="fas fa-quote-left"></i>
@@ -109,16 +108,6 @@ const deleteNotification = () => {
 const goToMovie = () => {
   router.push(`/movie/${props.notification.movie_id}`)
 }
-
-const goToComment = () => {
-  const hash = props.notification.reply_comment_id
-    ? `#comment-${props.notification.reply_comment_id}`
-    : props.notification.comment_id
-      ? `#comment-${props.notification.comment_id}`
-      : ''
-
-  router.push(`/movie/${props.notification.movie_id}${hash}`)
-}
 </script>
 
 <style scoped>
@@ -138,8 +127,8 @@ const goToComment = () => {
 }
 
 .notification-item.unread {
-  background: rgba(108, 92, 231, 0.1);
-  border-color: rgba(108, 92, 231, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent-color);
 }
 
 .notification-content {
@@ -193,7 +182,7 @@ const goToComment = () => {
 
 .sender-name {
   font-weight: 600;
-  color: var(--accent-color);
+  color: var(--text-color);
 }
 
 .notification-type {
@@ -201,14 +190,14 @@ const goToComment = () => {
 }
 
 .movie-title {
-  color: var(--accent-color);
+  color: var(--text-color);
   font-weight: 500;
   cursor: pointer;
   text-decoration: underline;
 }
 
 .movie-title:hover {
-  color: var(--accent-hover);
+  color: var(--text-color);
 }
 
 .notification-time {
@@ -230,13 +219,6 @@ const goToComment = () => {
   padding: 8px;
   margin-bottom: 6px;
   border-left: 2px solid var(--accent-color);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.comment-preview:hover {
-  background: rgba(255, 255, 255, 0.08);
-  transform: translateX(2px);
 }
 
 .original-comment,

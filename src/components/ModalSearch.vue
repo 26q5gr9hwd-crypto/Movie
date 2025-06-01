@@ -88,10 +88,10 @@ import { TYPES_ENUM } from '@/constants'
 import { handleApiError } from '@/constants'
 import { useNavbarStore } from '@/store/navbar'
 import { hasConsecutiveConsonants, suggestLayout, convertLayout } from '@/utils/keyboardLayout'
-import { inRange } from 'lodash'
 import debounce from 'lodash/debounce'
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
 import { useMainStore } from '@/store/main'
+import { getRatingColor } from '@/utils/ratingUtils'
 
 const navbarStore = useNavbarStore()
 
@@ -170,18 +170,6 @@ const debouncedPerformSearch = debounce(() => {
     movies.value = []
   }
 }, 700)
-
-const getRatingColor = (rating) => {
-  if (!rating || inRange(rating, 5.1, 6.9)) {
-    return 'medium'
-  }
-  if (inRange(rating, 0.1, 5.0)) {
-    return 'low'
-  }
-  if (inRange(rating, 7.0, 10.0)) {
-    return 'high'
-  }
-}
 
 const closeModal = (event) => {
   const isLeftClick = event.button === 0
@@ -354,7 +342,7 @@ watch(searchTerm, () => {
 
     &:focus {
       background: rgba(34, 34, 34, 0.98);
-      box-shadow: 0 0 0 2px #558839;
+      box-shadow: 0 0 0 2px var(--accent-color);
     }
 
     &__poster {
@@ -377,11 +365,15 @@ watch(searchTerm, () => {
 
     &__rating {
       &.low {
-        color: red;
+        color: #ff6b6b;
+      }
+
+      &.medium {
+        color: #ffd93d;
       }
 
       &.high {
-        color: green;
+        color: #51cf66;
       }
     }
   }
@@ -405,8 +397,9 @@ watch(searchTerm, () => {
   transition: all 0.3s ease;
 
   &:focus {
-    border-color: #558839;
     outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px var(--accent-transparent);
   }
 
   &.wrong-layout {
@@ -515,5 +508,13 @@ watch(searchTerm, () => {
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite linear;
+}
+
+.filter-select:focus {
+  border-color: var(--accent-color);
+}
+
+.status.completed {
+  color: var(--accent-color);
 }
 </style>

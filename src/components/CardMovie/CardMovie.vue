@@ -88,7 +88,7 @@ onMounted(() => {
 }
 
 .has-border {
-  border: 1px solid #ccc;
+  border: 1px solid var(--accent-color);
 }
 
 .movie-card:hover {

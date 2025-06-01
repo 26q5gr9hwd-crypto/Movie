@@ -41,8 +41,8 @@ const { message, code } = defineProps({
 .button {
   display: inline-block;
   padding: 10px 20px;
-  background-color: #72e944;
-  color: rgb(0, 0, 0);
+  background-color: var(--accent-color);
+  color: #fff;
   text-decoration: none;
   border-radius: 5px;
   font-size: 16px;
@@ -50,19 +50,19 @@ const { message, code } = defineProps({
 }
 
 .button:hover {
-  background-color: #f8f8f8;
+  background-color: var(--accent-hover);
 }
 
 .error-message {
-  color: #ff4444;
+  color: var(--accent-color);
   text-align: center;
   padding: 20px;
   font-size: 1.2rem;
-  border: 1px solid #ff4444;
+  border: 1px solid var(--accent-color);
   border-radius: 5px;
   margin: 20px auto;
   max-width: 500px;
-  background: rgba(255, 68, 68, 0.1);
+  background: var(--accent-transparent);
 }
 
 /* Контейнер кнопок */

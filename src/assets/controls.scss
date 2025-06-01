@@ -11,9 +11,9 @@
   appearance: none;
   position: relative;
   padding: 8px 30px 8px 16px;
-  border: 1px solid #444;
-  background-color: #1e1e1e;
-  color: #fff;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
+  color: var(--text-color);
   border-radius: 5px;
   cursor: pointer;
   transition:
@@ -25,11 +25,11 @@
   outline: none;
 
   &:hover {
-    border-color: #666;
+    border-color: var(--border-hover);
   }
 
   &:focus {
-    border-color: #558839;
+    border-color: var(--accent-color);
     outline: none !important;
   }
   &__wrapper {
@@ -61,29 +61,81 @@
 // ＼＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿／
 .btn {
   padding: 16px 16px;
-  border: 1px solid #444;
-  background-color: #1e1e1e;
-  color: #fff;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
+  color: var(--text-color);
   border-radius: 5px;
   font-size: 13.4px;
   cursor: pointer;
   transition:
     background-color 0.3s,
-    color 0.3s;
+    color 0.3s,
+    border-color 0.3s;
 
   &:hover {
-    background-color: #444;
+    background-color: var(--bg-tertiary);
+    border-color: var(--border-hover);
   }
 
   &.active {
-    background-color: #fff;
-    color: #000;
+    background-color: var(--accent-color);
+    color: var(--text-color);
+    border-color: var(--accent-color);
+  }
+
+  &.active:hover {
+    background-color: var(--accent-hover);
+    border-color: var(--accent-hover);
+  }
+
+  &--primary {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: var(--text-color);
+  }
+
+  &--primary:hover {
+    background-color: var(--accent-hover);
+    border-color: var(--accent-hover);
+  }
+
+  &--secondary {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+    color: var(--text-color);
+  }
+
+  &--secondary:hover {
+    background-color: var(--secondary-hover);
+    border-color: var(--secondary-hover);
+  }
+
+  &--success {
+    background-color: var(--success-color);
+    border-color: var(--success-color);
+    color: var(--text-color);
+  }
+
+  &--success:hover {
+    background-color: var(--success-hover);
+    border-color: var(--success-hover);
+  }
+
+  &--error {
+    background-color: var(--error-color);
+    border-color: var(--error-color);
+    color: var(--text-color);
+  }
+
+  &--error:hover {
+    background-color: var(--error-hover);
+    border-color: var(--error-hover);
   }
 
   &--search {
     background: none;
     border: none;
-    color: #fff;
+    color: var(--text-color);
     font-size: 30px;
     cursor: pointer;
     padding: 0;
@@ -95,7 +147,7 @@
     right: 6px;
     background: none;
     border: none;
-    color: #fff;
+    color: var(--text-color);
     cursor: pointer;
     padding: 2px;
     opacity: 0.7;

@@ -65,7 +65,7 @@ function toggle() {
   position: absolute;
   top: 5px;
   right: 5px;
-  background: #4caf50;
+  background: var(--accent-color);
   color: white;
   font-size: 8px;
   font-weight: 600;
@@ -103,5 +103,10 @@ function toggle() {
   100% {
     transform: scale(1);
   }
+}
+
+.menu-icon.active {
+  background: var(--accent-color);
+  transform: scale(1.1);
 }
 </style>

@@ -312,7 +312,22 @@ onMounted(fetchMovies)
   display: none;
 }
 
-.share-btn,
+.share-btn {
+  padding: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(45, 45, 45, 0.6);
+  color: #e0e0e0;
+  cursor: pointer;
+  font-weight: 500;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
+}
+
 .clear-btn {
   padding: 6px;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -329,17 +344,16 @@ onMounted(fetchMovies)
   transition: all 0.2s ease;
 }
 
-.share-btn:hover,
-.clear-btn:hover:not(.disabled) {
+.share-btn:hover {
   background: rgba(58, 58, 58, 0.8);
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.clear-btn.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  background: rgba(26, 26, 26, 0.6);
+.clear-btn:hover:not(.disabled) {
+  background: rgba(58, 58, 58, 0.8);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .filter-btn {
@@ -366,10 +380,10 @@ onMounted(fetchMovies)
 }
 
 .type-btn.active {
-  background: #4a90e2;
+  background: var(--accent-color);
   border-color: transparent;
   color: white;
-  box-shadow: 0 2px 8px rgba(74, 144, 226, 0.2);
+  box-shadow: 0 2px 8px var(--accent-transparent);
 }
 
 .counter {

@@ -159,7 +159,7 @@ h1 {
   gap: 0.5rem;
   width: 100%;
   padding: 0.75rem;
-  background: #0088cc;
+  background: var(--accent-color);
   color: white;
   border: none;
   border-radius: 5px;
@@ -170,7 +170,7 @@ h1 {
 }
 
 .telegram-btn:hover {
-  background: #0077b3;
+  background: var(--accent-hover);
   transform: translateY(-1px);
 }
 

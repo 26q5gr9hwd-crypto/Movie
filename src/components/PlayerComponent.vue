@@ -1009,17 +1009,17 @@ onBeforeUnmount(() => {
 
 .player-btn:hover {
   background: #505050;
-  border-color: #17850b;
+  border-color: var(--accent-color);
 }
 
 .player-btn:active {
-  background: #17850b;
-  border-color: #17850b;
+  background: var(--accent-color);
+  border-color: var(--accent-color);
 }
 
 .player-btn:focus {
   outline: none;
-  box-shadow: 0 0 5px #17850b;
+  box-shadow: 0 0 5px var(--accent-color);
 }
 
 .player-container {
@@ -1164,8 +1164,8 @@ html.no-scroll {
 }
 
 .controls button.active {
-  background-color: #4caf50;
-  box-shadow: 0 0 10px rgba(76, 175, 80, 0.7);
+  background-color: var(--accent-color);
+  box-shadow: 0 0 10px var(--accent-semi-transparent);
 }
 
 .material-icons {
@@ -1285,10 +1285,10 @@ html.no-scroll {
 }
 
 .aspect-ratio-option.active {
-  background-color: rgba(76, 175, 80, 0.9);
+  background-color: var(--accent-color);
   color: white;
   font-weight: 500;
-  box-shadow: 0 2px 12px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 2px 12px var(--accent-semi-transparent);
 }
 
 .fullscreen {
@@ -1361,9 +1361,9 @@ html.no-scroll {
 }
 
 .list-button-item button.active {
-  background-color: rgba(76, 175, 80, 0.9);
+  background-color: var(--accent-color);
   color: white;
-  box-shadow: 0 2px 12px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 2px 12px var(--accent-semi-transparent);
 }
 
 .button-label {
@@ -1453,8 +1453,8 @@ html.no-scroll {
 
 .dropdown-arrow.highlighted {
   opacity: 1;
-  color: #4caf50;
-  text-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
+  color: var(--accent-color);
+  text-shadow: 0 0 8px var(--accent-semi-transparent);
 }
 
 .desktop-list-buttons {
@@ -1493,24 +1493,24 @@ html.no-scroll {
 }
 
 .settings-link {
-  color: #4caf50;
+  color: var(--accent-color);
   cursor: pointer;
   text-decoration: underline;
   transition: color 0.2s ease;
 }
 
 .settings-link:hover {
-  color: #66bb6a;
+  color: var(--accent-hover);
 }
 
 .auth-link {
-  color: #4caf50;
+  color: var(--accent-color);
   cursor: pointer;
   text-decoration: underline;
   transition: color 0.2s ease;
 }
 
 .auth-link:hover {
-  color: #66bb6a;
+  color: var(--accent-hover);
 }
 </style>

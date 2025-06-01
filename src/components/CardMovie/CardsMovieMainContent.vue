@@ -15,16 +15,23 @@
         <span
           v-if="movie.rating || movie.average_rating"
           class="rating-our"
-          :class="{ 'with-star': showStar }"
+          :class="{
+            'with-star': showStar,
+            [getRatingColor(movie.rating || movie.average_rating)]: true
+          }"
         >
           <img src="/icons/icon-192x192.png" alt="ReYohoho" class="rating-logo" />
           {{ `${(movie.rating || movie.average_rating).toFixed(1).replace(/\.0$/, '')}` }}
         </span>
-        <span v-if="movie.rating_kp" class="rating-kp">
+        <span v-if="movie.rating_kp" class="rating-kp" :class="getRatingColor(movie.rating_kp)">
           <img src="/src/assets/icon-kp-logo.svg" alt="КП" class="rating-logo" />
           {{ movie.rating_kp }}
         </span>
-        <span v-if="movie.rating_imdb" class="rating-imdb">
+        <span
+          v-if="movie.rating_imdb"
+          class="rating-imdb"
+          :class="getRatingColor(movie.rating_imdb)"
+        >
           <img src="/src/assets/icon-imdb-logo.svg" alt="IMDb" class="rating-logo" />
           {{ movie.rating_imdb }}
         </span>
@@ -43,6 +50,7 @@
 <script setup>
 import DeleteButton from '@/components/buttons/DeleteButton.vue'
 import { TYPES_ENUM } from '@/constants'
+import { getRatingColor } from '@/utils/ratingUtils'
 
 const {
   movie,
@@ -134,8 +142,8 @@ const emit = defineEmits(['remove:from-history'])
 }
 
 .rating-our.with-star {
-  background: rgba(74, 144, 226, 0.15);
-  border: 1px solid rgba(74, 144, 226, 0.3);
+  background: var(--accent-transparent);
+  border: 1px solid var(--accent-transparent);
 }
 
 .rating-our.with-star::after {
@@ -144,9 +152,27 @@ const emit = defineEmits(['remove:from-history'])
   top: -6px;
   left: -6px;
   font-size: 12px;
-  color: #4a90e2;
+  color: var(--accent-color);
   line-height: 1;
   padding-bottom: 1px;
+}
+
+.rating-kp.low,
+.rating-imdb.low,
+.rating-our.low {
+  color: #ff6b6b !important;
+}
+
+.rating-kp.medium,
+.rating-imdb.medium,
+.rating-our.medium {
+  color: #ffd93d !important;
+}
+
+.rating-kp.high,
+.rating-imdb.high,
+.rating-our.high {
+  color: #51cf66 !important;
 }
 
 @media (max-width: 620px) {

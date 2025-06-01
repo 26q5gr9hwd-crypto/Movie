@@ -10,6 +10,7 @@ import { initYandexMetrika } from 'yandex-metrika-vue3'
 import VueLazyload from 'vue-lazyload'
 import App from './App.vue'
 import router from './router' // Import the router
+import { useThemeStore } from './store/theme'
 
 console.log(`App version: ${import.meta.env.VITE_APP_VERSION_FULL_VERSION}`)
 
@@ -66,3 +67,6 @@ app
     env: process.env.NODE_ENV
   })
   .mount('#app')
+
+const themeStore = useThemeStore()
+themeStore.initTheme()

@@ -88,7 +88,7 @@ function toggle() {
 }
 
 input:checked + .slider {
-  background-color: #4caf50;
+  background-color: var(--accent-color);
 }
 
 input:checked + .slider:before {

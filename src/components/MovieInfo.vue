@@ -105,7 +105,9 @@
               "
             >
               <img src="/src/assets/icon-kp-logo.svg" alt="КП" class="rating-logo" />
-              <span>{{ movieInfo.rating_kinopoisk ? movieInfo.rating_kinopoisk : '—' }}</span>
+              <span class="rating-value" :class="getRatingColor(movieInfo.rating_kinopoisk)">
+                {{ movieInfo.rating_kinopoisk ? movieInfo.rating_kinopoisk : '—' }}
+              </span>
               <img
                 src="/src/assets/icon-external-link.png"
                 alt="Внешняя ссылка"
@@ -128,7 +130,9 @@
               "
             >
               <img src="/src/assets/icon-kp-logo.svg" alt="КП" class="rating-logo" />
-              <span>{{ movieInfo.rating_kinopoisk ? movieInfo.rating_kinopoisk : '—' }}</span>
+              <span class="rating-value" :class="getRatingColor(movieInfo.rating_kinopoisk)">
+                {{ movieInfo.rating_kinopoisk ? movieInfo.rating_kinopoisk : '—' }}
+              </span>
               <img
                 src="/src/assets/icon-external-link.png"
                 alt="Внешняя ссылка"
@@ -151,7 +155,9 @@
               "
             >
               <img src="/src/assets/icon-imdb-logo.svg" alt="IMDb" class="rating-logo" />
-              <span>{{ movieInfo.rating_imdb ? movieInfo.rating_imdb : '—' }}</span>
+              <span class="rating-value" :class="getRatingColor(movieInfo.rating_imdb)">
+                {{ movieInfo.rating_imdb ? movieInfo.rating_imdb : '—' }}
+              </span>
               <img
                 src="/src/assets/icon-external-link.png"
                 alt="Внешняя ссылка"
@@ -174,7 +180,9 @@
               "
             >
               <img src="/src/assets/icon-imdb-logo.svg" alt="IMDb" class="rating-logo" />
-              <span>{{ movieInfo.rating_imdb ? movieInfo.rating_imdb : '—' }}</span>
+              <span class="rating-value" :class="getRatingColor(movieInfo.rating_imdb)">
+                {{ movieInfo.rating_imdb ? movieInfo.rating_imdb : '—' }}
+              </span>
               <img
                 src="/src/assets/icon-external-link.png"
                 alt="Внешняя ссылка"
@@ -469,6 +477,7 @@ import TrailerCarousel from '@/components/TrailerCarousel.vue'
 import { useTrailerStore } from '@/store/trailer'
 import MovieRating from '@/components/MovieRating.vue'
 import Comments from '@/components/Comments.vue'
+import { getRatingColor } from '@/utils/ratingUtils'
 
 const infoLoading = ref(true)
 const mainStore = useMainStore()
@@ -833,9 +842,18 @@ const getStaffByProfession = (profession) => {
 .rating-link {
   display: inline-flex;
   align-items: center;
-  color: inherit;
+  color: #fff;
   text-decoration: none;
   font-weight: bold;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 5px 10px;
+  border-radius: 5px;
+  gap: 5px;
+  transition: all 0.2s ease;
+}
+
+.rating-link:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .rating-logo {
@@ -915,15 +933,15 @@ const getStaffByProfession = (profession) => {
 }
 
 .error-message {
-  color: #ff4444;
+  color: var(--accent-color);
   text-align: center;
   padding: 20px;
   font-size: 1.2rem;
-  border: 1px solid #ff4444;
+  border: 1px solid var(--accent-color);
   border-radius: 5px;
   margin: 20px auto;
   max-width: 500px;
-  background: rgba(255, 68, 68, 0.1);
+  background: var(--accent-transparent);
 }
 
 /* Стили для секций с похожими фильмами */
@@ -1029,8 +1047,8 @@ const getStaffByProfession = (profession) => {
 }
 
 .controls button.active {
-  background-color: #4caf50;
-  box-shadow: 0 0 10px rgba(76, 175, 80, 0.7);
+  background-color: var(--accent-color);
+  box-shadow: 0 0 10px var(--accent-semi-transparent);
 }
 
 .material-icons {
@@ -1671,5 +1689,17 @@ const getStaffByProfession = (profession) => {
   .desktop-only {
     display: none;
   }
+}
+
+.rating-value.low {
+  color: #ff6b6b !important;
+}
+
+.rating-value.medium {
+  color: #ffd93d !important;
+}
+
+.rating-value.high {
+  color: #51cf66 !important;
 }
 </style>

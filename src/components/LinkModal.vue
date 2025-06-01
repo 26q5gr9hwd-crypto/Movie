@@ -222,7 +222,7 @@ export default {
 
 .link-input:focus {
   outline: none;
-  border-color: #4a90e2;
+  border-color: var(--accent-color);
 }
 
 .link-input::placeholder {
@@ -256,7 +256,7 @@ export default {
 
 .submit-button {
   padding: 0.5rem 1rem;
-  background: #4a90e2;
+  background: var(--accent-color);
   color: white;
   border: none;
   border-radius: 0.375rem;
@@ -266,7 +266,7 @@ export default {
 }
 
 .submit-button:hover:not(:disabled) {
-  background: #357abd;
+  background: var(--accent-hover);
 }
 
 .submit-button:disabled {

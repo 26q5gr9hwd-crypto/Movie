@@ -10,7 +10,7 @@
         @click.prevent="toggleTooltip"
       >
         <img src="/icons/icon-192x192.png" alt="ReYohoho" class="rating-logo" />
-        <span class="average-rating">{{
+        <span class="average-rating" :class="getRatingColor(averageRating)">{{
           averageRating ? averageRating.toFixed(1).replace(/\.0$/, '') : '—'
         }}</span>
       </a>
@@ -78,6 +78,7 @@ import { getRating, setRating as setRatingApi } from '@/api/movies'
 import Notification from '@/components/notification/ToastMessage.vue'
 import { useRouter } from 'vue-router'
 import { useMainStore } from '@/store/main'
+import { getRatingColor } from '@/utils/ratingUtils'
 
 const mainStore = useMainStore()
 const router = useRouter()
@@ -214,13 +215,13 @@ onMounted(() => {
   font-weight: 700;
   font-family: Roboto, sans-serif;
   font-size: 16px;
-  padding: 0 10px;
-  margin: 0 0 5px 0;
+  padding: 5px 10px;
+  margin: 0;
   background: rgba(0, 0, 0, 0.7);
   border-radius: 5px;
   cursor: pointer;
   transition: all 0.2s ease;
-  height: 32px;
+  gap: 5px;
   box-sizing: border-box;
   line-height: 1;
 }
@@ -230,7 +231,7 @@ onMounted(() => {
   padding: 5px 10px;
   border-radius: 5px;
   background: rgba(0, 0, 0, 0.7);
-  border: 1px solid rgba(74, 144, 226, 0.3);
+  border: 1px solid var(--accent-transparent);
 }
 
 .rating-link.has-rating::after {
@@ -239,7 +240,7 @@ onMounted(() => {
   top: -6px;
   left: -6px;
   font-size: 12px;
-  color: #4a90e2;
+  color: var(--accent-color);
   line-height: 1;
   padding-bottom: 1px;
 }
@@ -342,6 +343,18 @@ onMounted(() => {
 
 .rating-link:hover .average-rating {
   color: #fff;
+}
+
+.average-rating.low {
+  color: #ff6b6b !important;
+}
+
+.average-rating.medium {
+  color: #ffd93d !important;
+}
+
+.average-rating.high {
+  color: #51cf66 !important;
 }
 
 .tooltip-footer {
@@ -517,19 +530,18 @@ onMounted(() => {
 
 @media (max-width: 620px) {
   .rating-container {
-    min-height: 28px;
+    min-height: auto;
   }
 
   .rating-link {
-    padding: 0 8px;
-    margin: 0 0 5px 0;
+    padding: 4px 8px;
+    margin: 0;
     font-size: 0.8em;
-    height: 28px;
   }
 
   .rating-link.has-rating {
-    padding: 0 8px;
-    margin: 0 0 5px 0;
+    padding: 4px 8px;
+    margin: 0;
   }
 
   .rating-link.has-rating::after {

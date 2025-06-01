@@ -134,13 +134,15 @@ export default {
 
 .error-message {
   background-color: #1d1d1d;
-  color: white;
+  color: var(--accent-color);
+  border: 1px solid var(--accent-color);
+  border-radius: 8px;
 }
 
 .spinner {
   border: 4px solid rgba(0, 0, 0, 0.1);
   border-radius: 50%;
-  border-top: 4px solid #4caf50;
+  border-top: 4px solid var(--accent-color);
   width: 30px;
   height: 30px;
   animation: spin 1s linear infinite;
@@ -161,7 +163,7 @@ export default {
   display: inline-block;
   margin-top: 15px;
   padding: 8px 16px;
-  background-color: #4caf50;
+  background-color: var(--accent-color);
   color: white;
   text-decoration: none;
   border-radius: 4px;
@@ -170,6 +172,6 @@ export default {
 
 .retry-button:hover,
 .home-button:hover {
-  background-color: #242424;
+  background-color: var(--accent-hover);
 }
 </style>

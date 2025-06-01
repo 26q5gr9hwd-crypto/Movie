@@ -55,8 +55,8 @@ const goToHome = () => {
 
 /* Стили для кнопки "На главную" */
 .home-button {
-  background-color: #333; /* Темно-серый фон */
-  color: #fff; /* Белый текст */
+  background-color: var(--accent-color);
+  color: #fff;
   border: none;
   padding: 10px 20px;
   border-radius: 5px;
@@ -66,6 +66,6 @@ const goToHome = () => {
 }
 
 .home-button:hover {
-  background-color: #555; /* Серый фон при наведении */
+  background-color: var(--accent-hover);
 }
 </style>

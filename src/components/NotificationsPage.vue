@@ -11,7 +11,7 @@
           <button
             v-if="notificationsStore.unreadCount > 0"
             @click="markAllAsRead"
-            class="btn btn-secondary"
+            class="btn"
             :disabled="loading"
           >
             <i class="fas fa-check-double"></i>
@@ -156,7 +156,7 @@ async function deleteNotification(notificationId) {
 .page-title {
   font-size: 2.5rem;
   font-weight: 700;
-  color: var(--accent-color);
+  color: var(--text-color);
   display: flex;
   align-items: center;
   gap: 15px;
@@ -164,7 +164,7 @@ async function deleteNotification(notificationId) {
 }
 
 .page-title i {
-  color: var(--accent-color);
+  color: var(--text-color);
 }
 
 .header-actions {

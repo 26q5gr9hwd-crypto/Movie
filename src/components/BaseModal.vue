@@ -1,8 +1,10 @@
 <template>
   <transition name="modal">
     <div v-if="props.isOpen" class="modal-overlay" @click.self="close">
-      <div class="modal">
-        <button class="close-btn" @click="close">&times;</button>
+      <div class="modal modern-dark-dialog">
+        <div class="modal-header">
+          <h3>Подтверждение</h3>
+        </div>
         <div class="modal-content">
           <slot name="content">
             <div class="message-container">
@@ -17,8 +19,8 @@
           </slot>
         </div>
         <div class="modal-actions">
-          <button class="btn confirm" @click="confirm">OK</button>
-          <button class="btn cancel" @click="close">Отмена</button>
+          <button class="modern-dark-btn" @click="close">Отмена</button>
+          <button class="modern-dark-btn danger" @click="confirm">OK</button>
         </div>
       </div>
     </div>
@@ -60,29 +62,44 @@ const close = () => {
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.5);
-  -webkit-backdrop-filter: blur(4px); /* Для Safari 9+ */
+  -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 11;
+  z-index: 1000;
   animation: overlay-in 0.3s;
 }
 
 .modal {
-  background: rgb(66, 66, 66);
-  padding: 2rem;
-  border-radius: 16px;
-  width: 90%;
-  max-width: 400px;
-  position: relative;
   transform: translateY(-50px);
   animation: modal-in 0.3s forwards;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.modern-dark-dialog {
+  background-color: #1d1d1d;
+  color: #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  width: 320px;
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.3),
+    0 4px 6px -2px rgba(0, 0, 0, 0.25);
+}
+
+.modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--accent-color);
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
 }
 
 .modal-content {
-  margin: 1.5rem 0;
+  padding: 20px;
 }
 
 .message-container {
@@ -100,64 +117,41 @@ const close = () => {
 
 .message {
   font-size: 1rem;
-  color: #ffffff;
+  color: #e2e8f0;
   line-height: 1.5;
   margin: 0;
+  text-align: center;
 }
 
 .modal-actions {
   display: flex;
-  gap: 1rem;
-  justify-content: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 20px;
 }
 
-.btn {
-  padding: 0.8rem 2rem;
+.modern-dark-btn {
+  padding: 8px 16px;
+  border-radius: 6px;
   border: none;
-  border-radius: 8px;
+  background-color: #242424;
+  color: #e2e8f0;
+  cursor: pointer;
   font-weight: 500;
-  cursor: pointer;
   transition: all 0.2s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
-.cancel {
-  background: #1c8855;
-  color: rgb(255, 255, 255);
+.modern-dark-btn:hover {
+  background-color: #2b2b2b;
 }
 
-.cancel:hover {
-  background: rgb(55, 184, 104);
-  transform: translateY(-1px);
+.modern-dark-btn.danger {
+  background-color: #7f1d1d;
+  color: #fecaca;
 }
 
-.confirm {
-  background: transparent;
-  color: #ffffff;
-  border: 1px solid #ffffff;
-}
-
-.confirm:hover {
-  background: #f3f4f6;
-  color: #374151;
-}
-
-.close-btn {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  color: #ffffff;
-  cursor: pointer;
-  padding: 0.25rem;
-  transition: color 0.2s ease;
-}
-
-.close-btn:hover {
-  color: #d0dcee;
+.modern-dark-btn.danger:hover {
+  background-color: #991b1b;
 }
 
 @keyframes modal-in {
@@ -168,23 +162,27 @@ const close = () => {
 
 @keyframes overlay-in {
   from {
-    -webkit-backdrop-filter: blur(0); /* Для Safari 9+ */
+    -webkit-backdrop-filter: blur(0);
     backdrop-filter: blur(0);
   }
   to {
-    -webkit-backdrop-filter: blur(4px); /* Для Safari 9+ */
+    -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
   }
 }
 
 @media (max-width: 600px) {
-  .modal {
-    width: 80%;
-    padding: 1.5rem;
+  .modern-dark-dialog {
+    width: 280px;
+    margin: 0 20px;
   }
 
-  .btn {
-    padding: 0.7rem 1.5rem;
+  .modal-actions {
+    padding: 12px 16px;
+  }
+
+  .modern-dark-btn {
+    padding: 10px 16px;
     font-size: 0.9rem;
   }
 }

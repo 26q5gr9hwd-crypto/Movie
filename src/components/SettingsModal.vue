@@ -30,6 +30,11 @@
       </div>
 
       <div class="settings-group">
+        <h2>Тема</h2>
+        <ThemeSelector />
+      </div>
+
+      <div class="settings-group">
         <h2>Плеер</h2>
         <SliderRound v-model="isCentered">Автоцентрирование плеера</SliderRound>
         <SliderRound v-model="isCardBorder">Окантовка вокруг карточек</SliderRound>
@@ -85,6 +90,7 @@
 
 <script setup>
 import SliderRound from '@/components/slider/SliderRound.vue'
+import ThemeSelector from '@/components/ThemeSelector.vue'
 import { useBackgroundStore } from '@/store/background'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
@@ -209,6 +215,10 @@ const resetBackground = () => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--accent-transparent);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .back-button {
@@ -226,6 +236,7 @@ const resetBackground = () => {
   max-width: 500px;
   width: 100%;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--accent-transparent);
   display: flex;
   flex-direction: column;
   gap: 35px;
@@ -263,7 +274,7 @@ h2 {
 }
 
 .reset-button {
-  background: #d32f2f;
+  background: var(--accent-color);
   border: none;
   padding: 10px 20px;
   color: #fff;
@@ -277,6 +288,10 @@ h2 {
 }
 
 .reset-button:hover {
-  background: #b71c1c;
+  background: var(--accent-hover);
+}
+
+.radio input:checked {
+  accent-color: var(--accent-color);
 }
 </style>

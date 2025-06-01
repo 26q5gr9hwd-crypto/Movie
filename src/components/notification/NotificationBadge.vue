@@ -71,8 +71,7 @@ onUnmounted(() => {
 }
 
 .notification-badge.has-notifications {
-  color: var(--accent-color);
-  animation: pulse 2s infinite;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .notification-badge i {
@@ -87,7 +86,7 @@ onUnmounted(() => {
   position: absolute;
   top: -3px;
   right: -3px;
-  background: #4caf50;
+  background: var(--accent-color);
   color: white;
   font-size: 9px;
   font-weight: 600;
@@ -135,7 +134,7 @@ onUnmounted(() => {
   --accent-color: #6c5ce7;
   --text-color: #2d3436;
   --error-color: #e17055;
-  --success-color: #4caf50;
+  --success-color: var(--accent-color);
 }
 
 [data-theme='dark'] {

@@ -600,7 +600,7 @@ export default {
   height: 2rem;
   border-radius: 50%;
   overflow: hidden;
-  background-color: #2a2a2a;
+  background-color: var(--accent-color);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -622,7 +622,7 @@ export default {
   justify-content: center;
   font-size: 0.75rem;
   color: #fff;
-  background-color: #4a90e2;
+  background-color: var(--accent-color);
   font-weight: 600;
 }
 
@@ -720,7 +720,7 @@ export default {
 
 .edit-textarea:focus {
   outline: none;
-  border-color: #666;
+  border-color: var(--accent-color);
 }
 
 .edit-footer {
@@ -759,7 +759,7 @@ export default {
 }
 
 .emoji-button-inline.active {
-  color: #4caf50;
+  color: var(--accent-color);
 }
 
 .character-counter-container {
@@ -784,7 +784,7 @@ export default {
 }
 
 .character-counter-inline.at-limit {
-  color: #e74c3c;
+  color: var(--error-color);
 }
 
 .cancel-button {
@@ -802,7 +802,7 @@ export default {
 
 .save-button {
   padding: 0.25rem 0.5rem;
-  background: #4a90e2;
+  background: var(--accent-color);
   color: white;
   border: none;
   border-radius: 0.25rem;
@@ -811,7 +811,7 @@ export default {
 }
 
 .save-button:hover:not(:disabled) {
-  background: #357abd;
+  background: var(--accent-hover);
 }
 
 .save-button:disabled {
@@ -852,11 +852,11 @@ export default {
 }
 
 .rating-button.rated-up {
-  color: #2ecc71;
+  color: var(--accent-color);
 }
 
 .rating-button.rated-down {
-  color: #e74c3c;
+  color: var(--error-color);
 }
 
 .rating-button.disabled {
@@ -882,11 +882,11 @@ export default {
 }
 
 .rating-count.rating-positive {
-  color: #2ecc71;
+  color: var(--accent-color);
 }
 
 .rating-count.rating-negative {
-  color: #e74c3c;
+  color: var(--error-color);
 }
 
 .action-buttons {
@@ -919,15 +919,15 @@ export default {
 }
 
 .reply-button:hover {
-  color: #4a90e2;
+  color: var(--accent-color);
 }
 
 .edit-button:hover {
-  color: #4a90e2;
+  color: var(--accent-color);
 }
 
 .delete-button:hover {
-  color: #e74c3c;
+  color: var(--error-color);
 }
 
 .username-link {
@@ -1047,7 +1047,7 @@ export default {
 .expand-button {
   background: none;
   border: none;
-  color: #4caf50;
+  color: var(--accent-color);
   cursor: pointer;
   padding: 0.25rem 0;
   font: inherit;
@@ -1058,7 +1058,7 @@ export default {
 }
 
 .expand-button:hover {
-  color: #66bb6a;
+  color: var(--accent-hover);
   text-decoration: underline;
 }
 
@@ -1118,7 +1118,7 @@ export default {
 }
 
 .spoiler-button:hover {
-  color: #fff;
+  color: var(--accent-hover);
 }
 
 .spoiler-button:disabled {
@@ -1151,7 +1151,7 @@ export default {
 }
 
 .link-button:hover {
-  color: #4a90e2;
+  color: var(--accent-hover);
 }
 
 .link-button:disabled {
@@ -1268,5 +1268,15 @@ export default {
   .character-counter-inline {
     font-size: 0.65rem;
   }
+}
+
+.upvote-button.voted {
+  color: var(--accent-color);
+  background: var(--accent-transparent);
+}
+
+.downvote-button.voted {
+  color: var(--error-color);
+  background: rgba(231, 112, 85, 0.1);
 }
 </style>
