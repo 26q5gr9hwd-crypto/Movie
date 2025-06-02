@@ -251,6 +251,75 @@
           @update:movie-info="fetchMovieInfo"
         />
 
+        <div v-if="mainStore.isMobile" class="mobile-list-dropdown">
+          <button class="mobile-list-toggle" :class="{}" @click="isListExpanded = !isListExpanded">
+            <span class="material-icons" :class="{ active: isInAnyList }">{{
+              isInAnyList ? 'bookmark_added' : 'bookmark_border'
+            }}</span>
+            <span class="button-label">Добавить в список</span>
+            <span class="material-icons dropdown-arrow" :class="{ expanded: isListExpanded }"
+              >expand_more</span
+            >
+          </button>
+
+          <div v-show="isListExpanded" class="mobile-list-content">
+            <button
+              class="mobile-list-btn"
+              :class="{}"
+              @click="toggleList(USER_LIST_TYPES_ENUM.FAVORITE)"
+            >
+              <span class="material-icons" :class="{ active: movieInfo?.lists?.isFavorite }">{{
+                movieInfo?.lists?.isFavorite ? 'favorite' : 'favorite_border'
+              }}</span>
+              <span class="button-label">В избранное</span>
+            </button>
+
+            <button
+              class="mobile-list-btn"
+              :class="{}"
+              @click="toggleList(USER_LIST_TYPES_ENUM.WATCHING)"
+            >
+              <span class="material-icons" :class="{ active: movieInfo?.lists?.isWatching }">{{
+                movieInfo?.lists?.isWatching ? 'visibility' : 'visibility_off'
+              }}</span>
+              <span class="button-label">Смотрю</span>
+            </button>
+
+            <button
+              class="mobile-list-btn"
+              :class="{}"
+              @click="toggleList(USER_LIST_TYPES_ENUM.LATER)"
+            >
+              <span class="material-icons" :class="{ active: movieInfo?.lists?.isLater }"
+                >watch_later</span
+              >
+              <span class="button-label">Позже</span>
+            </button>
+
+            <button
+              class="mobile-list-btn"
+              :class="{}"
+              @click="toggleList(USER_LIST_TYPES_ENUM.COMPLETED)"
+            >
+              <span class="material-icons" :class="{ active: movieInfo?.lists?.isCompleted }">{{
+                movieInfo?.lists?.isCompleted ? 'check_circle' : 'check_circle_outline'
+              }}</span>
+              <span class="button-label">Просмотрено</span>
+            </button>
+
+            <button
+              class="mobile-list-btn"
+              :class="{}"
+              @click="toggleList(USER_LIST_TYPES_ENUM.ABANDONED)"
+            >
+              <span class="material-icons" :class="{ active: movieInfo?.lists?.isAbandoned }"
+                >not_interested</span
+              >
+              <span class="button-label">Брошено</span>
+            </button>
+          </div>
+        </div>
+
         <meta
           name="title-and-year"
           :content="
@@ -462,7 +531,7 @@
 <script setup>
 import { getKpInfo, getShikiInfo, getNudityInfoFromIMDB } from '@/api/movies'
 import { handleApiError } from '@/constants'
-import { addToList } from '@/api/user'
+import { addToList, delFromList } from '@/api/user'
 import { MovieList } from '@/components/MovieList/'
 import PlayerComponent from '@/components/PlayerComponent.vue'
 import ErrorMessage from '@/components/ErrorMessage.vue'
@@ -473,7 +542,7 @@ import { useMainStore } from '@/store/main'
 import { useAuthStore } from '@/store/auth'
 import { useNavbarStore } from '@/store/navbar'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import Notification from '@/components/notification/ToastMessage.vue'
 import TrailerCarousel from '@/components/TrailerCarousel.vue'
 import { useTrailerStore } from '@/store/trailer'
@@ -486,12 +555,14 @@ const mainStore = useMainStore()
 const authStore = useAuthStore()
 const backgroundStore = useBackgroundStore()
 const route = useRoute()
+const router = useRouter()
 const kp_id = ref(route.params.kp_id)
 const errorMessage = ref('')
 const errorCode = ref(null)
 const movieInfo = ref(null)
 const navbarStore = useNavbarStore()
 const trailerStore = useTrailerStore()
+const notificationRef = ref(null)
 
 const areTrailersActive = trailerStore.areTrailersActive
 const activeTrailerIndex = ref(null)
@@ -502,6 +573,17 @@ const itemsPerRow = ref(10)
 
 const nudityInfo = ref(null)
 const nudityInfoLoading = ref(false)
+const isListExpanded = ref(false)
+
+const isInAnyList = computed(() => {
+  return (
+    movieInfo.value?.lists?.isFavorite ||
+    movieInfo.value?.lists?.isWatching ||
+    movieInfo.value?.lists?.isLater ||
+    movieInfo.value?.lists?.isCompleted ||
+    movieInfo.value?.lists?.isAbandoned
+  )
+})
 
 const isCommentsEnabled = computed(() => mainStore.isCommentsEnabled)
 
@@ -548,7 +630,6 @@ const moveTooltip = (event) => {
   }
 }
 
-const notificationRef = ref(null)
 const copyMovieMeta = async () => {
   try {
     const movieMeta = [
@@ -710,18 +791,75 @@ const showNudityInfo = async () => {
   }
 }
 
+const getListStatus = (listType) => {
+  const statusMap = {
+    [USER_LIST_TYPES_ENUM.FAVORITE]: movieInfo.value?.lists?.isFavorite || false,
+    [USER_LIST_TYPES_ENUM.HISTORY]: movieInfo.value?.lists?.isHistory || false,
+    [USER_LIST_TYPES_ENUM.LATER]: movieInfo.value?.lists?.isLater || false,
+    [USER_LIST_TYPES_ENUM.COMPLETED]: movieInfo.value?.lists?.isCompleted || false,
+    [USER_LIST_TYPES_ENUM.ABANDONED]: movieInfo.value?.lists?.isAbandoned || false,
+    [USER_LIST_TYPES_ENUM.WATCHING]: movieInfo.value?.lists?.isWatching || false
+  }
+  return statusMap[listType] ?? false
+}
+
+const toggleList = async (type) => {
+  if (!authStore.token) {
+    notificationRef.value.showNotification(
+      'Необходимо <a class="auth-link">авторизоваться</a>',
+      5000,
+      { onClick: () => router.push('/login') }
+    )
+    return
+  }
+
+  try {
+    const listNames = {
+      [USER_LIST_TYPES_ENUM.FAVORITE]: 'избранное',
+      [USER_LIST_TYPES_ENUM.HISTORY]: 'историю',
+      [USER_LIST_TYPES_ENUM.LATER]: 'список "Смотреть позже"',
+      [USER_LIST_TYPES_ENUM.COMPLETED]: 'список "Просмотрено"',
+      [USER_LIST_TYPES_ENUM.ABANDONED]: 'список "Брошено"',
+      [USER_LIST_TYPES_ENUM.WATCHING]: 'список "Смотрю"'
+    }
+
+    if (getListStatus(type)) {
+      await delFromList(kp_id.value, type)
+      notificationRef.value.showNotification(`Удалено из ${listNames[type]}`)
+    } else {
+      await addToList(kp_id.value, type)
+      notificationRef.value.showNotification(`Добавлено в ${listNames[type]}`)
+    }
+    await fetchMovieInfo(false)
+    isListExpanded.value = false
+  } catch (error) {
+    const { message, code } = handleApiError(error)
+    notificationRef.value.showNotification(`${message} ${code}`)
+  }
+}
+
+// Close dropdown when clicking outside
+const handleClickOutside = (event) => {
+  const dropdown = document.querySelector('.mobile-list-dropdown')
+  if (dropdown && !dropdown.contains(event.target)) {
+    isListExpanded.value = false
+  }
+}
+
 onMounted(async () => {
   await fetchMovieInfo()
   infoLoading.value = false
   document.addEventListener('keydown', onKeyDown)
   window.addEventListener('resize', onResize)
   setTimeout(updateItemsPerRow, 100)
+  document.addEventListener('click', handleClickOutside)
 })
 
 onUnmounted(async () => {
   navbarStore.clearHeaderContent()
   document.removeEventListener('keydown', onKeyDown)
   window.removeEventListener('resize', onResize)
+  document.removeEventListener('click', handleClickOutside)
 })
 
 watch(
@@ -1569,7 +1707,7 @@ const getStaffByProfession = (profession) => {
 
 .rating-links-group {
   display: flex;
-  gap: 10px;
+  gap: 5px;
 }
 
 .nudity-info-btn {
@@ -1798,5 +1936,126 @@ const getStaffByProfession = (profession) => {
 
 .rating-links-group {
   gap: 5px;
+}
+
+.mobile-list-dropdown {
+  position: relative;
+  margin: 15px 0;
+  z-index: 100;
+}
+
+.mobile-list-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  border: none;
+  padding: 12px 15px;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  text-align: left;
+}
+
+.mobile-list-toggle:active {
+  transform: scale(0.98);
+}
+
+.mobile-list-toggle .material-icons {
+  font-size: 24px;
+}
+
+.mobile-list-toggle.active {
+  background: transparent;
+  box-shadow: none;
+}
+
+.mobile-list-toggle:not(.active):hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.mobile-list-toggle .button-label {
+  flex: 1;
+}
+
+.mobile-list-toggle .material-icons.active {
+  color: var(--accent-color);
+  text-shadow: 0 0 8px var(--accent-semi-transparent);
+}
+
+.mobile-list-content {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.95);
+  border-radius: 8px;
+  padding: 10px;
+  z-index: 1000;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  transform-origin: top center;
+  animation: dropdownSlide 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@keyframes dropdownSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mobile-list-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  border: none;
+  padding: 12px 15px;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  text-align: left;
+  margin-bottom: 5px;
+}
+
+.mobile-list-btn:last-child {
+  margin-bottom: 0;
+}
+
+.mobile-list-btn:active {
+  transform: scale(0.98);
+}
+
+.mobile-list-btn .material-icons {
+  font-size: 24px;
+}
+
+.mobile-list-btn.active {
+  background: transparent;
+  box-shadow: none;
+}
+
+.mobile-list-btn .material-icons.active {
+  color: var(--accent-color);
+  text-shadow: 0 0 8px var(--accent-semi-transparent);
+}
+
+.dropdown-arrow {
+  transition: transform 0.2s ease;
+}
+
+.dropdown-arrow.expanded {
+  transform: rotate(180deg);
 }
 </style>

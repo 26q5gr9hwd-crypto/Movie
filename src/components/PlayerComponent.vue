@@ -116,7 +116,7 @@
                 @click="toggleList(USER_LIST_TYPES_ENUM.WATCHING)"
               >
                 <span class="material-icons">{{
-                  movieInfo?.lists?.isWatching ? 'visibility_off' : 'visibility'
+                  movieInfo?.lists?.isWatching ? 'visibility' : 'visibility_off'
                 }}</span>
                 <span class="button-label">Смотрю</span>
               </button>
@@ -365,92 +365,7 @@
             @click="toggleList(USER_LIST_TYPES_ENUM.WATCHING)"
           >
             <span class="material-icons">{{
-              movieInfo?.lists?.isWatching ? 'visibility_off' : 'visibility'
-            }}</span>
-          </button>
-          <div v-show="activeTooltip === 'watching'" class="custom-tooltip">
-            {{ 'Смотрю' }}
-          </div>
-        </div>
-
-        <div class="tooltip-container">
-          <button
-            class="later-btn"
-            :class="{ active: movieInfo?.lists?.isLater }"
-            @mouseenter="showTooltip('later')"
-            @mouseleave="activeTooltip = null"
-            @click="toggleList(USER_LIST_TYPES_ENUM.LATER)"
-          >
-            <span class="material-icons">watch_later</span>
-          </button>
-          <div v-show="activeTooltip === 'later'" class="custom-tooltip">
-            {{ 'Смотреть позже' }}
-          </div>
-        </div>
-
-        <div class="tooltip-container">
-          <button
-            class="completed-btn"
-            :class="{ active: movieInfo?.lists?.isCompleted }"
-            @mouseenter="showTooltip('completed')"
-            @mouseleave="activeTooltip = null"
-            @click="toggleList(USER_LIST_TYPES_ENUM.COMPLETED)"
-          >
-            <span class="material-icons">{{
-              movieInfo?.lists?.isCompleted ? 'check_circle' : 'check_circle_outline'
-            }}</span>
-          </button>
-          <div v-show="activeTooltip === 'completed'" class="custom-tooltip">
-            {{ 'Просмотрено' }}
-          </div>
-        </div>
-
-        <div class="tooltip-container">
-          <button
-            class="abandoned-btn"
-            :class="{ active: movieInfo?.lists?.isAbandoned }"
-            @mouseenter="showTooltip('abandoned')"
-            @mouseleave="activeTooltip = null"
-            @click="toggleList(USER_LIST_TYPES_ENUM.ABANDONED)"
-          >
-            <span class="material-icons">{{
-              movieInfo?.lists?.isAbandoned ? 'not_interested' : 'not_interested'
-            }}</span>
-          </button>
-          <div v-show="activeTooltip === 'abandoned'" class="custom-tooltip">
-            {{ 'Брошено' }}
-          </div>
-        </div>
-      </div>
-
-      <div v-else-if="isMobile" class="mobile-list-buttons">
-        <div class="tooltip-container">
-          <button
-            class="favorite-btn"
-            :class="{ active: movieInfo?.lists?.isFavorite }"
-            @mouseenter="showTooltip('favorite')"
-            @mouseleave="activeTooltip = null"
-            @click="toggleList(USER_LIST_TYPES_ENUM.FAVORITE)"
-          >
-            <span class="material-icons">{{
-              movieInfo?.lists?.isFavorite ? 'favorite' : 'favorite_border'
-            }}</span>
-          </button>
-          <div v-show="activeTooltip === 'favorite'" class="custom-tooltip">
-            {{ 'В избранное' }}
-          </div>
-        </div>
-
-        <div class="tooltip-container">
-          <button
-            class="watching-btn"
-            :class="{ active: movieInfo?.lists?.isWatching }"
-            @mouseenter="showTooltip('watching')"
-            @mouseleave="activeTooltip = null"
-            @click="toggleList(USER_LIST_TYPES_ENUM.WATCHING)"
-          >
-            <span class="material-icons">{{
-              movieInfo?.lists?.isWatching ? 'visibility_off' : 'visibility'
+              movieInfo?.lists?.isWatching ? 'visibility' : 'visibility_off'
             }}</span>
           </button>
           <div v-show="activeTooltip === 'watching'" class="custom-tooltip">
