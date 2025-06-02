@@ -1941,7 +1941,6 @@ const getStaffByProfession = (profession) => {
 .mobile-list-dropdown {
   position: relative;
   margin: 15px 0;
-  z-index: 100;
 }
 
 .mobile-list-toggle {
