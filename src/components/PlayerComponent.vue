@@ -211,7 +211,7 @@
               class="custom-tooltip"
               data-tooltip="compressor"
             >
-              Компрессор
+              {{ isElectron ? 'Компрессор' : 'Компрессор, функция доступна в приложении' }}
             </div>
           </div>
 
@@ -226,7 +226,7 @@
               <span class="material-icons">flip</span>
             </button>
             <div v-show="activeTooltip === 'mirror'" class="custom-tooltip" data-tooltip="mirror">
-              Зеркало
+              {{ isElectron ? 'Зеркало' : 'Зеркало, функция доступна в приложении' }}
             </div>
           </div>
 
