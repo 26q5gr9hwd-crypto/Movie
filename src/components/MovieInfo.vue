@@ -362,6 +362,18 @@
                 <li v-if="movieInfo.film_length">
                   <strong>Продолжительность:</strong> {{ formatTime(movieInfo.film_length) }}
                 </li>
+                <li
+                  v-if="movieInfo.rating_mpaa || movieInfo.rating_age_limits"
+                  class="rating-boxes"
+                >
+                  <div v-if="movieInfo.rating_mpaa" class="rating-box mpaa">
+                    <strong>MPAA</strong>
+                    <span>{{ movieInfo.rating_mpaa.toUpperCase() }}</span>
+                  </div>
+                  <div v-if="movieInfo.rating_age_limits" class="rating-box age">
+                    <strong>{{ movieInfo.rating_age_limits.replace('age', '') }}+</strong>
+                  </div>
+                </li>
               </ul>
               <div class="content-info">
                 <p v-if="movieInfo.description" class="content-description-text">
@@ -2154,5 +2166,50 @@ const openInGoogleTranslate = () => {
 
 .dropdown-arrow.expanded {
   transform: rotate(180deg);
+}
+
+.rating-boxes {
+  display: flex;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.rating-box {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+  gap: 5px;
+}
+
+.rating-box.mpaa {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.rating-box.age {
+  background: rgba(255, 0, 0, 0.1);
+  border: 1px solid rgba(255, 0, 0, 0.3);
+}
+
+.rating-box strong {
+  font-size: 0.9em;
+  opacity: 0.8;
+}
+
+.rating-box span {
+  font-size: 1.1em;
+}
+
+@media (max-width: 600px) {
+  .rating-boxes {
+    flex-wrap: wrap;
+  }
+
+  .rating-box {
+    font-size: 14px;
+    padding: 3px 6px;
+  }
 }
 </style>
