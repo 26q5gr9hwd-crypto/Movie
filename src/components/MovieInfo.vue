@@ -985,7 +985,6 @@ const openInGoogleTranslate = () => {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  cursor: pointer;
   flex-wrap: wrap;
   height: auto;
   min-height: 80px;
