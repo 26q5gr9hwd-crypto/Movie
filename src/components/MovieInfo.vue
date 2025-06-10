@@ -239,7 +239,9 @@
           <button
             class="nudity-info-btn"
             @click="showNudityTimings($event)"
-            :title="nudityTimings !== undefined ? 'Скрыть тайминги' : 'Показать тайминги сцен'"
+            :title="
+              nudityTimings !== undefined ? 'Скрыть тайминги' : 'Показать тайминги сцен(для твича)'
+            "
           >
             <i
               class="fa-regular fa-clock"
@@ -582,21 +584,70 @@
           <div class="acknowledgment-text">За ведение таблички таймингов</div>
         </div>
       </div>
+      <div class="acknowledgment-table clickable-acknowledgment" @click="showTopSubmitters">
+        <div class="acknowledgment-header">
+          <i class="fa-solid fa-users"></i>
+          <span>Благодарности сообществу</span>
+        </div>
+        <div class="acknowledgment-content">
+          <div class="acknowledgment-text">За добавление таймингов</div>
+        </div>
+      </div>
       <div class="timings-content" :class="{ 'no-border': !nudityTimings }">
-        {{ nudityTimings || 'Записей о таймингах не найдено' }}
+        <div class="timings-text">
+          {{ nudityTimings || 'Записей о таймингах не найдено' }}
+        </div>
+        <div class="nudity-info-actions">
+          <button v-if="nudityTimings" class="nudity-info-button" @click="copyNudityTimings">
+            <i class="fas fa-copy"></i>
+            <span>Copy</span>
+          </button>
+          <button class="nudity-info-button" @click="showTimingForm = true">
+            <i class="fas fa-plus"></i>
+            <span>Add Timing</span>
+          </button>
+        </div>
       </div>
     </div>
-    <div v-if="nudityTimings" class="nudity-info-actions">
-      <button class="nudity-info-button" @click="copyNudityTimings">
-        <i class="fas fa-copy"></i>
-        <span>Copy</span>
-      </button>
+  </div>
+
+  <div v-if="showTimingForm" class="timing-modal">
+    <div class="timing-modal-content">
+      <div class="timing-modal-header">
+        <h3>Добавить тайминг</h3>
+        <button class="close-modal-btn" @click="showTimingForm = false">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="timing-submission-form">
+        <input
+          v-model="submitterUsername"
+          placeholder="Ваш ник"
+          class="timing-input"
+          maxlength="50"
+        />
+        <textarea
+          v-model="newTimingText"
+          placeholder="Добавить новый тайминг..."
+          class="timing-textarea"
+        ></textarea>
+        <div class="timing-form-actions">
+          <button
+            class="submit-timing-btn"
+            @click="submitNewTiming"
+            :disabled="!canSubmitTiming || isSubmittingTiming"
+          >
+            <i v-if="isSubmittingTiming" class="fas fa-spinner fa-spin"></i>
+            <span v-else>Отправить на модерацию</span>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { getKpInfo, getShikiInfo, getNudityInfoFromIMDB } from '@/api/movies'
+import { getKpInfo, getShikiInfo, getNudityInfoFromIMDB, submitTiming } from '@/api/movies'
 import { handleApiError } from '@/constants'
 import { addToList, delFromList } from '@/api/user'
 import { MovieList } from '@/components/MovieList/'
@@ -1087,6 +1138,38 @@ const openInGoogleTranslate = () => {
   window.open(`https://translate.google.com/?sl=en&tl=ru&text=${text}`, '_blank')
   nudityInfo.value = null
 }
+
+const submitterUsername = ref('')
+const newTimingText = ref('')
+const isSubmittingTiming = ref(false)
+
+const canSubmitTiming = computed(() => {
+  return submitterUsername.value.trim() && newTimingText.value.trim()
+})
+
+const submitNewTiming = async () => {
+  if (!canSubmitTiming.value || isSubmittingTiming.value) return
+
+  try {
+    isSubmittingTiming.value = true
+    await submitTiming(kp_id.value, submitterUsername.value.trim(), newTimingText.value)
+    notificationRef.value.showNotification('Тайминг отправлен на модерацию, спасибо!')
+    newTimingText.value = ''
+    submitterUsername.value = ''
+    showTimingForm.value = false
+  } catch (error) {
+    const { message } = handleApiError(error)
+    notificationRef.value.showNotification(message, 5000)
+  } finally {
+    isSubmittingTiming.value = false
+  }
+}
+
+const showTopSubmitters = () => {
+  notificationRef.value.showNotification('TODO список топа авторов таймингов')
+}
+
+const showTimingForm = ref(false)
 </script>
 
 <style scoped>
@@ -1967,8 +2050,8 @@ const openInGoogleTranslate = () => {
 .nudity-info-actions {
   display: flex;
   gap: 10px;
+  justify-content: flex-start;
   margin-top: 10px;
-  pointer-events: all;
 }
 
 .nudity-info-button {
@@ -2405,10 +2488,262 @@ const openInGoogleTranslate = () => {
 .timings-content {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   padding-top: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
 .timings-content.no-border {
   border-top: none;
   padding-top: 0;
+}
+
+.timings-content.no-border {
+  border-top: none;
+  padding-top: 0;
+}
+
+.timings-text {
+  white-space: pre-wrap;
+  margin-bottom: 10px;
+}
+
+.nudity-info-actions,
+.timing-form-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-start;
+}
+
+.timing-form-actions {
+  padding: 0;
+}
+
+.timing-submission-form,
+.timing-login-prompt {
+  margin-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 15px;
+}
+
+.timing-submission-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding-right: 20px;
+}
+
+.timing-login-prompt {
+  text-align: center;
+}
+
+.timing-input,
+.timing-textarea {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  color: #fff;
+  padding: 8px 12px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.timing-input:focus,
+.timing-textarea:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 10px var(--accent-semi-transparent);
+}
+
+.timing-textarea {
+  min-height: 100px;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.submit-timing-btn,
+.close-modal-btn {
+  background: var(--accent-color);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.submit-timing-btn {
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.submit-timing-btn:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px var(--accent-semi-transparent);
+}
+
+.submit-timing-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.close-modal-btn {
+  background: none;
+  font-size: 20px;
+  padding: 5px;
+}
+
+.close-modal-btn:hover {
+  color: var(--accent-color);
+  transform: scale(1.1);
+}
+
+.login-link,
+.twitch-link {
+  color: var(--accent-color);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.login-link:hover {
+  text-decoration: underline;
+  text-shadow: 0 0 8px var(--accent-semi-transparent);
+}
+
+.twitch-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #9146ff;
+  font-weight: 500;
+}
+
+.twitch-link:hover {
+  color: #a970ff;
+  transform: translateX(4px);
+}
+
+.twitch-link i {
+  font-size: 20px;
+}
+
+.timing-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.timing-modal-content {
+  background: #1a1a1a;
+  border-radius: 8px;
+  padding: 20px;
+  width: 90%;
+  max-width: 500px;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.timing-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.timing-modal-header h3 {
+  margin: 0;
+  color: #fff;
+  font-size: 18px;
+}
+
+.text-green {
+  color: #51cf66 !important;
+}
+
+.clickable-acknowledgment {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.clickable-acknowledgment:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.acknowledgment-table {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  margin-bottom: 15px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.acknowledgment-header {
+  background: rgba(145, 70, 255, 0.15);
+  padding: 10px 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: #fff;
+  border-bottom: 1px solid rgba(145, 70, 255, 0.2);
+}
+
+.acknowledgment-header i {
+  color: #ff66ab;
+}
+
+.acknowledgment-content {
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.acknowledgment-text {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+@media (max-width: 600px) {
+  .timing-modal-content {
+    width: 95%;
+    padding: 15px;
+  }
+
+  .timing-modal-header h3 {
+    font-size: 16px;
+  }
+
+  .timing-input,
+  .timing-textarea {
+    font-size: 13px;
+  }
+
+  .timing-textarea {
+    min-height: 60px;
+  }
+
+  .submit-timing-btn {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  .timing-submission-form {
+    padding-right: 15px;
+    padding-left: 15px;
+  }
 }
 </style>

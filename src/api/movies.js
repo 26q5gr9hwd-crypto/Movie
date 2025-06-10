@@ -122,6 +122,16 @@ const rateComment = async (commentId, rating) => {
   return data
 }
 
+const submitTiming = async (kpId, username, timingText) => {
+  const { data } = await apiCall((api) =>
+    api.post(`/timings/${kpId}`, {
+      timing_text: timingText,
+      username: username
+    })
+  )
+  return data
+}
+
 export {
   apiSearch,
   getShikiInfo,
@@ -139,7 +149,8 @@ export {
   createComment,
   updateComment,
   deleteComment,
-  rateComment
+  rateComment,
+  submitTiming
 }
 
 // ===== Функция для включения/выключения симуляции =====
