@@ -243,10 +243,7 @@
               nudityTimings !== undefined ? 'Скрыть тайминги' : 'Показать тайминги сцен(для твича)'
             "
           >
-            <i
-              class="fa-regular fa-clock"
-              :class="{ 'text-red': shouldShowRedTimings, 'text-green': shouldShowGreenTimings }"
-            ></i>
+            <i class="fa-regular fa-clock" :class="{ 'text-red': shouldShowRedTimings }"></i>
           </button>
         </div>
 
@@ -581,7 +578,7 @@
             <i class="fa-brands fa-twitch"></i>
             <span>TanyaBelkova</span>
           </a>
-          <div class="acknowledgment-text">За ведение таблички таймингов</div>
+          <div class="acknowledgment-text">За основу базы таймингов</div>
         </div>
       </div>
       <div class="acknowledgment-table clickable-acknowledgment" @click="showTopSubmitters">
@@ -595,7 +592,17 @@
       </div>
       <div class="timings-content" :class="{ 'no-border': !nudityTimings }">
         <div class="timings-text">
-          {{ nudityTimings || 'Записей о таймингах не найдено' }}
+          <div v-if="Array.isArray(nudityTimings)" class="timing-entries">
+            <div v-for="timing in nudityTimings" :key="timing.id" class="timing-entry">
+              <div class="timing-content">
+                <span class="timing-text">{{ timing.timing_text }}</span>
+                <span class="timing-author">by {{ timing.username }}</span>
+              </div>
+            </div>
+          </div>
+          <div v-else>
+            {{ nudityTimings || 'Записей о таймингах не найдено' }}
+          </div>
         </div>
         <div class="nudity-info-actions">
           <button v-if="nudityTimings" class="nudity-info-button" @click="copyNudityTimings">
@@ -756,13 +763,7 @@ const nudityTimingsPopupStyle = ref({})
 const nudityTimingsTrigger = ref(null)
 
 const shouldShowRedTimings = computed(() => {
-  if (!movieInfo.value?.nudity_timings) return false
-  return movieInfo.value.nudity_timings !== 'NO HORNY'
-})
-
-const shouldShowGreenTimings = computed(() => {
-  if (!movieInfo.value?.nudity_timings) return false
-  return movieInfo.value.nudity_timings === 'NO HORNY'
+  return movieInfo.value?.nudity_timings.length > 0
 })
 
 const isInAnyList = computed(() => {
@@ -3043,5 +3044,35 @@ const getContributionWidth = (count) => {
   .submitter-count {
     font-size: 12px;
   }
+}
+
+.timing-entries {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.timing-entry {
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.timing-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.timing-text {
+  font-family: monospace;
+  color: #fff;
+  font-size: 1.1em;
+}
+
+.timing-author {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85em;
+  font-style: italic;
 }
 </style>
