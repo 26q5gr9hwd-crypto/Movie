@@ -592,7 +592,7 @@
       </div>
       <div class="timings-content" :class="{ 'no-border': !nudityTimings }">
         <div class="timings-text">
-          <div v-if="Array.isArray(nudityTimings)" class="timing-entries">
+          <div v-if="nudityTimings.length > 0" class="timing-entries">
             <div v-for="timing in nudityTimings" :key="timing.id" class="timing-entry">
               <div class="timing-content">
                 <span class="timing-text">{{ timing.timing_text }}</span>
@@ -601,11 +601,15 @@
             </div>
           </div>
           <div v-else>
-            {{ nudityTimings || 'Записей о таймингах не найдено' }}
+            {{ 'Записей о таймингах не найдено' }}
           </div>
         </div>
         <div class="nudity-info-actions">
-          <button v-if="nudityTimings" class="nudity-info-button" @click="copyNudityTimings">
+          <button
+            v-if="nudityTimings.length > 0"
+            class="nudity-info-button"
+            @click="copyNudityTimings"
+          >
             <i class="fas fa-copy"></i>
             <span>Copy</span>
           </button>
@@ -1177,12 +1181,13 @@ const copyNudityInfo = async () => {
 }
 
 const copyNudityTimings = async () => {
-  if (!nudityTimings.value) return
+  if (nudityTimings.value.length === 0) return
 
   try {
     const formattedTimings = nudityTimings.value
       .map((timing) => `${timing.timing_text} (by @${timing.username})`)
       .join('\n')
+      .concat('\nReYohoho\n')
     await navigator.clipboard.writeText(formattedTimings)
     notificationRef.value.showNotification('Текст скопирован')
   } catch (err) {
