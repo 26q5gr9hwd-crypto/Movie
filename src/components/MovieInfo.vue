@@ -1234,7 +1234,6 @@ const submitNewTiming = async () => {
     await submitTiming(kp_id.value, submitterUsername.value.trim(), newTimingText.value)
     notificationRef.value.showNotification('Тайминг отправлен на модерацию, спасибо!')
     newTimingText.value = ''
-    submitterUsername.value = ''
     showTimingForm.value = false
   } catch (error) {
     const { message } = handleApiError(error)
