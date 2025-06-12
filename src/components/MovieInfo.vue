@@ -682,7 +682,17 @@
               {{ index + 1 }}
             </div>
             <div class="submitter-info">
-              <div class="submitter-name">{{ submitter.username }}</div>
+              <div class="submitter-name">
+                <template v-if="submitter.stream_link">
+                  <a :href="submitter.stream_link" target="_blank" rel="noopener noreferrer">
+                    {{ submitter.username }}
+                    <i class="fa-brands fa-twitch"></i>
+                  </a>
+                </template>
+                <template v-else>
+                  {{ submitter.username }}
+                </template>
+              </div>
               <div class="submitter-count">
                 {{ submitter.approved_submissions_count }}
                 {{
@@ -2881,7 +2891,30 @@ const getContributionWidth = (count) => {
 .submitter-name {
   color: #fff;
   font-weight: 500;
-  font-size: 15px;
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.submitter-name a {
+  color: #9146ff;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.submitter-name a:hover {
+  color: #a970ff;
+  text-decoration: underline;
+}
+
+.submitter-name a i {
+  margin-left: 5px;
+  font-size: 14px;
+}
+
+@media (max-width: 600px) {
+  .submitter-name a i {
+    font-size: 12px;
+  }
 }
 
 .submitter-count {
@@ -3007,6 +3040,28 @@ const getContributionWidth = (count) => {
   font-weight: 500;
   font-size: 16px;
   margin-bottom: 4px;
+}
+
+.submitter-name a {
+  color: #9146ff;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.submitter-name a:hover {
+  color: #a970ff;
+  text-decoration: underline;
+}
+
+.submitter-name a i {
+  margin-left: 5px;
+  font-size: 14px;
+}
+
+@media (max-width: 600px) {
+  .submitter-name a i {
+    font-size: 12px;
+  }
 }
 
 .submitter-count {
