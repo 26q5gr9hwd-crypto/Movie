@@ -601,10 +601,14 @@
             >
               <div class="timing-content">
                 <div v-if="timing.status === 'pending'" class="pending-badge">На модерации</div>
-                <span class="timing-text" :class="{ blurred: timing.status === 'pending' }">{{
-                  timing.timing_text
-                }}</span>
-                <span class="timing-author">by {{ timing.username }}</span>
+                <div
+                  class="timing-hover-container"
+                  :class="{ blurred: timing.status === 'pending' }"
+                >
+                  <span class="timing-text">{{ timing.timing_text }}</span>
+                  <br />
+                  <span class="timing-author">by {{ timing.username }}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -3167,13 +3171,13 @@ const getContributionWidth = (count) => {
   margin-bottom: 4px;
 }
 
-.timing-text.blurred {
+.timing-hover-container.blurred {
   filter: blur(4px);
   user-select: none;
   cursor: not-allowed;
 }
 
-.timing-text.blurred:hover {
+.timing-hover-container.blurred:hover {
   filter: blur(0);
   transition: filter 0.3s ease;
 }
