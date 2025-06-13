@@ -593,9 +593,17 @@
       <div class="timings-content" :class="{ 'no-border': !nudityTimings }">
         <div class="timings-text">
           <div v-if="nudityTimings.length > 0" class="timing-entries">
-            <div v-for="timing in nudityTimings" :key="timing.id" class="timing-entry">
+            <div
+              v-for="timing in nudityTimings"
+              :key="timing.id"
+              class="timing-entry"
+              :class="{ pending: timing.status === 'pending' }"
+            >
               <div class="timing-content">
-                <span class="timing-text">{{ timing.timing_text }}</span>
+                <div v-if="timing.status === 'pending'" class="pending-badge">На модерации</div>
+                <span class="timing-text" :class="{ blurred: timing.status === 'pending' }">{{
+                  timing.timing_text
+                }}</span>
                 <span class="timing-author">by {{ timing.username }}</span>
               </div>
             </div>
@@ -639,7 +647,9 @@
         />
         <textarea
           v-model="newTimingText"
-          placeholder="Добавить новый тайминг..."
+          placeholder="Пожалуйста, указывайте длительность фильма, к которому вы прилагаете тайминг, или название плеера
+          
+Для сериалов, пожалуйста, указывайте сезон и номер эпизода"
           class="timing-textarea"
         ></textarea>
         <div class="timing-form-actions">
@@ -659,7 +669,15 @@
   <div v-if="showTopSubmittersModal" class="modal-overlay" @click="showTopSubmittersModal = false">
     <div class="modal-content" @click.stop>
       <div class="modal-header">
-        <h3>Топ авторов таймингов</h3>
+        <h3>
+          Топ авторов таймингов
+          <span class="hint-text"
+            >(Хотите добавить ссылку на свой стрим/соцсети? Напишите нам в
+            <a href="https://t.me/ReYohoho_support" target="_blank" rel="noopener noreferrer"
+              >телеграм</a
+            >)</span
+          >
+        </h3>
         <button class="close-modal-btn" @click="showTopSubmittersModal = false">
           <i class="fas fa-times"></i>
         </button>
@@ -696,11 +714,7 @@
               <div class="submitter-count">
                 {{ submitter.approved_submissions_count }}
                 {{
-                  getNounForm(submitter.approved_submissions_count, [
-                    'тайминг',
-                    'тайминга',
-                    'таймингов'
-                  ])
+                  getNounForm(submitter.approved_submissions_count, ['фильм', 'фильма', 'фильмов'])
                 }}
               </div>
             </div>
@@ -3136,5 +3150,48 @@ const getContributionWidth = (count) => {
   color: rgba(255, 255, 255, 0.7);
   font-size: 0.85em;
   font-style: italic;
+}
+
+.timing-entry.pending {
+  background: rgba(255, 165, 0, 0.1);
+  border: 1px solid rgba(255, 165, 0, 0.2);
+}
+
+.pending-badge {
+  display: inline-block;
+  background: rgba(255, 165, 0, 0.2);
+  color: #ffa500;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  margin-bottom: 4px;
+}
+
+.timing-text.blurred {
+  filter: blur(4px);
+  user-select: none;
+  cursor: not-allowed;
+}
+
+.timing-text.blurred:hover {
+  filter: blur(0);
+  transition: filter 0.3s ease;
+}
+
+.hint-text {
+  font-size: 0.8em;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: normal;
+}
+
+.hint-text a {
+  color: var(--accent-color);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.hint-text a:hover {
+  text-decoration: underline;
+  text-shadow: 0 0 8px var(--accent-semi-transparent);
 }
 </style>
