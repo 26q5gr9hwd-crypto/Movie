@@ -1,6 +1,7 @@
 <template>
   <div class="spinner-wrapper">
     <img src="@/assets/icon-spinner.svg" alt="Loading..." class="spinner" />
+    <p v-if="text" class="spinner-text">{{ text }}</p>
   </div>
 </template>
 
@@ -9,6 +10,10 @@ defineProps({
   loading: {
     type: Boolean,
     default: false
+  },
+  text: {
+    type: String,
+    default: ''
   }
 })
 </script>
@@ -21,6 +26,7 @@ defineProps({
   right: 0;
   bottom: 0;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   pointer-events: none;
@@ -32,6 +38,13 @@ defineProps({
   height: 70px;
   animation: spin 1s linear infinite;
   pointer-events: none;
+}
+
+.spinner-text {
+  margin-top: 15px;
+  color: #fff;
+  font-size: 14px;
+  text-align: center;
 }
 
 @keyframes spin {
