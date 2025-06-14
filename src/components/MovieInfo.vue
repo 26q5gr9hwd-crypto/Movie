@@ -240,7 +240,9 @@
             class="nudity-info-btn"
             @click="showNudityTimings($event)"
             :title="
-              nudityTimings !== undefined ? 'Скрыть тайминги' : 'Показать тайминги сцен(для твича)'
+              nudityTimings !== undefined
+                ? 'Скрыть тайминги'
+                : 'Показать тайминги сцен 18+(для твича)'
             "
           >
             <i class="fa-regular fa-clock" :class="{ 'text-red': shouldShowRedTimings }"></i>
