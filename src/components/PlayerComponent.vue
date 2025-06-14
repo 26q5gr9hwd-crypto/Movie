@@ -29,13 +29,7 @@
       :class="['player-container', { 'theater-mode': theaterMode }]"
       :style="!theaterMode ? containerStyle : {}"
     >
-      <div
-        class="iframe-wrapper"
-        :class="{ pm_video: shouldShowPmVideo }"
-        :style="!theaterMode ? iframeWrapperStyle : {}"
-      >
-        <!-- <div class="fullscreen" @mousemove="showCloseButton"></div> -->
-
+      <div class="iframe-wrapper" :style="!theaterMode ? iframeWrapperStyle : {}">
         <iframe
           v-show="!iframeLoading && selectedPlayerInternal?.iframe"
           ref="playerIframe"
@@ -1033,11 +1027,6 @@ function cleanName(name) {
   return cleanedName
 }
 
-const shouldShowPmVideo = computed(() => {
-  if (isElectron.value) return false
-  return !selectedPlayerInternal.value?.key?.toUpperCase().includes('TORRENTS')
-})
-
 const cleanupAudioContext = () => {
   try {
     if (mediaSource.value) {
@@ -1089,26 +1078,6 @@ watch(selectedPlayerInternal, (newVal) => {
     }
     playerStore.updatePreferredPlayer(normalizeKey(newVal.key))
     emit('update:selectedPlayer', newVal)
-
-    if (newVal.key.toUpperCase().includes('TORRENTS')) {
-      const rocketmeFon = document.querySelector('.rocketme_fon')
-      if (rocketmeFon) {
-        rocketmeFon.style.display = 'none'
-      }
-      const pmPreloader = document.querySelector('.pm_preloader')
-      if (pmPreloader) {
-        pmPreloader.style.display = 'none'
-      }
-    } else {
-      const rocketmeFon = document.querySelector('.rocketme_fon')
-      if (rocketmeFon) {
-        rocketmeFon.style.display = ''
-      }
-      const pmPreloader = document.querySelector('.pm_preloader')
-      if (pmPreloader) {
-        pmPreloader.style.display = ''
-      }
-    }
   }
 })
 
