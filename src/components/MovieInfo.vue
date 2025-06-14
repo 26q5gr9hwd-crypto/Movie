@@ -2621,6 +2621,29 @@ const getContributionWidth = (count) => {
   font-size: 13px;
 }
 
+@media (max-width: 600px) {
+  .acknowledgment-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 8px 0;
+  }
+
+  .acknowledgment-text {
+    font-size: 12px;
+  }
+
+  .twitch-link,
+  .community-link {
+    font-size: 14px;
+  }
+
+  .twitch-link i,
+  .community-link i {
+    font-size: 16px;
+  }
+}
+
 .timings-content {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   padding-top: 15px;
