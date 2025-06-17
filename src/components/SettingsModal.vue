@@ -52,6 +52,27 @@
       </div>
 
       <div class="settings-group">
+        <h2>Карточки</h2>
+        <div class="card-size-group">
+          <label>Размер карточек:</label>
+          <div class="radio-group">
+            <label class="radio">
+              <input v-model="cardSize" type="radio" value="small" />
+              <span class="radio-label">Маленький</span>
+            </label>
+            <label class="radio">
+              <input v-model="cardSize" type="radio" value="medium" />
+              <span class="radio-label">Средний</span>
+            </label>
+            <label class="radio">
+              <input v-model="cardSize" type="radio" value="large" />
+              <span class="radio-label">Большой</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-group">
         <h2>Трейлеры</h2>
         <SliderRound v-model="areTrailersActive">Активировать трейлеры</SliderRound>
       </div>
@@ -186,6 +207,11 @@ const isAutoShowComments = computed({
   set: (value) => mainStore.setAutoShowComments(value)
 })
 
+const cardSize = computed({
+  get: () => mainStore.cardSize,
+  set: (value) => mainStore.updateCardSize(value)
+})
+
 // Навигация
 const goBack = () => {
   router.go(-1)
@@ -297,5 +323,16 @@ h2 {
 
 .radio input:checked {
   accent-color: var(--accent-color);
+}
+
+.card-size-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card-size-group label:first-child {
+  font-weight: 500;
+  margin-bottom: 5px;
 }
 </style>

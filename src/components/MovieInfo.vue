@@ -2358,6 +2358,20 @@ const getContributionWidth = (count) => {
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
 }
 
+.related-movies-list :deep(.grid.card-size-small) {
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.related-movies-list :deep(.grid.card-size-medium) {
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+}
+
+.related-movies-list :deep(.grid.card-size-large) {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+
 @media (max-width: 620px) {
   .related-movies-list :deep(.grid) {
     grid-template-columns: 1fr;

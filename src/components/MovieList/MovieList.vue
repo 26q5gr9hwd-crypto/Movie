@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-show="!loading" class="grid">
+    <div v-show="!loading" class="grid" :class="`card-size-${cardSize}`">
       <template v-if="(isHistory || isUserList) && isMobile">
         <CardMovieSwipeWrapper
           v-for="(movie, index) in moviesList"
@@ -84,6 +84,7 @@ const activeMovieIndex = ref(null)
 
 const isCardBorder = computed(() => backgroundStore.isCardBorder)
 const isMobile = computed(() => mainStore.isMobile)
+const cardSize = computed(() => mainStore.cardSize)
 const isUserList = computed(() => {
   return (
     route.name === 'lists' &&
@@ -200,6 +201,21 @@ onUnmounted(() => {
   box-sizing: border-box;
   position: relative;
   min-height: 300px;
+}
+
+.grid.card-size-small {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.grid.card-size-medium {
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 15px;
+}
+
+.grid.card-size-large {
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
 }
 
 @media (max-width: 620px) {

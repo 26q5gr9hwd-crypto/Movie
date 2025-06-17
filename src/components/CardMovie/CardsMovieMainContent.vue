@@ -1,5 +1,5 @@
 <template>
-  <div class="movie-poster-container">
+  <div class="movie-poster-container" :class="`card-size-${cardSize}`">
     <div v-if="movie.poster || movie.cover">
       <img v-lazy="movie.poster || movie.cover" class="movie-poster" />
       <DeleteButton
@@ -51,6 +51,11 @@
 import DeleteButton from '@/components/buttons/DeleteButton.vue'
 import { TYPES_ENUM } from '@/constants'
 import { getRatingColor } from '@/utils/ratingUtils'
+import { useMainStore } from '@/store/main'
+import { computed } from 'vue'
+
+const mainStore = useMainStore()
+const cardSize = computed(() => mainStore.cardSize)
 
 const {
   movie,
@@ -217,5 +222,35 @@ const emit = defineEmits(['remove:from-history'])
     font-size: 10px;
     padding-bottom: 1px;
   }
+}
+
+.movie-poster-container.card-size-small .ratings-overlay {
+  padding: 3px 6px;
+  gap: 6px;
+  font-size: 0.75em;
+}
+
+.movie-poster-container.card-size-small .rating-logo {
+  width: 16px;
+}
+
+.movie-poster-container.card-size-small .poster-type {
+  font-size: 0.75em;
+  padding: 2px 6px;
+}
+
+.movie-poster-container.card-size-large .ratings-overlay {
+  padding: 8px 12px;
+  gap: 12px;
+  font-size: 1.1em;
+}
+
+.movie-poster-container.card-size-large .rating-logo {
+  width: 24px;
+}
+
+.movie-poster-container.card-size-large .poster-type {
+  font-size: 1em;
+  padding: 4px 10px;
 }
 </style>

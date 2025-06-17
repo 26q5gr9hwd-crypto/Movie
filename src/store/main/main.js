@@ -12,7 +12,8 @@ export const useMainStore = defineStore(MAIN_STORE_NAME, {
     isMobile: false,
     dimmingEnabled: false,
     isCtrlFEnabled: true,
-    submitterUsername: ''
+    submitterUsername: '',
+    cardSize: 'medium'
   }),
 
   actions: {
@@ -84,6 +85,10 @@ export const useMainStore = defineStore(MAIN_STORE_NAME, {
 
     setAutoShowComments(value) {
       this.isAutoShowComments = value
+    },
+
+    updateCardSize(size) {
+      this.cardSize = size
     }
   },
 
@@ -95,7 +100,8 @@ export const useMainStore = defineStore(MAIN_STORE_NAME, {
       'isCommentsEnabled',
       'isAutoShowComments',
       'isCtrlFEnabled',
-      'submitterUsername'
+      'submitterUsername',
+      'cardSize'
     ],
     beforeHydrate: beforeHydrateLegacyVuex
   }

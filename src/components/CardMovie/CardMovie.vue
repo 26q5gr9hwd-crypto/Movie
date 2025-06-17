@@ -6,7 +6,8 @@
       active: activeMovieIndex === index,
       'has-border': isCardBorder,
       'hover-disabled': isCardHoverDisabled,
-      'card-border': isCardBorder
+      'card-border': isCardBorder,
+      [`card-size-${cardSize}`]: true
     }"
     :to="{ name: 'movie-info', params: { kp_id: movie.kp_id } }"
     :data-test-id="`movie-card-${movie.kp_id}`"
@@ -31,9 +32,12 @@ import { onMounted, useTemplateRef, computed } from 'vue'
 import CardMovieDetails from './CardMovieDetails.vue'
 import CardsMovieMainContent from './CardsMovieMainContent.vue'
 import { useBackgroundStore } from '@/store/background'
+import { useMainStore } from '@/store/main'
 
 const backgroundStore = useBackgroundStore()
+const mainStore = useMainStore()
 const isCardHoverDisabled = computed(() => backgroundStore.isCardHoverDisabled)
+const cardSize = computed(() => mainStore.cardSize)
 
 const {
   movie,
@@ -113,6 +117,58 @@ onMounted(() => {
 
 .movie-card:hover :deep(.delete-button) {
   opacity: 1;
+}
+
+.movie-card.card-size-small :deep(.movie-details) {
+  padding: 10px;
+}
+
+.movie-card.card-size-small :deep(.movie-header h3) {
+  font-size: 0.95em;
+  -webkit-line-clamp: 2;
+  -moz-line-clamp: 2;
+  line-clamp: 2;
+  max-height: 2.4em;
+}
+
+.movie-card.card-size-small :deep(.original-title) {
+  font-size: 0.75em;
+  -webkit-line-clamp: 1;
+  -moz-line-clamp: 1;
+  line-clamp: 1;
+}
+
+.movie-card.card-size-small :deep(.genre-tag),
+.movie-card.card-size-small :deep(.genre-count) {
+  font-size: 0.7em;
+  padding: 1px 4px;
+}
+
+.movie-card.card-size-large :deep(.movie-details) {
+  padding: 20px;
+}
+
+.movie-card.card-size-large :deep(.movie-header h3) {
+  font-size: 1.3em;
+  -webkit-line-clamp: 4;
+  -moz-line-clamp: 4;
+  line-clamp: 4;
+  max-height: 5.2em;
+}
+
+.movie-card.card-size-large :deep(.original-title) {
+  font-size: 0.9em;
+  margin-bottom: 15px;
+}
+
+.movie-card.card-size-large :deep(.genre-tag),
+.movie-card.card-size-large :deep(.genre-count) {
+  font-size: 0.8em;
+  padding: 3px 8px;
+}
+
+.movie-card.card-size-large :deep(.year) {
+  font-size: 1em;
 }
 
 /* Мобильная версия */
