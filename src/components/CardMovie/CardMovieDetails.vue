@@ -65,6 +65,9 @@ const removeYearFromTitle = (title) => {
   text-overflow: ellipsis;
   line-height: 1.2;
   max-height: 3.6em;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
 }
 
 .original-title {
@@ -81,6 +84,9 @@ const removeYearFromTitle = (title) => {
   -moz-box-orient: vertical;
   box-orient: vertical;
   overflow: hidden;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
 }
 
 .year {
@@ -120,23 +126,50 @@ const removeYearFromTitle = (title) => {
 
 @media (max-width: 600px) {
   .movie-details {
-    padding: 10px;
+    padding: 8px;
     flex-grow: 1;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
   }
 
+  .movie-header {
+    margin-bottom: 6px;
+  }
+
   .movie-header h3 {
-    font-size: 1.2em;
-    -webkit-line-clamp: 2;
-    -moz-line-clamp: 2;
-    line-clamp: 2;
-    max-height: 2.4em;
+    font-size: 0.95em;
+    -webkit-line-clamp: 4;
+    -moz-line-clamp: 4;
+    line-clamp: 4;
+    max-height: 4.8em;
+    line-height: 1.2;
+    word-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+  }
+
+  .original-title {
+    margin-bottom: 6px;
+    font-size: 0.75em;
+  }
+
+  .meta {
+    margin-bottom: 6px;
   }
 
   .year {
-    font-size: 1em;
+    font-size: 0.9em;
+  }
+
+  .genres {
+    margin-top: 3px;
+  }
+
+  .genre-tag,
+  .genre-count {
+    font-size: 0.7em;
+    padding: 1px 4px;
   }
 }
 </style>

@@ -204,7 +204,7 @@ function resetSwipe() {
 
 @media (max-width: 620px) {
   .swipe-background {
-    height: 180px;
+    height: 200px;
     border-radius: 15px;
   }
 }

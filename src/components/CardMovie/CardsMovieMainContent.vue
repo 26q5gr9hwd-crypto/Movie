@@ -190,11 +190,12 @@ const emit = defineEmits(['remove:from-history'])
   }
 
   .movie-poster-container {
-    width: 120px;
+    width: 100px;
+    min-width: 100px;
   }
 
   .movie-poster {
-    width: 120px;
+    width: 100px;
     aspect-ratio: 2 / 3;
     border-radius: 10px 0 0 10px;
   }

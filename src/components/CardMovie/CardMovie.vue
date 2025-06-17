@@ -125,10 +125,10 @@ onMounted(() => {
 
 .movie-card.card-size-small :deep(.movie-header h3) {
   font-size: 0.95em;
-  -webkit-line-clamp: 2;
-  -moz-line-clamp: 2;
-  line-clamp: 2;
-  max-height: 2.4em;
+  -webkit-line-clamp: 3;
+  -moz-line-clamp: 3;
+  line-clamp: 3;
+  max-height: 3.6em;
 }
 
 .movie-card.card-size-small :deep(.original-title) {
@@ -176,7 +176,7 @@ onMounted(() => {
   .movie-card {
     flex-direction: row;
     align-items: flex-start;
-    height: 180px;
+    height: 200px;
     width: 100%;
     border-radius: 15px;
   }
