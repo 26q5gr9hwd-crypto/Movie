@@ -211,27 +211,16 @@
 
           <!-- Parents Guide (только если есть IMDb id) -->
           <template v-if="movieInfo.imdb_id">
-            <a
-              :href="`https://www.imdb.com/title/${movieInfo.imdb_id}/parentalguide`"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="rating-link"
+            <button
+              class="nudity-info-btn parents-guide-btn"
+              @click="showNudityInfo($event)"
+              @mousedown="handleMiddleClick($event)"
+              :title="
+                nudityInfo ? 'Скрыть информацию' : 'Показать Parents Guide и информацию о сценах'
+              "
             >
               <span class="desktop-text">Parents Guide</span>
               <span class="mobile-text">PG</span>
-              <img
-                src="/src/assets/icon-external-link.png"
-                alt="Внешняя ссылка"
-                class="external-link-icon"
-              />
-            </a>
-            <button
-              class="nudity-info-btn"
-              @click="showNudityInfo($event)"
-              :title="
-                nudityInfo ? 'Скрыть информацию' : 'Показать информацию о сценах(Sex & Nudity)'
-              "
-            >
               <i v-if="!nudityInfoLoading" class="fa-regular fa-face-grin-wink"></i>
               <i v-else class="fas fa-spinner fa-spin"></i>
             </button>
@@ -544,11 +533,26 @@
     </div>
   </div>
   <Notification ref="notificationRef" />
-  <div v-if="nudityInfo" :style="nudityPopupStyle" class="nudity-info-popup">
+  <div v-if="nudityInfo !== null" :style="nudityPopupStyle" class="nudity-info-popup">
     <div class="nudity-info-content">
-      {{ nudityInfo }}
+      <div v-if="nudityInfoLoading" class="nudity-info-loading">
+        <i class="fas fa-spinner fa-spin"></i>
+        <span>Загрузка информации...</span>
+      </div>
+      <div v-else>
+        {{ nudityInfo }}
+      </div>
     </div>
     <div class="nudity-info-actions">
+      <a
+        :href="`https://www.imdb.com/title/${movieInfo.imdb_id}/parentalguide`"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="nudity-info-button"
+      >
+        <i class="fas fa-external-link-alt"></i>
+        <span>Parents Guide</span>
+      </a>
       <button class="nudity-info-button" @click="copyNudityInfo">
         <i class="fas fa-copy"></i>
         <span>Copy</span>
@@ -987,6 +991,13 @@ const onKeyDown = (event) => {
   }
 }
 
+const handleMiddleClick = (event) => {
+  if (event.button === 1) {
+    event.preventDefault()
+    showNudityInfo(event)
+  }
+}
+
 const showNudityInfo = async (event) => {
   // if (!authStore.token) {
   //   notificationRef.value.showNotification(
@@ -998,8 +1009,9 @@ const showNudityInfo = async (event) => {
   // }
 
   // if (!movieInfo.value?.imdb_id) return
-  if (nudityInfo.value) {
+  if (nudityInfo.value !== null) {
     nudityInfo.value = null
+    nudityInfoLoading.value = false
     return
   }
 
@@ -1015,13 +1027,16 @@ const showNudityInfo = async (event) => {
     transform: 'translateX(-100%)'
   }
 
+  nudityInfo.value = ''
   nudityInfoLoading.value = true
+
   try {
     const response = await getNudityInfoFromIMDB(movieInfo.value.imdb_id)
     nudityInfo.value = response.nudity_info
   } catch (error) {
     console.error('Ошибка при загрузке информации о сценах:', error)
-    notificationRef.value.showNotification('Ошибка при загрузке информации о сценах')
+    nudityInfo.value =
+      'Ошибка при загрузке информации о сценах. Попробуйте обратиться к Parents Guide на IMDb для получения подробной информации.'
   } finally {
     nudityInfoLoading.value = false
   }
@@ -2125,10 +2140,22 @@ const getContributionWidth = (count) => {
   color: var(--accent-color);
 }
 
-.nudity-info-btn:hover {
-  background: none !important;
-  border: none !important;
-  box-shadow: none !important;
+.nudity-info-btn:hover,
+.parents-guide-btn:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: var(--accent-color) !important;
+  box-shadow: 0 0 10px var(--accent-semi-transparent) !important;
+}
+
+.parents-guide-btn {
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.parents-guide-btn i {
+  margin-left: 5px;
 }
 
 .nudity-info-btn i {
@@ -2160,6 +2187,20 @@ const getContributionWidth = (count) => {
   margin-bottom: 15px;
   max-height: 60vh;
   overflow-y: auto;
+}
+
+.nudity-info-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+  padding: 20px;
+  color: #fff;
+}
+
+.nudity-info-loading i {
+  font-size: 20px;
+  color: var(--accent-color);
 }
 
 .nudity-info-actions {
