@@ -688,11 +688,22 @@
             >)</span
           >
         </h3>
-        <button class="close-modal-btn" @click="showTopSubmittersModal = false">
-          <i class="fas fa-times"></i>
-        </button>
+        <div class="modal-header-controls">
+          <button class="close-modal-btn" @click="showTopSubmittersModal = false">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
       </div>
       <div class="modal-body">
+        <button
+          class="show-all-timings-btn"
+          @click="showAllTimingsModal"
+          :disabled="isLoadingAllTimings"
+        >
+          <i v-if="isLoadingAllTimings" class="fas fa-spinner fa-spin"></i>
+          <i v-else class="fas fa-list"></i>
+          <span>Все тайминги</span>
+        </button>
         <div class="top-submitters-list">
           <div
             v-for="(submitter, index) in topSubmitters"
@@ -739,6 +750,119 @@
       </div>
     </div>
   </div>
+
+  <div
+    v-if="showAllTimingsModalVisible"
+    class="modal-overlay"
+    @click="showAllTimingsModalVisible = false"
+  >
+    <div class="modal-content all-timings-modal" @click.stop>
+      <div class="modal-header">
+        <h3>Все тайминги</h3>
+        <button class="close-modal-btn" @click="showAllTimingsModalVisible = false">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div v-if="!isLoadingAllTimings && allTimings.length > 0" class="timing-filters">
+          <button
+            class="timing-filter-btn"
+            :class="{ active: timingFilter === 'all' }"
+            @click="timingFilter = 'all'"
+          >
+            Все ({{ allTimings.length }})
+          </button>
+          <button
+            class="timing-filter-btn"
+            :class="{ active: timingFilter === 'approved' }"
+            @click="timingFilter = 'approved'"
+          >
+            Одобренные ({{ allTimings.filter((t) => t.status === 'approved').length }})
+          </button>
+          <button
+            class="timing-filter-btn"
+            :class="{ active: timingFilter === 'pending' }"
+            @click="timingFilter = 'pending'"
+          >
+            На модерации ({{ allTimings.filter((t) => t.status === 'pending').length }})
+          </button>
+        </div>
+        <div v-if="isLoadingAllTimings" class="loading-spinner">
+          <i class="fas fa-spinner fa-spin"></i>
+          <span>Загрузка всех таймингов...</span>
+        </div>
+        <div v-else-if="allTimings.length === 0" class="no-timings">
+          <p>Тайминги не найдены</p>
+        </div>
+        <div v-else-if="filteredTimings.length === 0" class="no-timings">
+          <p>Тайминги по выбранному фильтру не найдены</p>
+        </div>
+        <div v-else class="all-timings-list">
+          <div
+            v-for="timing in filteredTimings"
+            :key="timing.id"
+            class="timing-item"
+            :class="{
+              pending: timing.status === 'pending',
+              approved: timing.status === 'approved',
+              rejected: timing.status === 'rejected'
+            }"
+          >
+            <div class="timing-header">
+              <div class="timing-meta">
+                <span class="timing-status" :class="timing.status">
+                  {{ getStatusText(timing.status) }}
+                </span>
+                <span class="timing-author">{{ timing.username }}</span>
+                <span class="timing-date">{{ formatDate(timing.submitted_at) }}</span>
+              </div>
+              <div class="timing-movie-info">
+                <router-link
+                  :to="`/movie/${timing.kp_id}`"
+                  class="timing-kp-id clickable"
+                  :title="`Перейти к фильму ${timing.kp_id}`"
+                >
+                  KP: {{ timing.kp_id }}
+                </router-link>
+                <div
+                  v-if="authStore.user?.is_admin && timing.status === 'pending'"
+                  class="admin-controls"
+                >
+                  <button
+                    class="approve-btn"
+                    @click="handleApproveTiming(timing.id)"
+                    :disabled="isProcessingTiming"
+                    :title="'Одобрить тайминг'"
+                  >
+                    <i
+                      v-if="processingTimingId === timing.id && isApproving"
+                      class="fas fa-spinner fa-spin"
+                    ></i>
+                    <i v-else class="fas fa-check"></i>
+                  </button>
+                  <button
+                    class="reject-btn"
+                    @click="handleRejectTiming(timing.id)"
+                    :disabled="isProcessingTiming"
+                    :title="'Отклонить тайминг'"
+                  >
+                    <i
+                      v-if="processingTimingId === timing.id && !isApproving"
+                      class="fas fa-spinner fa-spin"
+                    ></i>
+                    <i v-else class="fas fa-times"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="timing-content">
+              <pre class="timing-text">{{ timing.timing_text }}</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -747,8 +871,12 @@ import {
   getShikiInfo,
   getNudityInfoFromIMDB,
   submitTiming,
-  getTopTimingSubmitters
+  getTopTimingSubmitters,
+  getAllTimingSubmissions,
+  approveTiming as apiApproveTiming,
+  rejectTiming as apiRejectTiming
 } from '@/api/movies'
+import { formatDate } from '@/utils/dateUtils'
 import { handleApiError } from '@/constants'
 import { addToList, delFromList } from '@/api/user'
 import { MovieList } from '@/components/MovieList/'
@@ -1295,6 +1423,93 @@ const topSubmitters = ref([])
 
 const showTopSubmittersModal = ref(false)
 
+const showAllTimingsModalVisible = ref(false)
+const allTimings = ref([])
+const isLoadingAllTimings = ref(false)
+const isProcessingTiming = ref(false)
+const processingTimingId = ref(null)
+const isApproving = ref(false)
+const timingFilter = ref('all')
+
+const handleApproveTiming = async (timingId) => {
+  if (isProcessingTiming.value) return
+
+  try {
+    isProcessingTiming.value = true
+    processingTimingId.value = timingId
+    isApproving.value = true
+
+    await apiApproveTiming(timingId)
+
+    const timing = allTimings.value.find((t) => t.id === timingId)
+    if (timing) {
+      timing.status = 'approved'
+    }
+
+    notificationRef.value.showNotification('Тайминг одобрен')
+  } catch (error) {
+    const { message } = handleApiError(error)
+    notificationRef.value.showNotification(`Ошибка: ${message}`)
+  } finally {
+    isProcessingTiming.value = false
+    processingTimingId.value = null
+    isApproving.value = false
+  }
+}
+
+const handleRejectTiming = async (timingId) => {
+  if (isProcessingTiming.value) return
+
+  try {
+    isProcessingTiming.value = true
+    processingTimingId.value = timingId
+    isApproving.value = false
+
+    await apiRejectTiming(timingId)
+
+    const timing = allTimings.value.find((t) => t.id === timingId)
+    if (timing) {
+      timing.status = 'rejected'
+    }
+
+    notificationRef.value.showNotification('Тайминг отклонен')
+  } catch (error) {
+    const { message } = handleApiError(error)
+    notificationRef.value.showNotification(`Ошибка: ${message}`)
+  } finally {
+    isProcessingTiming.value = false
+    processingTimingId.value = null
+    isApproving.value = false
+  }
+}
+
+const showAllTimingsModal = async () => {
+  if (isLoadingAllTimings.value) return
+
+  try {
+    isLoadingAllTimings.value = true
+    showAllTimingsModalVisible.value = true
+
+    const { timings } = await getAllTimingSubmissions()
+    allTimings.value = timings
+  } catch (error) {
+    const { message } = handleApiError(error)
+    notificationRef.value.showNotification(message)
+    showAllTimingsModalVisible.value = false
+  } finally {
+    isLoadingAllTimings.value = false
+  }
+}
+
+const getStatusText = (status) => {
+  const statusMap = {
+    pending: 'На модерации',
+    approved: 'Одобрено',
+    rejected: 'Отклонено'
+  }
+  return statusMap[status] || status
+}
+
 const getNounForm = (number, forms) => {
   const cases = [2, 0, 1, 1, 1, 2]
   return forms[number % 100 > 4 && number % 100 < 20 ? 2 : cases[Math.min(number % 10, 5)]]
@@ -1305,6 +1520,13 @@ const getContributionWidth = (count) => {
   const maxCount = Math.max(...topSubmitters.value.map((s) => s.approved_submissions_count))
   return (count / maxCount) * 100
 }
+
+const filteredTimings = computed(() => {
+  if (timingFilter.value === 'all') {
+    return allTimings.value
+  }
+  return allTimings.value.filter((timing) => timing.status === timingFilter.value)
+})
 </script>
 
 <style scoped>
@@ -3299,5 +3521,323 @@ const getContributionWidth = (count) => {
 .hint-text a:hover {
   text-decoration: underline;
   text-shadow: 0 0 8px var(--accent-semi-transparent);
+}
+
+.modal-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.show-all-timings-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  margin-bottom: 20px;
+  width: fit-content;
+}
+
+.show-all-timings-btn:hover:not(:disabled) {
+  background: var(--accent-color-dark, #7a4cb8);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px var(--accent-semi-transparent);
+}
+
+.show-all-timings-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.all-timings-modal {
+  max-width: 800px;
+  width: 95%;
+  max-height: 90vh;
+}
+
+.all-timings-modal .modal-body {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  padding: 40px;
+  color: #fff;
+}
+
+.loading-spinner i {
+  font-size: 24px;
+  color: var(--accent-color);
+}
+
+.no-timings {
+  text-align: center;
+  padding: 40px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.all-timings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.timing-item {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.timing-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.timing-item.pending {
+  border-left: 4px solid #ffa500;
+}
+
+.timing-item.approved {
+  border-left: 4px solid #51cf66;
+}
+
+.timing-item.rejected {
+  border-left: 4px solid #ff6b6b;
+}
+
+.all-timings-list .timing-item .timing-content {
+  padding: 15px;
+}
+
+.timing-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.timing-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.timing-status {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.timing-status.pending {
+  background: rgba(255, 165, 0, 0.2);
+  color: #ffa500;
+}
+
+.timing-status.approved {
+  background: rgba(81, 207, 102, 0.2);
+  color: #51cf66;
+}
+
+.timing-status.rejected {
+  background: rgba(255, 107, 107, 0.2);
+  color: #ff6b6b;
+}
+
+.timing-date {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+}
+
+.timing-movie-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.timing-kp-id {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  font-family: monospace;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px 6px;
+  border-radius: 3px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.timing-kp-id.clickable:hover {
+  color: var(--accent-color);
+  background: rgba(var(--accent-color-rgb), 0.2);
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
+@media (max-width: 768px) {
+  .modal-header-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .show-all-timings-btn {
+    justify-content: center;
+  }
+
+  .all-timings-modal {
+    width: 95%;
+    margin: 10px;
+  }
+
+  .timing-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .timing-meta {
+    justify-content: space-between;
+  }
+
+  .timing-movie-info {
+    justify-content: flex-end;
+  }
+}
+
+.admin-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.approve-btn,
+.reject-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.approve-btn {
+  background: rgba(81, 207, 102, 0.2);
+  color: #51cf66;
+  border: 1px solid rgba(81, 207, 102, 0.3);
+}
+
+.approve-btn:hover:not(:disabled) {
+  background: rgba(81, 207, 102, 0.3);
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(81, 207, 102, 0.3);
+}
+
+.reject-btn {
+  background: rgba(255, 107, 107, 0.2);
+  color: #ff6b6b;
+  border: 1px solid rgba(255, 107, 107, 0.3);
+}
+
+.reject-btn:hover:not(:disabled) {
+  background: rgba(255, 107, 107, 0.3);
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(255, 107, 107, 0.3);
+}
+
+.approve-btn:disabled,
+.reject-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (max-width: 600px) {
+  .admin-controls {
+    margin-left: 0;
+    margin-top: 8px;
+  }
+
+  .approve-btn,
+  .reject-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+}
+
+.timing-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.timing-filter-btn {
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.timing-filter-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.timing-filter-btn.active {
+  background: var(--accent-color);
+  color: #fff;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 10px var(--accent-semi-transparent);
+}
+
+@media (max-width: 600px) {
+  .timing-filters {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .timing-filter-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+    flex: 1;
+    text-align: center;
+  }
 }
 </style>

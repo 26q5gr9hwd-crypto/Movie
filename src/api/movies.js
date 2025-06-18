@@ -137,6 +137,21 @@ const getTopTimingSubmitters = async () => {
   return data
 }
 
+const getAllTimingSubmissions = async () => {
+  const { data } = await apiCall((api) => api.get('/timings/all'))
+  return data
+}
+
+const approveTiming = async (submissionId) => {
+  const { data } = await apiCall((api) => api.post(`/timings/submission/${submissionId}/approve`))
+  return data
+}
+
+const rejectTiming = async (submissionId) => {
+  const { data } = await apiCall((api) => api.post(`/timings/submission/${submissionId}/reject`))
+  return data
+}
+
 export {
   apiSearch,
   getShikiInfo,
@@ -156,7 +171,10 @@ export {
   deleteComment,
   rateComment,
   submitTiming,
-  getTopTimingSubmitters
+  getTopTimingSubmitters,
+  getAllTimingSubmissions,
+  approveTiming,
+  rejectTiming
 }
 
 // ===== Функция для включения/выключения симуляции =====
