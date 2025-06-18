@@ -25,10 +25,6 @@
   🖥 <a href="https://gitlab.com/reyohoho/reyohoho-chrome-ff-ext">Расширение для браузера</a>
 </p>
 
-<p align="center">
-   🥰 <a href="https://t.me/ReYohoho_Donut_Bot?start=1">Поддержать нас</a>
-</p>
-
 ---
 
 ## 📌 Оглавление
