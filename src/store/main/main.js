@@ -13,7 +13,8 @@ export const useMainStore = defineStore(MAIN_STORE_NAME, {
     dimmingEnabled: false,
     isCtrlFEnabled: true,
     submitterUsername: '',
-    cardSize: 'medium'
+    cardSize: 'medium',
+    isStreamerMode: true
   }),
 
   actions: {
@@ -89,6 +90,10 @@ export const useMainStore = defineStore(MAIN_STORE_NAME, {
 
     updateCardSize(size) {
       this.cardSize = size
+    },
+
+    setStreamerMode(value) {
+      this.isStreamerMode = value
     }
   },
 
@@ -101,7 +106,8 @@ export const useMainStore = defineStore(MAIN_STORE_NAME, {
       'isAutoShowComments',
       'isCtrlFEnabled',
       'submitterUsername',
-      'cardSize'
+      'cardSize',
+      'isStreamerMode'
     ],
     beforeHydrate: beforeHydrateLegacyVuex
   }

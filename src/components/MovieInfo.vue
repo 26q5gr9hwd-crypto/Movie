@@ -231,10 +231,13 @@
             :title="
               nudityTimings !== undefined
                 ? 'Скрыть тайминги'
-                : 'Показать тайминги сцен 18+(для твича)'
+                : 'Показать тайминги сцен 18+(для твича, мигание отключается в настройках)'
             "
           >
-            <i class="fa-regular fa-clock" :class="{ 'text-red': shouldShowRedTimings }"></i>
+            <i
+              class="fa-regular fa-clock"
+              :class="{ 'text-red': shouldShowRedTimings, 'text-red-blink': shouldBlinkRedTimings }"
+            ></i>
           </button>
         </div>
 
@@ -933,6 +936,12 @@ const nudityTimingsTrigger = ref(null)
 
 const shouldShowRedTimings = computed(() => {
   return movieInfo.value?.nudity_timings.length > 0
+})
+
+const shouldBlinkRedTimings = computed(() => {
+  return (
+    movieInfo.value?.nudity_timings.length > 0 && mainStore.isStreamerMode && !mainStore.isMobile
+  )
 })
 
 const isInAnyList = computed(() => {
@@ -2820,6 +2829,30 @@ const filteredTimings = computed(() => {
 
 .text-red {
   color: #ff4444 !important;
+}
+
+.text-red-blink {
+  color: #ff4444 !important;
+  animation: blink-red-streamer 0.8s ease-in-out infinite;
+}
+
+@keyframes blink-red-streamer {
+  0%,
+  100% {
+    color: #ff4444;
+    text-shadow:
+      0 0 15px #ff4444,
+      0 0 25px #ff4444;
+    transform: scale(1);
+  }
+  50% {
+    color: #ff8888;
+    text-shadow:
+      0 0 20px #ff4444,
+      0 0 35px #ff4444,
+      0 0 45px #ff4444;
+    transform: scale(1.15);
+  }
 }
 
 .text-green {

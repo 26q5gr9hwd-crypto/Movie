@@ -106,6 +106,13 @@
       </div>
 
       <div class="settings-group">
+        <h2>Режим стримера</h2>
+        <SliderRound v-model="isStreamerMode"
+          >Мигание кнопки таймингов для привлечения внимания</SliderRound
+        >
+      </div>
+
+      <div class="settings-group">
         <h2>Версия сайта</h2>
         {{ appVersion }}
       </div>
@@ -210,6 +217,11 @@ const isAutoShowComments = computed({
 const cardSize = computed({
   get: () => mainStore.cardSize,
   set: (value) => mainStore.updateCardSize(value)
+})
+
+const isStreamerMode = computed({
+  get: () => mainStore.isStreamerMode,
+  set: (value) => mainStore.setStreamerMode(value)
 })
 
 // Навигация
