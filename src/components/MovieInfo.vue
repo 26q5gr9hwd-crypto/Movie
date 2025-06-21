@@ -689,7 +689,7 @@
           Топ авторов таймингов
           <span class="hint-text"
             >(Хотите добавить ссылку на свой стрим/соцсети? Напишите нам в
-            <a href="https://t.me/ReYohoho_support" target="_blank" rel="noopener noreferrer"
+            <a href="https://t.me/reyohoho_sup" target="_blank" rel="noopener noreferrer"
               >телеграм</a
             >)</span
           >
