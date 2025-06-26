@@ -152,6 +152,13 @@ const rejectTiming = async (submissionId) => {
   return data
 }
 
+const markAsCleanText = async (submissionId) => {
+  const { data } = await apiCall((api) =>
+    api.post(`/timings/submission/${submissionId}/clean_text`)
+  )
+  return data
+}
+
 export {
   apiSearch,
   getShikiInfo,
@@ -174,7 +181,8 @@ export {
   getTopTimingSubmitters,
   getAllTimingSubmissions,
   approveTiming,
-  rejectTiming
+  rejectTiming,
+  markAsCleanText
 }
 
 // ===== Функция для включения/выключения симуляции =====

@@ -606,10 +606,16 @@
               v-for="timing in nudityTimings"
               :key="timing.id"
               class="timing-entry"
-              :class="{ pending: timing.status === 'pending' }"
+              :class="{
+                pending: timing.status === 'pending',
+                'clean-text': timing.status === 'clean_text'
+              }"
             >
               <div class="timing-content">
                 <div v-if="timing.status === 'pending'" class="pending-badge">На модерации</div>
+                <div v-if="timing.status === 'clean_text'" class="clean-text-badge">
+                  Тайминги такого типа не модерируются, для уверенности сверяйтесь с ParentsGuide
+                </div>
                 <div
                   class="timing-hover-container"
                   :class="{ blurred: timing.status === 'pending' }"
@@ -792,6 +798,13 @@
           >
             На модерации ({{ allTimings.filter((t) => t.status === 'pending').length }})
           </button>
+          <button
+            class="timing-filter-btn"
+            :class="{ active: timingFilter === 'clean_text' }"
+            @click="timingFilter = 'clean_text'"
+          >
+            Не модерируются ({{ allTimings.filter((t) => t.status === 'clean_text').length }})
+          </button>
         </div>
         <div v-if="isLoadingAllTimings" class="loading-spinner">
           <i class="fas fa-spinner fa-spin"></i>
@@ -811,7 +824,8 @@
             :class="{
               pending: timing.status === 'pending',
               approved: timing.status === 'approved',
-              rejected: timing.status === 'rejected'
+              rejected: timing.status === 'rejected',
+              'clean-text': timing.status === 'clean_text'
             }"
           >
             <div class="timing-header">
@@ -835,6 +849,7 @@
                   class="admin-controls"
                 >
                   <button
+                    v-if="timing.status === 'pending'"
                     class="approve-btn"
                     @click="handleApproveTiming(timing.id)"
                     :disabled="isProcessingTiming"
@@ -847,16 +862,30 @@
                     <i v-else class="fas fa-check"></i>
                   </button>
                   <button
+                    v-if="timing.status === 'pending'"
                     class="reject-btn"
                     @click="handleRejectTiming(timing.id)"
                     :disabled="isProcessingTiming"
                     :title="'Отклонить тайминг'"
                   >
                     <i
-                      v-if="processingTimingId === timing.id && !isApproving"
+                      v-if="processingTimingId === timing.id && !isApproving && !isMarkingCleanText"
                       class="fas fa-spinner fa-spin"
                     ></i>
                     <i v-else class="fas fa-times"></i>
+                  </button>
+                  <button
+                    v-if="timing.status === 'pending'"
+                    class="clean-text-btn"
+                    @click="handleMarkAsCleanText(timing.id)"
+                    :disabled="isProcessingTiming"
+                    :title="'Отметить как clean_text'"
+                  >
+                    <i
+                      v-if="processingTimingId === timing.id && isMarkingCleanText"
+                      class="fas fa-spinner fa-spin"
+                    ></i>
+                    <i v-else class="fas fa-eye-slash"></i>
                   </button>
                 </div>
               </div>
@@ -880,7 +909,8 @@ import {
   getTopTimingSubmitters,
   getAllTimingSubmissions,
   approveTiming as apiApproveTiming,
-  rejectTiming as apiRejectTiming
+  rejectTiming as apiRejectTiming,
+  markAsCleanText as apiMarkAsCleanText
 } from '@/api/movies'
 import { formatDate } from '@/utils/dateUtils'
 import { handleApiError } from '@/constants'
@@ -1404,11 +1434,6 @@ const canSubmitTiming = computed(() => {
 const submitNewTiming = async () => {
   if (!canSubmitTiming.value || isSubmittingTiming.value) return
 
-  if (!/\d/.test(newTimingText.value.trim())) {
-    notificationRef.value.showNotification('Тайминг должен содержать цифры', 5000)
-    return
-  }
-
   try {
     isSubmittingTiming.value = true
     await submitTiming(kp_id.value, submitterUsername.value.trim(), newTimingText.value)
@@ -1446,6 +1471,7 @@ const isLoadingAllTimings = ref(false)
 const isProcessingTiming = ref(false)
 const processingTimingId = ref(null)
 const isApproving = ref(false)
+const isMarkingCleanText = ref(false)
 const timingFilter = ref('all')
 
 const handleApproveTiming = async (timingId) => {
@@ -1455,6 +1481,7 @@ const handleApproveTiming = async (timingId) => {
     isProcessingTiming.value = true
     processingTimingId.value = timingId
     isApproving.value = true
+    isMarkingCleanText.value = false
 
     await apiApproveTiming(timingId)
 
@@ -1471,6 +1498,7 @@ const handleApproveTiming = async (timingId) => {
     isProcessingTiming.value = false
     processingTimingId.value = null
     isApproving.value = false
+    isMarkingCleanText.value = false
   }
 }
 
@@ -1481,6 +1509,7 @@ const handleRejectTiming = async (timingId) => {
     isProcessingTiming.value = true
     processingTimingId.value = timingId
     isApproving.value = false
+    isMarkingCleanText.value = false
 
     await apiRejectTiming(timingId)
 
@@ -1497,6 +1526,35 @@ const handleRejectTiming = async (timingId) => {
     isProcessingTiming.value = false
     processingTimingId.value = null
     isApproving.value = false
+    isMarkingCleanText.value = false
+  }
+}
+
+const handleMarkAsCleanText = async (timingId) => {
+  if (isProcessingTiming.value) return
+
+  try {
+    isProcessingTiming.value = true
+    processingTimingId.value = timingId
+    isApproving.value = false
+    isMarkingCleanText.value = true
+
+    await apiMarkAsCleanText(timingId)
+
+    const timing = allTimings.value.find((t) => t.id === timingId)
+    if (timing) {
+      timing.status = 'clean_text'
+    }
+
+    notificationRef.value.showNotification('Тайминг отмечен как clean_text')
+  } catch (error) {
+    const { message } = handleApiError(error)
+    notificationRef.value.showNotification(`Ошибка: ${message}`)
+  } finally {
+    isProcessingTiming.value = false
+    processingTimingId.value = null
+    isApproving.value = false
+    isMarkingCleanText.value = false
   }
 }
 
@@ -1522,7 +1580,8 @@ const getStatusText = (status) => {
   const statusMap = {
     pending: 'На модерации',
     approved: 'Одобрено',
-    rejected: 'Отклонено'
+    rejected: 'Отклонено',
+    clean_text: 'Не модерируется'
   }
   return statusMap[status] || status
 }
@@ -3526,7 +3585,22 @@ const filteredTimings = computed(() => {
   border: 1px solid rgba(255, 165, 0, 0.2);
 }
 
+.timing-entry.clean-text {
+  background: rgba(255, 165, 0, 0.1);
+  border: 1px solid rgba(255, 165, 0, 0.2);
+}
+
 .pending-badge {
+  display: inline-block;
+  background: rgba(255, 165, 0, 0.2);
+  color: #ffa500;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  margin-bottom: 4px;
+}
+
+.clean-text-badge {
   display: inline-block;
   background: rgba(255, 165, 0, 0.2);
   color: #ffa500;
@@ -3662,6 +3736,10 @@ const filteredTimings = computed(() => {
   border-left: 4px solid #ff6b6b;
 }
 
+.timing-item.clean-text {
+  border-left: 4px solid #ffa500;
+}
+
 .all-timings-list .timing-item .timing-content {
   padding: 15px;
 }
@@ -3703,6 +3781,11 @@ const filteredTimings = computed(() => {
 .timing-status.rejected {
   background: rgba(255, 107, 107, 0.2);
   color: #ff6b6b;
+}
+
+.timing-status.clean_text {
+  background: rgba(255, 165, 0, 0.2);
+  color: #ffa500;
 }
 
 .timing-date {
@@ -3774,7 +3857,8 @@ const filteredTimings = computed(() => {
 }
 
 .approve-btn,
-.reject-btn {
+.reject-btn,
+.clean-text-btn {
   width: 32px;
   height: 32px;
   border: none;
@@ -3818,6 +3902,24 @@ const filteredTimings = computed(() => {
   transform: none;
 }
 
+.clean-text-btn {
+  background: rgba(255, 165, 0, 0.2);
+  color: #ffa500;
+  border: 1px solid rgba(255, 165, 0, 0.3);
+}
+
+.clean-text-btn:hover:not(:disabled) {
+  background: rgba(255, 165, 0, 0.3);
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(255, 165, 0, 0.3);
+}
+
+.clean-text-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
 @media (max-width: 600px) {
   .admin-controls {
     margin-left: 0;
@@ -3825,7 +3927,8 @@ const filteredTimings = computed(() => {
   }
 
   .approve-btn,
-  .reject-btn {
+  .reject-btn,
+  .clean-text-btn {
     width: 28px;
     height: 28px;
     font-size: 12px;
