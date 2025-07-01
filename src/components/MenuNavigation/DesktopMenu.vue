@@ -7,6 +7,15 @@
           <h1 v-show="isSidebarOpen" class="logo-title">ReYohoho</h1>
         </router-link>
       </div>
+      <button
+        v-if="canGoBack"
+        class="back-btn"
+        @click="goBack"
+        :title="isSidebarOpen ? '' : 'Назад'"
+      >
+        <i class="fas fa-arrow-left"></i>
+        <span v-show="isSidebarOpen" class="back-text">Назад</span>
+      </button>
       <button class="toggle-sidebar-btn" @click="toggleSidebar">
         <i :class="isSidebarOpen ? 'fas fa-chevron-left' : 'fas fa-chevron-right'"></i>
       </button>
@@ -76,8 +85,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useNavbarStore } from '@/store/navbar'
 import NotificationBadge from '@/components/notification/NotificationBadge.vue'
 
@@ -86,12 +95,16 @@ const props = defineProps({
 })
 
 const route = useRoute()
+const router = useRouter()
 
 // Получаем доступ к хранилищу
 const navbarStore = useNavbarStore()
 
 // Флаг состояния боковой панели
 const isSidebarOpen = ref(false)
+
+const internalNavigationHistory = ref([])
+const isNavigatingBack = ref(false)
 
 // Ссылка на элемент боковой панели для отслеживания кликов вне её области
 const sidebar = ref(null)
@@ -136,14 +149,56 @@ const toggleSearch = () => {
   navbarStore.openSearchModal() // Используем метод из хранилища для управления модалкой поиска
 }
 
+const canGoBack = computed(() => {
+  return internalNavigationHistory.value.length > 1
+})
+
+const goBack = () => {
+  if (internalNavigationHistory.value.length > 1) {
+    isNavigatingBack.value = true
+    internalNavigationHistory.value.pop()
+    const previousRoute =
+      internalNavigationHistory.value[internalNavigationHistory.value.length - 1]
+    router.replace(previousRoute)
+  }
+}
+
+const updateNavigationHistory = (to) => {
+  if (isNavigatingBack.value) {
+    isNavigatingBack.value = false
+    return
+  }
+
+  if (
+    internalNavigationHistory.value.length === 0 ||
+    internalNavigationHistory.value[internalNavigationHistory.value.length - 1] !== to.fullPath
+  ) {
+    internalNavigationHistory.value.push(to.fullPath)
+    if (internalNavigationHistory.value.length > 50) {
+      internalNavigationHistory.value.shift()
+    }
+  }
+}
+
 // Добавляем и удаляем обработчики событий при монтировании/размонтировании компонента
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
+  if (route.fullPath) {
+    internalNavigationHistory.value.push(route.fullPath)
+  }
 })
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside)
 })
+
+watch(
+  route,
+  (to, from) => {
+    updateNavigationHistory(to, from)
+  },
+  { immediate: false }
+)
 </script>
 
 <style lang="scss" scoped>
@@ -395,5 +450,41 @@ a {
 .side-panel.collapsed .notification-link {
   justify-content: center;
   padding: 10px;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.back-btn:hover {
+  color: var(--accent-color, #6c5ce7);
+  background: var(--accent-transparent, rgba(108, 92, 231, 0.15));
+  transform: translateX(-2px);
+}
+
+.back-text {
+  white-space: nowrap;
+  overflow: hidden;
+  transition:
+    max-width 0.3s ease,
+    opacity 0.3s ease;
+  max-width: 0;
+  opacity: 0;
+}
+
+.side-panel:not(.collapsed) .back-text {
+  max-width: 100px;
+  opacity: 1;
 }
 </style>
