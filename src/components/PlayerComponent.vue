@@ -1211,6 +1211,9 @@ onMounted(() => {
   window.addEventListener('resize', updateScaleFactor)
   window.addEventListener('resize', updateTooltipPosition)
   if (isCentered.value) centerPlayer()
+
+  window.toggleCompressor = toggleCompressor
+  window.toggleMirror = toggleMirror
 })
 
 onBeforeUnmount(() => {
@@ -1223,6 +1226,9 @@ onBeforeUnmount(() => {
     clearInterval(mirrorCheckInterval.value)
   }
   cleanupAudioContext()
+
+  delete window.toggleCompressor
+  delete window.toggleMirror
 })
 </script>
 
