@@ -134,8 +134,6 @@ const search = () => {
   debouncedPerformSearch.cancel()
   if (searchTerm.value) {
     performSearch()
-  } else {
-    alert('Введите запрос для поиска')
   }
 }
 

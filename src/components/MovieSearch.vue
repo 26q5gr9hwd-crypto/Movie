@@ -181,6 +181,9 @@ const setSearchType = (type) => {
 }
 
 const handleInput = (event) => {
+  errorMessage.value = ''
+  errorCode.value = null
+
   if (searchType.value === 'title') {
     searchTerm.value = event.target.value
     if (isMobile.value) return
@@ -218,6 +221,8 @@ const resetSearch = () => {
   movies.value = []
   searchPerformed.value = false
   showLayoutWarning.value = false
+  errorMessage.value = ''
+  errorCode.value = null
   searchInput.value?.focus()
 }
 
@@ -227,8 +232,6 @@ const search = () => {
     errorMessage.value = ''
     errorCode.value = null
     performSearch()
-  } else {
-    alert('Введите запрос для поиска')
   }
 }
 
