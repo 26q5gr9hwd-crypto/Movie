@@ -95,5 +95,13 @@ export const routes = [
     meta: {
       title: 'ReYohoho - Полезные ссылки'
     }
+  },
+  {
+    path: '/appslinks',
+    name: 'appslinks',
+    component: () => import('@/components/AppsLinks.vue'),
+    meta: {
+      title: 'ReYohoho - Приложения'
+    }
   }
 ]
