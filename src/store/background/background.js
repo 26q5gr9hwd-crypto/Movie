@@ -1,7 +1,7 @@
 import starsBackground from '@/assets/image-back-stars.png'
 import { defineStore } from 'pinia'
 import { BACKGROUND_STORE_NAME } from '../constants'
-import { beforeHydrateLegacyVuex } from '../uitls'
+import { beforeHydrateLegacyVuex } from '../utils'
 
 export const useBackgroundStore = defineStore(BACKGROUND_STORE_NAME, {
   state: () => ({

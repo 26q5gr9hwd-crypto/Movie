@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { PLAYER_STORE_NAME } from '../constants'
-import { beforeHydrateLegacyVuex } from '../uitls'
+import { beforeHydrateLegacyVuex } from '../utils'
 
 export const usePlayerStore = defineStore(PLAYER_STORE_NAME, {
   state: () => ({

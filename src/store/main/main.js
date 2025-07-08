@@ -1,7 +1,7 @@
 import noPosterImage from '@/assets/image-no-poster.gif'
 import { defineStore } from 'pinia'
 import { MAIN_STORE_NAME } from '../constants'
-import { beforeHydrateLegacyVuex } from '../uitls'
+import { beforeHydrateLegacyVuex } from '../utils'
 
 export const useMainStore = defineStore(MAIN_STORE_NAME, {
   state: () => ({
