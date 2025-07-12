@@ -151,9 +151,9 @@ export function parseTimingTextToSeconds(text) {
       const start = toSec(startStr)
       const end = toSec(endStr)
       if (start !== null && end !== null) {
-        results.push([start, end])
+        results.push([Math.max(0, start - 2), end + 2])
       } else if (start !== null) {
-        results.push([start, start + 5])
+        results.push([Math.max(0, start - 2), start + 5])
       }
     }
   }
