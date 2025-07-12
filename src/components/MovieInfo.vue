@@ -750,6 +750,28 @@
 "
           class="timing-textarea"
         ></textarea>
+
+        <div v-if="parsedTimingPreview && parsedTimingPreview.length > 0" class="timing-preview">
+          <div class="timing-preview-header">
+            <i class="fas fa-eye"></i>
+            <span>Предпросмотр парсера</span>
+          </div>
+          <div class="timing-preview-content">
+            <div
+              v-for="(range, index) in parsedTimingPreview"
+              :key="index"
+              class="timing-preview-item"
+            >
+              <span class="timing-preview-range">
+                {{ formatSecondsToTime(range[0]) }} - {{ formatSecondsToTime(range[1]) }}
+              </span>
+              <span class="timing-preview-duration">
+                ({{ Math.round(range[1] - range[0]) }}с)
+              </span>
+            </div>
+          </div>
+        </div>
+
         <div class="timing-form-actions">
           <button
             class="submit-timing-btn"
@@ -1505,6 +1527,16 @@ const submitterUsername = computed({
 
 const newTimingText = ref('')
 const isSubmittingTiming = ref(false)
+
+const parsedTimingPreview = computed(() => {
+  if (!newTimingText.value.trim()) return []
+  try {
+    return parseTimingTextToSeconds(newTimingText.value) || []
+  } catch (error) {
+    console.error('Error parsing timing text:', error)
+    return []
+  }
+})
 
 const canSubmitTiming = computed(() => {
   return submitterUsername.value.trim() && newTimingText.value.trim()
@@ -3237,8 +3269,10 @@ function getGeneralParserResult() {
 
 .timing-textarea {
   min-height: 200px;
+  max-height: 400px;
   padding: 10px 12px;
   resize: vertical;
+  overflow-y: auto;
 }
 
 .submit-timing-btn,
@@ -3329,9 +3363,11 @@ function getGeneralParserResult() {
   padding: 20px;
   width: 90%;
   max-width: 500px;
+  max-height: 90vh;
   position: relative;
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  overflow-y: auto;
 }
 
 .timing-modal-header {
@@ -4127,5 +4163,54 @@ function getGeneralParserResult() {
     flex: 1;
     text-align: center;
   }
+}
+
+.timing-preview {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 10px;
+}
+
+.timing-preview-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.timing-preview-header i {
+  color: var(--accent-color);
+}
+
+.timing-preview-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.timing-preview-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.timing-preview-range {
+  color: #fff;
+  font-weight: 500;
+  font-family: 'Courier New', monospace;
+}
+
+.timing-preview-duration {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
 }
 </style>
