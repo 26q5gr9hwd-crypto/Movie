@@ -536,7 +536,7 @@
     </div>
   </div>
   <Notification ref="notificationRef" />
-  <div v-if="nudityInfo !== null" :style="nudityPopupStyle" class="nudity-info-popup">
+  <div v-if="nudityInfo !== null" class="nudity-info-popup">
     <div class="nudity-info-content">
       <div v-if="nudityInfoLoading" class="nudity-info-loading">
         <i class="fas fa-spinner fa-spin"></i>
@@ -566,11 +566,7 @@
       </button>
     </div>
   </div>
-  <div
-    v-if="nudityTimings !== undefined"
-    :style="nudityTimingsPopupStyle"
-    class="nudity-info-popup"
-  >
+  <div v-if="nudityTimings !== undefined" class="nudity-info-popup">
     <div class="nudity-info-content">
       <div class="acknowledgment-table">
         <div class="acknowledgment-header">
@@ -608,13 +604,45 @@
               class="timing-entry"
               :class="{
                 pending: timing.status === 'pending',
-                'clean-text': timing.status === 'clean_text'
+                'clean-text': timing.status === 'clean_text',
+                selected: selectedTimings.has(timing.id)
               }"
             >
               <div class="timing-content">
-                <div v-if="timing.status === 'pending'" class="pending-badge">На модерации</div>
-                <div v-if="timing.status === 'clean_text'" class="clean-text-badge">
-                  Тайминги такого типа не модерируются, для уверенности сверяйтесь с ParentsGuide
+                <div class="timing-header-row" style="display: flex; align-items: center; gap: 8px">
+                  <div v-if="timing.status === 'pending'" class="pending-badge">На модерации</div>
+                  <div v-if="timing.status === 'clean_text'" class="clean-text-badge">
+                    Тайминги такого типа не модерируются, для уверенности сверяйтесь с ParentsGuide
+                  </div>
+                </div>
+                <div
+                  v-if="timing.status !== 'clean_text' && movieInfo?.type === 'FILM'"
+                  class="timing-actions-row"
+                  style="display: flex; align-items: center; gap: 8px; margin-top: 8px"
+                >
+                  <button class="nudity-info-button" @click="handleShowParse(timing)">
+                    {{ showParseResult[timing.id] ? 'Скрыть парсер' : 'Показать парсер' }}
+                  </button>
+                  <template v-if="selectedTimings.has(timing.id)">
+                    <button
+                      class="nudity-info-button"
+                      @click="onRemoveFromAutoblur(timing.id)"
+                      :title="'Удалить из автоблюра'"
+                    >
+                      <i class="fas fa-minus"></i>
+                      <span>Удалить из автоблюра</span>
+                    </button>
+                  </template>
+                  <template v-else>
+                    <button
+                      class="nudity-info-button"
+                      @click="onAddToAutoblur(timing.id)"
+                      :title="'Добавить в автоблюр'"
+                    >
+                      <i class="fas fa-plus"></i>
+                      <span>Добавить в автоблюр</span>
+                    </button>
+                  </template>
                 </div>
                 <div
                   class="timing-hover-container"
@@ -624,11 +652,53 @@
                   <br />
                   <span class="timing-author">by {{ timing.username }}</span>
                 </div>
+                <div
+                  v-if="showParseResult[timing.id] && Array.isArray(showParseResult[timing.id])"
+                  style="color: #fff; font-size: 13px; margin: 4px 0 0 0"
+                >
+                  <b>Парсер:</b>
+                  <span v-if="showParseResult[timing.id].length === 0">Не удалось распарсить</span>
+                  <span v-else>
+                    <span v-for="(range, idx) in showParseResult[timing.id]" :key="idx">
+                      [{{ formatSecondsToTime(range[0]) }}
+                      -
+                      {{ formatSecondsToTime(range[1]) }}]{{
+                        idx < showParseResult[timing.id].length - 1 ? ', ' : ''
+                      }}
+                    </span>
+                  </span>
+                </div>
               </div>
             </div>
           </div>
           <div v-else>
             {{ 'Записей о таймингах не найдено' }}
+          </div>
+        </div>
+        <div
+          v-if="showGeneralParserResult && selectedTimings.size > 0"
+          class="general-parser-result"
+          style="
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+          "
+        >
+          <h4 style="margin: 0 0 10px 0; color: #fff">
+            Общий парсер ({{ selectedTimings.size }} таймингов):
+          </h4>
+          <div style="color: #fff; font-size: 13px">
+            <span v-if="getGeneralParserResult().length === 0"
+              >Не удалось распарсить выбранные тайминги</span
+            >
+            <span v-else>
+              <span v-for="(range, idx) in getGeneralParserResult()" :key="idx">
+                [{{ formatSecondsToTime(range[0]) }} - {{ formatSecondsToTime(range[1]) }}]{{
+                  idx < getGeneralParserResult().length - 1 ? ', ' : ''
+                }}
+              </span>
+            </span>
           </div>
         </div>
         <div class="nudity-info-actions">
@@ -639,6 +709,14 @@
           >
             <i class="fas fa-copy"></i>
             <span>Скопировать</span>
+          </button>
+          <button
+            v-if="selectedTimings.size > 0"
+            class="nudity-info-button"
+            @click="showGeneralParser"
+          >
+            <i class="fas fa-eye"></i>
+            <span>Общий парсер ({{ selectedTimings.size }})</span>
           </button>
           <button class="nudity-info-button" @click="showTimingForm = true">
             <i class="fas fa-plus"></i>
@@ -666,8 +744,8 @@
         />
         <textarea
           v-model="newTimingText"
-          placeholder="Пожалуйста, указывайте длительность фильма, к которому вы прилагаете тайминг
-
+          placeholder="Пожалуйста, указывайте длительность фильма(в [] скобках, например [01:36] или [01:36:55]), к которому вы прилагаете тайминг
+Тк же для автоблюра прошу все тайминги указывать как диапозон, а не конкретное время, например 00:12:31-00:13:04 - текст, а не 00:12:31
 Для сериалов указывайте сезон и номер эпизода
 "
           class="timing-textarea"
@@ -911,6 +989,7 @@ import {
   markAsCleanText as apiMarkAsCleanText
 } from '@/api/movies'
 import { formatDate } from '@/utils/dateUtils'
+import { parseTimingTextToSeconds, formatSecondsToTime } from '@/utils/dateUtils'
 import { handleApiError } from '@/constants'
 import { addToList, delFromList } from '@/api/user'
 import { MovieList } from '@/components/MovieList/'
@@ -954,13 +1033,13 @@ const itemsPerRow = ref(10)
 
 const nudityInfo = ref(null)
 const nudityInfoLoading = ref(false)
-const nudityPopupStyle = ref({})
 const nudityInfoTrigger = ref(null)
 const isListExpanded = ref(false)
 
 const nudityTimings = ref(undefined)
-const nudityTimingsPopupStyle = ref({})
 const nudityTimingsTrigger = ref(null)
+const selectedTimings = ref(new Set())
+const showGeneralParserResult = ref(false)
 
 const shouldShowRedTimings = computed(() => {
   return movieInfo.value?.nudity_timings.length > 0
@@ -1186,14 +1265,6 @@ const showNudityInfo = async (event) => {
   nudityTimings.value = undefined
 
   nudityInfoTrigger.value = event.currentTarget
-  const rect = nudityInfoTrigger.value.getBoundingClientRect()
-
-  nudityPopupStyle.value = {
-    position: 'absolute',
-    top: `${rect.bottom + window.scrollY + 10}px`,
-    left: `${rect.right + window.scrollX}px`,
-    transform: 'translateX(-100%)'
-  }
 
   nudityInfo.value = ''
   nudityInfoLoading.value = true
@@ -1219,14 +1290,6 @@ const showNudityTimings = (event) => {
   }
 
   nudityTimingsTrigger.value = event.currentTarget
-  const rect = nudityTimingsTrigger.value.getBoundingClientRect()
-
-  nudityTimingsPopupStyle.value = {
-    position: 'absolute',
-    top: `${rect.bottom + window.scrollY + 10}px`,
-    left: `${rect.right + window.scrollX}px`,
-    transform: 'translateX(-100%)'
-  }
 
   nudityTimings.value =
     movieInfo.value?.nudity_timings === null ? '' : movieInfo.value?.nudity_timings || ''
@@ -1320,6 +1383,7 @@ onMounted(async () => {
   document.addEventListener('click', handleClickOutside)
   document.addEventListener('click', handleNudityPopupOutsideClick, true)
   document.addEventListener('click', handleNudityTimingsPopupOutsideClick, true)
+  window.selectedNudityTimings = Array.from(selectedTimings.value)
 })
 
 onUnmounted(async () => {
@@ -1329,6 +1393,7 @@ onUnmounted(async () => {
   document.removeEventListener('click', handleClickOutside)
   document.removeEventListener('click', handleNudityPopupOutsideClick, true)
   document.removeEventListener('click', handleNudityTimingsPopupOutsideClick, true)
+  delete window.selectedNudityTimings
 })
 
 watch(
@@ -1376,6 +1441,22 @@ watch(
   },
   { deep: true }
 )
+
+watch(
+  selectedTimings,
+  () => {
+    window.selectedNudityTimings = Array.from(selectedTimings.value)
+  },
+  { deep: true }
+)
+
+onMounted(() => {
+  window.selectedNudityTimings = Array.from(selectedTimings.value)
+})
+
+onUnmounted(() => {
+  delete window.selectedNudityTimings
+})
 
 const getStaffByProfession = (profession) => {
   return movieInfo.value?.staff?.filter((person) => person.profession_key === profession) || []
@@ -1601,6 +1682,70 @@ const filteredTimings = computed(() => {
   }
   return allTimings.value.filter((timing) => timing.status === timingFilter.value)
 })
+
+const toggleTimingSelection = (timingId) => {
+  if (selectedTimings.value.has(timingId)) {
+    selectedTimings.value.delete(timingId)
+  } else {
+    selectedTimings.value.add(timingId)
+  }
+}
+
+const showParseResult = ref({})
+
+function handleShowParse(timing) {
+  if (showParseResult.value[timing.id]) {
+    showParseResult.value = { ...showParseResult.value, [timing.id]: false }
+  } else {
+    const parsed = parseTimingTextToSeconds(timing.timing_text)
+    showParseResult.value = { ...showParseResult.value, [timing.id]: parsed }
+  }
+}
+
+const isElectron = computed(() => !!window.electronAPI)
+
+function onAddToAutoblur(id) {
+  if (!isElectron.value) {
+    if (notificationRef.value) {
+      notificationRef.value.showNotification('Доступно только в приложении')
+    } else {
+      alert('Доступно только в приложении')
+    }
+    return
+  }
+  toggleTimingSelection(id)
+}
+
+function onRemoveFromAutoblur(id) {
+  if (!isElectron.value) {
+    if (notificationRef.value) {
+      notificationRef.value.showNotification('Доступно только в приложении')
+    } else {
+      alert('Доступно только в приложении')
+    }
+    return
+  }
+  toggleTimingSelection(id)
+}
+
+function showGeneralParser() {
+  showGeneralParserResult.value = !showGeneralParserResult.value
+}
+
+function getGeneralParserResult() {
+  const allRanges = []
+  if (nudityTimings.value && Array.isArray(nudityTimings.value)) {
+    for (const timing of nudityTimings.value) {
+      if (selectedTimings.value.has(timing.id)) {
+        const parsedRanges = parseTimingTextToSeconds(timing.timing_text)
+        if (parsedRanges && parsedRanges.length > 0) {
+          allRanges.push(...parsedRanges)
+        }
+      }
+    }
+  }
+  return allRanges
+}
 </script>
 
 <style scoped>
@@ -2464,13 +2609,16 @@ const filteredTimings = computed(() => {
 }
 
 .nudity-info-popup {
-  position: absolute;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   background: rgba(0, 0, 0, 0.95);
   border: 1px solid #333;
   border-radius: 8px;
-  padding: 15px;
-  min-width: 300px;
-  max-width: 500px;
+  padding: 20px;
+  min-width: 900px;
+  max-width: 1500px;
   z-index: 1000;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
@@ -2481,7 +2629,7 @@ const filteredTimings = computed(() => {
   line-height: 1.5;
   white-space: pre-wrap;
   margin-bottom: 15px;
-  max-height: 60vh;
+  max-height: 80vh;
   overflow-y: auto;
 }
 
@@ -2533,8 +2681,8 @@ const filteredTimings = computed(() => {
 
 @media (max-width: 600px) {
   .nudity-info-popup {
-    min-width: 250px;
-    max-width: 90vw;
+    min-width: 300px;
+    max-width: 95vw;
     margin: 0 10px;
   }
 }

@@ -461,6 +461,7 @@ import { USER_LIST_TYPES_ENUM } from '@/constants'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import PlayerModal from '@/components/PlayerModal.vue'
+import { parseTimingTextToSeconds, formatSecondsToTime } from '@/utils/dateUtils'
 
 const mainStore = useMainStore()
 const playerStore = usePlayerStore()
@@ -507,6 +508,7 @@ const tooltip = ref(null)
 const mirrorCheckInterval = ref(null)
 const currentMirrorState = ref(false)
 const currentCompressorState = ref(false)
+const videoPositionInterval = ref(null)
 
 const audioContext = ref(null)
 const compressorNode = ref(null)
@@ -984,9 +986,99 @@ const startMirrorMonitoring = () => {
   }, 1000)
 }
 
+const startVideoPositionMonitoring = (isDebug = false) => {
+  if (!isElectron.value) return
+
+  if (videoPositionInterval.value) {
+    clearInterval(videoPositionInterval.value)
+  }
+
+  let blurApplied = false
+  let blurIntervals = []
+
+  function updateBlurIntervals() {
+    blurIntervals = []
+    if (
+      window.selectedNudityTimings &&
+      Array.isArray(window.selectedNudityTimings) &&
+      props.movieInfo?.nudity_timings
+    ) {
+      for (const timing of props.movieInfo.nudity_timings) {
+        if (window.selectedNudityTimings.includes(timing.id)) {
+          const parsedRanges = parseTimingTextToSeconds(timing.timing_text)
+          if (parsedRanges && parsedRanges.length > 0) {
+            blurIntervals.push(...parsedRanges)
+          }
+        }
+      }
+    }
+  }
+
+  updateBlurIntervals()
+
+  videoPositionInterval.value = setInterval(() => {
+    if (!playerIframe.value) return
+
+    updateBlurIntervals()
+
+    try {
+      const iframe = playerIframe.value
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow.document
+      if (!iframeDoc) return
+
+      const videos = iframeDoc.querySelectorAll('video')
+      if (videos.length > 0) {
+        const video = videos[0]
+
+        if (!video.paused) {
+          const currentTime = video.currentTime
+          const duration = video.duration
+          const progress = duration > 0 ? (currentTime / duration) * 100 : 0
+
+          if (isDebug) {
+            console.log(
+              `Video position: ${currentTime.toFixed(2)}s / ${duration.toFixed(2)}s (${progress.toFixed(1)}%)`
+            )
+
+            if (blurIntervals.length > 0) {
+              const activeIntervals = blurIntervals
+                .map(
+                  ([start, end]) => `${formatSecondsToTime(start)} - ${formatSecondsToTime(end)}`
+                )
+                .join(', ')
+              console.log(`Active blur intervals: [${activeIntervals}]`)
+            }
+          }
+
+          let shouldBlur = false
+          for (const [start, end] of blurIntervals) {
+            if (currentTime >= start && currentTime <= end) {
+              shouldBlur = true
+              break
+            }
+          }
+
+          if (shouldBlur && !blurApplied && isElectron.value) {
+            window.electronAPI.sendHotKey('F2')
+            blurApplied = true
+            console.log('Blur applied at', currentTime.toFixed(2), 'seconds')
+          } else if (!shouldBlur && blurApplied) {
+            window.electronAPI.sendHotKey('F2')
+            blurApplied = false
+            console.log('Blur removed at', currentTime.toFixed(2), 'seconds')
+          }
+        }
+      }
+    } catch (error) {
+      console.log('Error monitoring video position:', error)
+    }
+  }, 100)
+}
+
 const onIframeLoad = () => {
   iframeLoading.value = false
   startMirrorMonitoring()
+  startVideoPositionMonitoring()
 }
 
 const onKeyDown = (event) => {
@@ -1062,6 +1154,10 @@ const handlePlayerSelect = (player) => {
     clearInterval(mirrorCheckInterval.value)
     mirrorCheckInterval.value = null
   }
+  if (videoPositionInterval.value) {
+    clearInterval(videoPositionInterval.value)
+    videoPositionInterval.value = null
+  }
   if (!player.key.toLowerCase().includes('torrents')) {
     playerStore.updatePreferredPlayer(normalizeKey(player.key))
   }
@@ -1077,6 +1173,10 @@ watch(selectedPlayerInternal, (newVal) => {
     if (mirrorCheckInterval.value) {
       clearInterval(mirrorCheckInterval.value)
       mirrorCheckInterval.value = null
+    }
+    if (videoPositionInterval.value) {
+      clearInterval(videoPositionInterval.value)
+      videoPositionInterval.value = null
     }
     if (!newVal.key.toLowerCase().includes('torrents')) {
       playerStore.updatePreferredPlayer(normalizeKey(newVal.key))
@@ -1096,6 +1196,10 @@ watch(
       if (mirrorCheckInterval.value) {
         clearInterval(mirrorCheckInterval.value)
         mirrorCheckInterval.value = null
+      }
+      if (videoPositionInterval.value) {
+        clearInterval(videoPositionInterval.value)
+        videoPositionInterval.value = null
       }
       if (isCentered.value) centerPlayer()
     }
@@ -1224,6 +1328,9 @@ onBeforeUnmount(() => {
   document.body.classList.remove('no-scroll')
   if (mirrorCheckInterval.value) {
     clearInterval(mirrorCheckInterval.value)
+  }
+  if (videoPositionInterval.value) {
+    clearInterval(videoPositionInterval.value)
   }
   cleanupAudioContext()
 
