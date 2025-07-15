@@ -656,7 +656,10 @@
                   v-if="showParseResult[timing.id] && Array.isArray(showParseResult[timing.id])"
                   style="color: #fff; font-size: 13px; margin: 4px 0 0 0"
                 >
-                  <b>Парсер:</b>
+                  <b
+                    >Парсер(к таймингам добавится -2 и +2 секунд по краям тайминга для
+                    предосторожности, но в превью парсера их нет для удобства проверки):</b
+                  >
                   <span v-if="showParseResult[timing.id].length === 0">Не удалось распарсить</span>
                   <span v-else>
                     <span v-for="(range, idx) in showParseResult[timing.id]" :key="idx">
@@ -1531,7 +1534,7 @@ const isSubmittingTiming = ref(false)
 const parsedTimingPreview = computed(() => {
   if (!newTimingText.value.trim()) return []
   try {
-    return parseTimingTextToSeconds(newTimingText.value) || []
+    return parseTimingTextToSeconds(newTimingText.value, true) || []
   } catch (error) {
     console.error('Error parsing timing text:', error)
     return []
@@ -1729,7 +1732,7 @@ function handleShowParse(timing) {
   if (showParseResult.value[timing.id]) {
     showParseResult.value = { ...showParseResult.value, [timing.id]: false }
   } else {
-    const parsed = parseTimingTextToSeconds(timing.timing_text)
+    const parsed = parseTimingTextToSeconds(timing.timing_text, true)
     showParseResult.value = { ...showParseResult.value, [timing.id]: parsed }
   }
 }
@@ -1769,7 +1772,7 @@ function getGeneralParserResult() {
   if (nudityTimings.value && Array.isArray(nudityTimings.value)) {
     for (const timing of nudityTimings.value) {
       if (selectedTimings.value.has(timing.id)) {
-        const parsedRanges = parseTimingTextToSeconds(timing.timing_text)
+        const parsedRanges = parseTimingTextToSeconds(timing.timing_text, true)
         if (parsedRanges && parsedRanges.length > 0) {
           allRanges.push(...parsedRanges)
         }
