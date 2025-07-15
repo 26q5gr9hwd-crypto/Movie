@@ -13,8 +13,7 @@ export const usePlayerStore = defineStore(PLAYER_STORE_NAME, {
     videoOverlayEnabled: true,
     overlaySettings: {
       showTitle: true,
-      showDuration: true,
-      showStartTime: true
+      showDuration: true
     }
   }),
 
@@ -42,8 +41,6 @@ export const usePlayerStore = defineStore(PLAYER_STORE_NAME, {
     },
     updateOverlaySettings(settings) {
       this.overlaySettings = { ...this.overlaySettings, ...settings }
-    },
-    resetStartTime() {
     }
   },
 

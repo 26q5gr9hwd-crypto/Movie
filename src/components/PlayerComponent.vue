@@ -548,8 +548,7 @@ const overlaySettings = computed({
 const currentVideoTime = ref(0)
 const totalVideoDuration = ref(0)
 const activeTimingTexts = ref([])
-const playStartTime = ref(null)
-const hasPlayedFor5Seconds = ref(false)
+
 const currentOverlayElement = ref(null)
 const overlayControlsTimeout = ref(null)
 const overlayCreationInProgress = ref(false)
@@ -1157,21 +1156,6 @@ const startVideoPositionMonitoring = (isDebug = false) => {
           const duration = video.duration
           const progress = duration > 0 ? (currentTime / duration) * 100 : 0
 
-          if (!hasPlayedFor5Seconds.value && currentTime >= 5) {
-            if (!playStartTime.value) {
-              const calculatedStartTime = Date.now() - currentTime * 1000
-              const now = Date.now()
-              const maxPastTime = 24 * 60 * 60 * 1000
-
-              if (calculatedStartTime > now - maxPastTime && calculatedStartTime <= now) {
-                playStartTime.value = calculatedStartTime
-              } else {
-                playStartTime.value = now
-              }
-            }
-            hasPlayedFor5Seconds.value = true
-          }
-
           if (isDebug) {
             console.log(
               `Video position: ${currentTime.toFixed(2)}s / ${duration.toFixed(2)}s (${progress.toFixed(1)}%)`
@@ -1215,8 +1199,6 @@ const startVideoPositionMonitoring = (isDebug = false) => {
 const onIframeLoad = () => {
   iframeLoading.value = false
   window.iframeLoadTime = Date.now()
-  playStartTime.value = null
-  hasPlayedFor5Seconds.value = false
   startMirrorMonitoring()
   startVideoPositionMonitoring()
 
@@ -1308,8 +1290,6 @@ const handlePlayerSelect = (player) => {
   currentMirrorState.value = false
   currentCompressorState.value = false
   currentVideoElement.value = null
-  playStartTime.value = null
-  hasPlayedFor5Seconds.value = false
   if (currentOverlayElement.value) {
     removeVideoOverlay()
   }
@@ -1333,8 +1313,6 @@ watch(selectedPlayerInternal, (newVal) => {
     currentMirrorState.value = false
     currentCompressorState.value = false
     currentVideoElement.value = null
-    playStartTime.value = null
-    hasPlayedFor5Seconds.value = false
     if (currentOverlayElement.value) {
       removeVideoOverlay()
     }
@@ -1361,8 +1339,6 @@ watch(
       currentMirrorState.value = false
       currentCompressorState.value = false
       currentVideoElement.value = null
-      playStartTime.value = null
-      hasPlayedFor5Seconds.value = false
       if (currentOverlayElement.value) {
         removeVideoOverlay()
       }
@@ -1618,16 +1594,10 @@ const showOverlaySettings = () => {
         <span style="font-size: 16px;">Показывать продолжительность</span>
       </label>
       
-      <label style="display: flex; align-items: center; gap: 12px; color: white; cursor: pointer; padding: 8px; border-radius: 8px; background: rgba(255, 255, 255, 0.05);">
-        <input type="checkbox" id="showStartTime" ${settings.showStartTime ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: #ff6b35;">
-        <span style="font-size: 16px;">Показывать время начала</span>
-      </label>
+
     </div>
     
     <div style="display: flex; gap: 12px; margin-top: 24px; justify-content: center;">
-      <button id="resetStartTime" style="background: rgba(255, 107, 53, 0.2); color: #ff6b35; border: 1px solid #ff6b35; border-radius: 8px; padding: 10px 16px; cursor: pointer; font-size: 14px; transition: all 0.3s ease;">
-        Обновить время начала
-      </button>
       <button id="saveSettings" style="background: #ff6b35; color: white; border: none; border-radius: 8px; padding: 10px 20px; cursor: pointer; font-size: 16px; font-weight: 500; transition: all 0.3s ease;">
         Сохранить
       </button>
@@ -1645,17 +1615,10 @@ const showOverlaySettings = () => {
     }
   })
 
-  modalContent.querySelector('#resetStartTime').addEventListener('click', () => {
-    playStartTime.value = Date.now() - currentVideoTime.value * 1000
-    hasPlayedFor5Seconds.value = true
-    window.electronAPI?.showToast('Время начала обновлено')
-  })
-
   modalContent.querySelector('#saveSettings').addEventListener('click', () => {
     const newSettings = {
       showTitle: modalContent.querySelector('#showTitle').checked,
-      showDuration: modalContent.querySelector('#showDuration').checked,
-      showStartTime: modalContent.querySelector('#showStartTime').checked
+      showDuration: modalContent.querySelector('#showDuration').checked
     }
     overlaySettings.value = newSettings
     window.electronAPI?.showToast('Настройки оверлея сохранены')
@@ -1672,8 +1635,6 @@ const showOverlaySettings = () => {
       if (button.id === 'saveSettings') {
         button.style.background = '#e55a2b'
         button.style.transform = 'translateY(-1px)'
-      } else if (button.id === 'resetStartTime') {
-        button.style.background = 'rgba(255, 107, 53, 0.3)'
       } else {
         button.style.background = 'rgba(255, 255, 255, 0.15)'
       }
@@ -1682,8 +1643,6 @@ const showOverlaySettings = () => {
       if (button.id === 'saveSettings') {
         button.style.background = '#ff6b35'
         button.style.transform = 'translateY(0)'
-      } else if (button.id === 'resetStartTime') {
-        button.style.background = 'rgba(255, 107, 53, 0.2)'
       } else {
         button.style.background = 'rgba(255, 255, 255, 0.1)'
       }
@@ -1691,28 +1650,6 @@ const showOverlaySettings = () => {
   })
 
   iframeDoc.body.appendChild(modal)
-}
-
-const formatPlayStartTime = (timestamp) => {
-  const now = new Date()
-  const startTime = new Date(timestamp)
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const startToday = new Date(startTime.getFullYear(), startTime.getMonth(), startTime.getDate())
-
-  const timeStr = startTime.toLocaleTimeString('ru-RU', {
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-
-  if (startToday.getTime() === today.getTime()) {
-    return timeStr
-  } else {
-    const dateStr = startTime.toLocaleDateString('ru-RU', {
-      day: '2-digit',
-      month: '2-digit'
-    })
-    return `${dateStr} ${timeStr}`
-  }
 }
 
 const createVideoOverlay = (iframeDoc, video) => {
@@ -2172,19 +2109,6 @@ const updateVideoOverlay = () => {
       <span style="font-family: 'Courier New', monospace; background: rgba(0, 0, 0, 0.6); padding: 2px 8px; border-radius: 4px; color: rgba(255, 255, 255, 0.6);">${currentTimeFormatted}</span>
       <span style="opacity: 0.6;">/</span>
       <span style="font-family: 'Courier New', monospace; background: rgba(0, 0, 0, 0.6); padding: 2px 8px; border-radius: 4px; color: rgba(255, 255, 255, 0.6);">${totalTimeFormatted}</span>
-    `
-  }
-
-  if (overlaySettings.value.showStartTime && playStartTime.value && hasPlayedFor5Seconds.value) {
-    if (progressHtml) {
-      progressHtml += `
-      <span style="opacity: 0.6; margin: 0 4px;">•</span>
-      `
-    }
-    const formattedTime = formatPlayStartTime(playStartTime.value)
-    progressHtml += `
-      <span style="color: rgba(255, 255, 255, 0.6); font-size: 16px; line-height: 1; vertical-align: middle;">Начало:</span>
-      <span style="font-family: 'Courier New', monospace; background: rgba(0, 0, 0, 0.6); padding: 2px 8px; border-radius: 4px; color: rgba(255, 255, 255, 0.6); font-size: 16px; line-height: 1; vertical-align: middle;">${formattedTime}</span>
     `
   }
 
