@@ -14,7 +14,8 @@ export const usePlayerStore = defineStore(PLAYER_STORE_NAME, {
     overlaySettings: {
       showTitle: true,
       showDuration: true,
-      showBackground: false
+      showBackground: false,
+      showTimingsOnMouseMove: false
     },
     obsSettings: {
       enabled: false,

@@ -1462,6 +1462,39 @@ watch(
   }
 )
 
+watch(
+  overlaySettings,
+  (newSettings, oldSettings) => {
+    if (!isElectron.value || !videoOverlayEnabled.value) return
+
+    if (oldSettings && newSettings.showBackground !== oldSettings.showBackground) {
+      if (currentOverlayElement.value) {
+        removeVideoOverlay()
+
+        setTimeout(() => {
+          if (playerIframe.value && videoOverlayEnabled.value) {
+            try {
+              const iframe = playerIframe.value
+              const iframeDoc = iframe.contentDocument || iframe.contentWindow.document
+              if (iframeDoc) {
+                const video = iframeDoc.querySelector('video')
+                if (video) {
+                  createVideoOverlay(iframeDoc, video)
+                }
+              }
+            } catch (error) {
+              console.log('Error recreating overlay:', error)
+            }
+          }
+        }, 100)
+      }
+    } else if (currentOverlayElement.value) {
+      updateVideoOverlay()
+    }
+  },
+  { deep: true }
+)
+
 const aspectRatios = ['16:9', '12:5', '4:3']
 
 const cycleAspectRatio = () => {
@@ -1728,6 +1761,11 @@ const showOverlaySettings = () => {
         <input type="checkbox" id="showBackground" ${settings.showBackground ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: #ff6b35;">
         <span style="font-size: 16px;">Показывать затемненный фон</span>
       </label>
+      
+      <label style="display: flex; align-items: center; gap: 12px; color: white; cursor: pointer; padding: 8px; border-radius: 8px; background: rgba(255, 255, 255, 0.05);">
+        <input type="checkbox" id="showTimingsOnMouseMove" ${settings.showTimingsOnMouseMove ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: #ff6b35;">
+        <span style="font-size: 16px;">Показывать тайминги только при движении мышки</span>
+      </label>
 
     </div>
     
@@ -1753,7 +1791,8 @@ const showOverlaySettings = () => {
     const newSettings = {
       showTitle: modalContent.querySelector('#showTitle').checked,
       showDuration: modalContent.querySelector('#showDuration').checked,
-      showBackground: modalContent.querySelector('#showBackground').checked
+      showBackground: modalContent.querySelector('#showBackground').checked,
+      showTimingsOnMouseMove: modalContent.querySelector('#showTimingsOnMouseMove').checked
     }
     overlaySettings.value = newSettings
     window.electronAPI?.showToast('Настройки оверлея сохранены')
@@ -1896,6 +1935,9 @@ const createVideoOverlay = (iframeDoc, video) => {
     max-width: 800px !important;
     pointer-events: none !important;
     display: none !important;
+    transition: opacity 0.3s ease, visibility 0.3s ease !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
   `
 
   const timingsContent = iframeDoc.createElement('div')
@@ -1993,11 +2035,23 @@ const createVideoOverlay = (iframeDoc, video) => {
 
   mainInfo.style.transition = 'opacity 0.3s ease'
   let hideMainInfoTimeout = null
+  let hideTimingsTimeout = null
 
   const handleMouseMove = () => {
     controlsContainer.style.opacity = '1'
     controlsContainer.style.visibility = 'visible'
     mainInfo.style.opacity = '0'
+
+    if (overlaySettings.value.showTimingsOnMouseMove && activeTimingTexts.value.length > 0) {
+      timingsPanel.style.opacity = '1'
+      timingsPanel.style.visibility = 'visible'
+      clearTimeout(hideTimingsTimeout)
+
+      hideTimingsTimeout = setTimeout(() => {
+        timingsPanel.style.opacity = '0'
+        timingsPanel.style.visibility = 'hidden'
+      }, 3000)
+    }
 
     clearTimeout(overlayControlsTimeout.value)
     clearTimeout(hideMainInfoTimeout)
@@ -2386,6 +2440,11 @@ const updateVideoOverlay = () => {
     })
 
     timingsPanel.style.display = 'block'
+
+    if (!overlaySettings.value.showTimingsOnMouseMove) {
+      timingsPanel.style.opacity = '1'
+      timingsPanel.style.visibility = 'visible'
+    }
 
     if (overlaySettings.value.showBackground) {
       timingsPanel.style.background = 'rgba(0, 0, 0, 0.7) !important'
