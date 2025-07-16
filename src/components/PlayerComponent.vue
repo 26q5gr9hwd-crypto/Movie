@@ -67,7 +67,7 @@
     <div v-if="!theaterMode" class="controls">
       <div class="main-controls">
         <div
-          v-if="!isMobile"
+          v-if="!isMobile && kp_id"
           ref="tooltipContainer"
           class="tooltip-container list-buttons-container"
           data-tooltip-container="favorite"
@@ -316,7 +316,11 @@
           </div>
 
           <!-- Кнопка для открытия в приложении -->
-          <div v-if="!isElectron" class="tooltip-container" data-tooltip-container="app_link">
+          <div
+            v-if="!isElectron && kp_id"
+            class="tooltip-container"
+            data-tooltip-container="app_link"
+          >
             <button
               class="app-link-btn"
               @mouseenter="showTooltip('app_link')"
@@ -372,7 +376,7 @@
         </template>
       </div>
 
-      <div v-if="!isMobile && !showFavoriteTooltip" class="desktop-list-buttons">
+      <div v-if="!isMobile && !showFavoriteTooltip && kp_id" class="desktop-list-buttons">
         <div class="tooltip-container">
           <button
             class="favorite-btn"
@@ -463,7 +467,7 @@
 </template>
 
 <script setup>
-import { getPlayers } from '@/api/movies'
+import { getPlayers, getShikiPlayers } from '@/api/movies'
 import { handleApiError } from '@/constants'
 import { addToList, delFromList } from '@/api/user'
 import ErrorMessage from '@/components/ErrorMessage.vue'
@@ -691,7 +695,15 @@ const fetchPlayers = async () => {
   try {
     errorMessage.value = ''
     errorCode.value = null
-    const players = await getPlayers(props.kpId)
+
+    let players
+    if (props.kpId.startsWith('shiki')) {
+      const cleanShikiId = props.kpId.replace('shiki', '')
+      players = await getShikiPlayers(cleanShikiId)
+    } else {
+      players = await getPlayers(props.kpId)
+    }
+
     playersInternal.value = Object.entries(players).map(([key, value]) => ({
       key: key.toUpperCase(),
       ...value

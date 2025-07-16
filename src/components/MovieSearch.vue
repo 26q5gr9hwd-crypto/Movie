@@ -285,12 +285,18 @@ const performSearch = async () => {
       if (!/^\d+$/.test(searchTerm.value)) {
         searchTerm.value = searchTerm.value.replace(/\D/g, '')
       }
-      const response = await getKpIDfromSHIKI(searchTerm.value)
-      if (response.id_kp) {
-        router.push({ name: 'movie-info', params: { kp_id: `${response.id_kp}` } })
-      } else {
-        throw new Error('Не найдено')
+
+      try {
+        const response = await getKpIDfromSHIKI(searchTerm.value)
+        if (response.id_kp) {
+          router.push({ name: 'movie-info', params: { kp_id: `${response.id_kp}` } })
+          return
+        }
+      } catch (e) {
+        console.log('Switch to kodik', e)
       }
+
+      router.push({ name: 'movie-info-shiki', params: { shiki_id: `shiki${searchTerm.value}` } })
       return
     }
     if (searchType.value === 'title') {

@@ -50,6 +50,20 @@ const getPlayers = async (kpId) => {
   return data
 }
 
+const getShikiPlayers = async (shikiId) => {
+  const { data } = await apiCall((api) =>
+    api.post(
+      '/cache_shiki',
+      new URLSearchParams({
+        shikimori: shikiId,
+        type: 'anime'
+      }),
+      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+    )
+  )
+  return data
+}
+
 const getMovies = async ({ activeTime = 'all', typeFilter = 'all', limit = null } = {}) => {
   const limitParam = limit ? `&limit=${limit}` : ''
   const { data } = await apiCall((api) =>
@@ -169,6 +183,7 @@ export {
   getShikiInfo,
   getKpInfo,
   getPlayers,
+  getShikiPlayers,
   getMovies,
   getDiscussedMovies,
   getDons,

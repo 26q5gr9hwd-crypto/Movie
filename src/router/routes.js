@@ -24,6 +24,14 @@ export const routes = [
     }
   },
   {
+    path: '/shiki/:shiki_id',
+    component: () => import('@/components/MovieInfoShiki.vue'),
+    name: 'movie-info-shiki',
+    meta: {
+      title: 'ReYohoho - Просмотр аниме'
+    }
+  },
+  {
     path: '/contact',
     name: 'ContactsPage',
     component: () => import('@/components/ContactsPage.vue'),
