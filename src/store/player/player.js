@@ -10,7 +10,7 @@ export const usePlayerStore = defineStore(PLAYER_STORE_NAME, {
     showFavoriteTooltip: true,
     compressorEnabled: false,
     mirrorEnabled: false,
-    videoOverlayEnabled: true,
+    videoOverlayEnabled2: true,
     overlaySettings: {
       showTitle: true,
       showDuration2: false,
@@ -50,7 +50,7 @@ export const usePlayerStore = defineStore(PLAYER_STORE_NAME, {
       this.mirrorEnabled = value
     },
     updateVideoOverlay(value) {
-      this.videoOverlayEnabled = value
+      this.videoOverlayEnabled2 = value
     },
     updateOverlaySettings(settings) {
       this.overlaySettings = { ...this.overlaySettings, ...settings }

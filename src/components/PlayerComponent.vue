@@ -360,17 +360,17 @@
           <div v-if="isElectron" class="tooltip-container" data-tooltip-container="overlay">
             <button
               class="overlay-btn"
-              :class="{ active: videoOverlayEnabled }"
+              :class="{ active: videoOverlayEnabled2 }"
               @mouseenter="showTooltip('overlay')"
               @mouseleave="activeTooltip = null"
               @click="toggleVideoOverlay"
             >
               <span class="material-icons">{{
-                videoOverlayEnabled ? 'layers' : 'layers_clear'
+                videoOverlayEnabled2 ? 'layers' : 'layers_clear'
               }}</span>
             </button>
             <div v-show="activeTooltip === 'overlay'" class="custom-tooltip" data-tooltip="overlay">
-              {{ videoOverlayEnabled ? 'Скрыть оверлей видео' : 'Показать оверлей видео' }}
+              {{ videoOverlayEnabled2 ? 'Скрыть оверлей видео' : 'Показать оверлей видео' }}
             </div>
           </div>
         </template>
@@ -541,8 +541,8 @@ const gainNode = ref(null)
 const bypassGainNode = ref(null)
 const currentVideoElement = ref(null)
 
-const videoOverlayEnabled = computed({
-  get: () => playerStore.videoOverlayEnabled,
+const videoOverlayEnabled2 = computed({
+  get: () => playerStore.videoOverlayEnabled2,
   set: (value) => playerStore.updateVideoOverlay(value)
 })
 
@@ -1164,7 +1164,7 @@ const startVideoPositionMonitoring = (isDebug = false) => {
 
         if (
           isElectron.value &&
-          videoOverlayEnabled.value &&
+          videoOverlayEnabled2.value &&
           !currentOverlayElement.value &&
           !overlayCreationInProgress.value
         ) {
@@ -1179,9 +1179,9 @@ const startVideoPositionMonitoring = (isDebug = false) => {
           }
         }
 
-        if (isElectron.value && !videoOverlayEnabled.value && currentOverlayElement.value) {
+        if (isElectron.value && !videoOverlayEnabled2.value && currentOverlayElement.value) {
           setTimeout(() => {
-            if (!videoOverlayEnabled.value && currentOverlayElement.value) {
+            if (!videoOverlayEnabled2.value && currentOverlayElement.value) {
               removeVideoOverlay()
             }
           }, 100)
@@ -1231,7 +1231,7 @@ const startVideoPositionMonitoring = (isDebug = false) => {
           activeTimingTexts.value = selectedTimings
         }
 
-        if (isElectron.value && currentOverlayElement.value && videoOverlayEnabled.value) {
+        if (isElectron.value && currentOverlayElement.value && videoOverlayEnabled2.value) {
           updateVideoOverlay()
         }
 
@@ -1303,7 +1303,7 @@ const onIframeLoad = () => {
   startMirrorMonitoring()
   startVideoPositionMonitoring()
 
-  if (isElectron.value && videoOverlayEnabled.value && !currentOverlayElement.value) {
+  if (isElectron.value && videoOverlayEnabled2.value && !currentOverlayElement.value) {
     setTimeout(() => {
       try {
         const iframe = playerIframe.value
@@ -1458,7 +1458,7 @@ watch(
   { immediate: true }
 )
 
-watch(videoOverlayEnabled, (enabled) => {
+watch(videoOverlayEnabled2, (enabled) => {
   if (!isElectron.value) return
 
   if (enabled && !currentOverlayElement.value) {
@@ -1499,8 +1499,8 @@ watch(
     const hasTimings = newTimings && newTimings.length > 0
 
     if (!hadTimings && hasTimings) {
-      if (!videoOverlayEnabled.value) {
-        videoOverlayEnabled.value = true
+      if (!videoOverlayEnabled2.value) {
+        videoOverlayEnabled2.value = true
         if (window.electronAPI) {
           window.electronAPI.showToast('Оверлей автоматически включён - добавлены тайминги')
         }
@@ -1524,14 +1524,14 @@ watch(
 watch(
   overlaySettings,
   (newSettings, oldSettings) => {
-    if (!isElectron.value || !videoOverlayEnabled.value) return
+    if (!isElectron.value || !videoOverlayEnabled2.value) return
 
     if (oldSettings && newSettings.showBackground !== oldSettings.showBackground) {
       if (currentOverlayElement.value) {
         removeVideoOverlay()
 
         setTimeout(() => {
-          if (playerIframe.value && videoOverlayEnabled.value) {
+          if (playerIframe.value && videoOverlayEnabled2.value) {
             try {
               const iframe = playerIframe.value
               const iframeDoc = iframe.contentDocument || iframe.contentWindow.document
@@ -1655,9 +1655,9 @@ const togglePiP = async () => {
 }
 
 const toggleVideoOverlay = () => {
-  videoOverlayEnabled.value = !videoOverlayEnabled.value
+  videoOverlayEnabled2.value = !videoOverlayEnabled2.value
 
-  if (!videoOverlayEnabled.value) {
+  if (!videoOverlayEnabled2.value) {
     removeVideoOverlay()
   } else {
     const createOverlayAfterDelay = () => {
@@ -1892,7 +1892,7 @@ const showOverlaySettings = () => {
 }
 
 const createVideoOverlay = (iframeDoc, video) => {
-  if (!videoOverlayEnabled.value) {
+  if (!videoOverlayEnabled2.value) {
     return
   }
   if (currentOverlayElement.value) {
@@ -2063,7 +2063,7 @@ const createVideoOverlay = (iframeDoc, video) => {
   toggleBtn.title = 'Отключить оверлей'
 
   toggleBtn.addEventListener('click', () => {
-    videoOverlayEnabled.value = false
+    videoOverlayEnabled2.value = false
   })
 
   settingsBtn.addEventListener('click', () => {
@@ -2222,7 +2222,7 @@ const createVideoOverlay = (iframeDoc, video) => {
   overlayCreationInProgress.value = false
 
   const overlayMonitorInterval = setInterval(() => {
-    if (!currentOverlayElement.value || !videoOverlayEnabled.value) {
+    if (!currentOverlayElement.value || !videoOverlayEnabled2.value) {
       clearInterval(overlayMonitorInterval)
       return
     }
@@ -2310,7 +2310,7 @@ const createVideoOverlay = (iframeDoc, video) => {
       if (mutation.type === 'attributes' && mutation.target === overlay) {
         if (mutation.attributeName === 'style') {
           setTimeout(() => {
-            if (currentOverlayElement.value && videoOverlayEnabled.value) {
+            if (currentOverlayElement.value && videoOverlayEnabled2.value) {
               applyOverlayStyles()
             }
           }, 100)
@@ -2325,7 +2325,7 @@ const createVideoOverlay = (iframeDoc, video) => {
   })
 
   const resizeHandler = () => {
-    if (currentOverlayElement.value && videoOverlayEnabled.value) {
+    if (currentOverlayElement.value && videoOverlayEnabled2.value) {
       applyOverlayStyles()
     }
   }
@@ -2338,7 +2338,7 @@ const createVideoOverlay = (iframeDoc, video) => {
   overlay._iframeDoc = iframeDoc
 
   const initialProtectionInterval = setInterval(() => {
-    if (!currentOverlayElement.value || !videoOverlayEnabled.value) {
+    if (!currentOverlayElement.value || !videoOverlayEnabled2.value) {
       clearInterval(initialProtectionInterval)
       return
     }
@@ -2351,7 +2351,7 @@ const createVideoOverlay = (iframeDoc, video) => {
 }
 
 const updateVideoOverlay = () => {
-  if (!currentOverlayElement.value || !videoOverlayEnabled.value) {
+  if (!currentOverlayElement.value || !videoOverlayEnabled2.value) {
     return
   }
 
@@ -2609,8 +2609,8 @@ onMounted(() => {
       if (currentCount > lastOverlayTimingsCount.value) {
         lastOverlayTimingsCount.value = currentCount
 
-        if (!videoOverlayEnabled.value) {
-          videoOverlayEnabled.value = true
+        if (!videoOverlayEnabled2.value) {
+          videoOverlayEnabled2.value = true
           if (window.electronAPI) {
             window.electronAPI.showToast('Оверлей автоматически включён - добавлены тайминги')
           }
@@ -2621,7 +2621,7 @@ onMounted(() => {
     }, 1000)
   }
 
-  if (isElectron.value && videoOverlayEnabled.value) {
+  if (isElectron.value && videoOverlayEnabled2.value) {
     const initializeOverlay = () => {
       if (playerIframe.value && !currentOverlayElement.value) {
         try {
