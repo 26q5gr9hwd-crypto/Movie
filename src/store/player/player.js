@@ -13,7 +13,7 @@ export const usePlayerStore = defineStore(PLAYER_STORE_NAME, {
     videoOverlayEnabled: true,
     overlaySettings: {
       showTitle: true,
-      showDuration: true,
+      showDuration2: false,
       showBackground: false,
       showTimingsOnMouseMove: false
     },

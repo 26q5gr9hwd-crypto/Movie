@@ -1764,7 +1764,7 @@ const showOverlaySettings = () => {
       </label>
       
       <label style="display: flex; align-items: center; gap: 12px; color: white; cursor: pointer; padding: 8px; border-radius: 8px; background: rgba(255, 255, 255, 0.05);">
-        <input type="checkbox" id="showDuration" ${settings.showDuration ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: #ff6b35;">
+        <input type="checkbox" id="showDuration" ${settings.showDuration2 ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: #ff6b35;">
         <span style="font-size: 16px;">Показывать продолжительность</span>
       </label>
       
@@ -1801,7 +1801,7 @@ const showOverlaySettings = () => {
   modalContent.querySelector('#saveSettings').addEventListener('click', () => {
     const newSettings = {
       showTitle: modalContent.querySelector('#showTitle').checked,
-      showDuration: modalContent.querySelector('#showDuration').checked,
+      showDuration2: modalContent.querySelector('#showDuration').checked,
       showBackground: modalContent.querySelector('#showBackground').checked,
       showTimingsOnMouseMove: modalContent.querySelector('#showTimingsOnMouseMove').checked
     }
@@ -2346,7 +2346,7 @@ const updateVideoOverlay = () => {
   const videoProgress = mainInfo.children[1]
   let progressHtml = ''
 
-  if (overlaySettings.value.showDuration) {
+  if (overlaySettings.value.showDuration2) {
     const currentTimeFormatted = formatSecondsToTime(currentVideoTime.value)
     const totalTimeFormatted = formatSecondsToTime(totalVideoDuration.value)
     progressHtml = `
