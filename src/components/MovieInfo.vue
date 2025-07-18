@@ -1178,6 +1178,13 @@
       </div>
     </div>
   </div>
+
+  <BaseModal
+    :is-open="showAutoblurWarning"
+    message="Проверьте выбранные тайминги перед включением автоблюра на соответствие фильму в плеере! Мы не несём ответственности за работу данной опции, используйте её на свой страх и риск!"
+    @confirm="confirmAutoblur"
+    @close="closeAutoblurWarning"
+  />
 </template>
 
 <script setup>
@@ -1214,6 +1221,7 @@ import { useTrailerStore } from '@/store/trailer'
 import MovieRating from '@/components/MovieRating.vue'
 import Comments from '@/components/Comments.vue'
 import { getRatingColor } from '@/utils/ratingUtils'
+import BaseModal from '@/components/BaseModal.vue'
 
 const infoLoading = ref(true)
 const mainStore = useMainStore()
@@ -1247,6 +1255,8 @@ const nudityTimingsTrigger = ref(null)
 const selectedTimings = ref(new Set())
 const overlayTimings = ref(new Set())
 const showGeneralParserResult = ref(false)
+const showAutoblurWarning = ref(false)
+const timingIdToAdd = ref(null)
 const showOverlayParserResult = ref(false)
 
 const shouldShowRedTimings = computed(() => {
@@ -2002,7 +2012,21 @@ function onAddToAutoblur(id) {
     }
     return
   }
-  toggleTimingSelection(id)
+
+  timingIdToAdd.value = id
+  showAutoblurWarning.value = true
+}
+
+function confirmAutoblur() {
+  if (timingIdToAdd.value !== null) {
+    toggleTimingSelection(timingIdToAdd.value)
+  }
+  closeAutoblurWarning()
+}
+
+function closeAutoblurWarning() {
+  showAutoblurWarning.value = false
+  timingIdToAdd.value = null
 }
 
 function onRemoveFromAutoblur(id) {
