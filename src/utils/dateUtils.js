@@ -121,7 +121,7 @@ const getYearsWord = (years) => {
   return 'лет'
 }
 
-export function parseTimingTextToSeconds(text, disableExpand = false) {
+export function parseTimingTextToSeconds(text) {
   const results = []
 
   const cleanedText = text.replace(/\[[^\]]*\d+[^\]]*\]/g, '')
@@ -151,11 +151,11 @@ export function parseTimingTextToSeconds(text, disableExpand = false) {
       const start = toSec(startStr)
       const end = toSec(endStr)
       if (start !== null && end !== null) {
-        const startTime = disableExpand ? start : Math.max(0, start - 3)
-        const endTime = disableExpand ? end : end + 3
+        const startTime = start
+        const endTime = end
         results.push([startTime, endTime])
       } else if (start !== null) {
-        const startTime = disableExpand ? start : Math.max(0, start - 3)
+        const startTime = start
         const endTime = start + 5
         results.push([startTime, endTime])
       }

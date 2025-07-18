@@ -677,10 +677,7 @@
                   v-if="showParseResult[timing.id] && Array.isArray(showParseResult[timing.id])"
                   style="color: #fff; font-size: 13px; margin: 4px 0 0 0"
                 >
-                  <b
-                    >Парсер(к таймингам добавится -3 и +3 секунд по краям тайминга для
-                    предосторожности, но в превью парсера их нет для удобства проверки):</b
-                  >
+                  <b>Парсер:</b>
                   <span v-if="showParseResult[timing.id].length === 0">Не удалось распарсить</span>
                   <span v-else>
                     <span v-for="(range, idx) in showParseResult[timing.id]" :key="idx">
@@ -1181,7 +1178,7 @@
 
   <BaseModal
     :is-open="showAutoblurWarning"
-    message="Проверьте выбранные тайминги перед включением автоблюра на соответствие фильму в плеере! Мы не несём ответственности за работу данной опции, используйте её на свой страх и риск!"
+    message="Перед просмотром проверьте выбранные тайминги на соответствие фильму в плеере! Мы не несём ответственности за расхождение в таймингах, используйте их на свой страх и риск и только после проверки выбранной версии фильма!"
     @confirm="confirmAutoblur"
     @close="closeAutoblurWarning"
   />
