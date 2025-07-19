@@ -1178,7 +1178,7 @@
 
   <BaseModal
     :is-open="showAutoblurWarning"
-    message="Перед просмотром проверьте выбранные тайминги на соответствие фильму в плеере! Мы не несём ответственности за расхождение в таймингах, используйте их на свой страх и риск и только после проверки выбранной версии фильма!"
+    message="<span style='color: orange; font-weight: bold;'>Автоблюр удален из-за нестабильности(пока?)<br>Доступен только оверлей</span><br><br>Перед просмотром проверьте выбранные тайминги на соответствие фильму в плеере! Мы не несём ответственности за расхождение в таймингах, используйте их на свой страх и риск и только после проверки выбранной версии фильма!"
     @confirm="confirmAutoblur"
     @close="closeAutoblurWarning"
   />
@@ -2025,6 +2025,9 @@ function confirmAutoblur() {
 function closeAutoblurWarning() {
   showAutoblurWarning.value = false
   timingIdToAdd.value = null
+
+  nudityTimings.value =
+    movieInfo.value?.nudity_timings === null ? '' : movieInfo.value?.nudity_timings || ''
 }
 
 // eslint-disable-next-line no-unused-vars
