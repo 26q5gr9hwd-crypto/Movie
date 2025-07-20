@@ -620,7 +620,6 @@
                   </div>
                 </div>
                 <div
-                  v-if="timing.status !== 'clean_text' && movieInfo?.type === 'FILM'"
                   class="timing-actions-row"
                   style="display: flex; align-items: center; gap: 8px; margin-top: 8px"
                 >
