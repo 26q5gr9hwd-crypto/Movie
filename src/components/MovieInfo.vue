@@ -788,7 +788,7 @@
           </button>
           <button
             v-if="overlayTimings.size > 0"
-            class="nudity-info-button overlay-button"
+            class="nudity-info-button"
             @click="showOverlayParser"
           >
             <i class="fas fa-layer-group"></i>
@@ -4654,8 +4654,7 @@ const handleFilterSelect = () => {
 }
 
 .overlay-button {
-  background: rgba(255, 255, 255, 0.1) !important;
-  border: none !important;
+  background: var(--accent-color) !important;
 }
 
 .overlay-button:hover {
