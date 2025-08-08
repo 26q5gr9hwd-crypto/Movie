@@ -1361,8 +1361,8 @@ const copyMovieLink = () => {
 
 function cleanName(name) {
   const cleanedName = name
-    .replace(/^REYOHOHO_PLAYER>HDREZKA>/, 'HDRezka - ')
     .replace(/KODIK>/, 'Kodik - ')
+    .replace(/VEOVEO>/, 'VeoVeo - ')
     .trim()
   return cleanedName
 }

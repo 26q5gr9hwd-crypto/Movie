@@ -6,7 +6,7 @@
       <h2 v-if="!activeGroup">Выберите плеер</h2>
       <h2 v-else>
         <button class="back-btn" @click="collapseGroup">← Назад</button>
-        {{ activeGroup === 'hdrezka' ? 'ReYohoho - HDrezka' : 'Kodik' }}
+        {{ activeGroup }}
       </h2>
 
       <ul class="players-list">
@@ -22,15 +22,15 @@
               >
             </button>
           </li>
-          <li v-if="hasHdrezkaGroup">
+          <li v-if="hasVeoVeoGroup">
             <button
-              :class="['group-item', { active: isGroupSelected('hdrezka') }]"
-              @click="expandGroup('hdrezka')"
+              :class="['group-item', { active: isGroupSelected('veoveo') }]"
+              @click="expandGroup('veoveo')"
             >
               <span class="material-icons group-icon">folder</span>
-              ReYohoho - HDrezka
+              VeoVeo
               <span
-                v-if="groupHasWarning('hdrezka')"
+                v-if="groupHasWarning('veoveo')"
                 class="warning-icon material-icons"
                 title="Внимание!"
                 >warning</span
@@ -89,17 +89,17 @@ const emit = defineEmits(['close', 'select'])
 const activeGroup = ref(null)
 
 const mainPlayers = computed(() =>
-  props.players.filter((player) => !isHdrezka(player) && !isKodik(player))
+  props.players.filter((player) => !isVeoVeo(player) && !isKodik(player))
 )
-const hasHdrezkaGroup = computed(() => props.players.some((player) => isHdrezka(player)))
+const hasVeoVeoGroup = computed(() => props.players.some((player) => isVeoVeo(player)))
 const hasKodikGroup = computed(() => props.players.some((player) => isKodik(player)))
 
-const isHdrezka = (player) => player.key.toUpperCase().includes('HDREZKA')
-const isKodik = (player) => player.key.toUpperCase().includes('KODIK')
+const isVeoVeo = (player) => player.name.toUpperCase().includes('VEOVEO')
+const isKodik = (player) => player.name.toUpperCase().includes('KODIK')
 
 const cleanName = (name) =>
   name
-    .replace(/^REYOHOHO_PLAYER>HDREZKA>/, '')
+    .replace(/VEOVEO>/, '')
     .replace(/KODIK>/, '')
     .trim()
 
@@ -113,7 +113,7 @@ const isSelected = (player) => props.selectedPlayer && props.selectedPlayer.key 
 const isGroupSelected = (group) => {
   if (!props.selectedPlayer) return false
   return (
-    (group === 'hdrezka' && isHdrezka(props.selectedPlayer)) ||
+    (group === 'veoveo' && isVeoVeo(props.selectedPlayer)) ||
     (group === 'kodik' && isKodik(props.selectedPlayer))
   )
 }
@@ -126,7 +126,7 @@ const collapseGroup = () => {
 }
 const groupPlayers = (group) => {
   let players = props.players.filter(
-    (player) => (group === 'hdrezka' && isHdrezka(player)) || (group === 'kodik' && isKodik(player))
+    (player) => (group === 'veoveo' && isVeoVeo(player)) || (group === 'kodik' && isKodik(player))
   )
 
   if (group === 'kodik') {
