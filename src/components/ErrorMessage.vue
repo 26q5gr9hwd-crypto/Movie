@@ -17,7 +17,7 @@
 </template>
 
 <script setup>
-const statusUrl = 'http://45.136.199.126:3001/status/reyohoho'
+const statusUrl = 'http://38.180.83.227:8080/status/reyohoho'
 
 const { message, code } = defineProps({
   message: {

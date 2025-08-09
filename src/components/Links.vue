@@ -43,7 +43,7 @@ const externalLinks = [
 
   { href: 'https://gitlab.com/reyohoho/reyohoho', icon: 'fab fa-gitlab', text: 'Gitlab' },
   {
-    href: 'http://45.136.199.126:3001/status/reyohoho',
+    href: 'http://38.180.83.227:8080/status/reyohoho',
     icon: 'fas fa-tachometer-alt',
     text: 'Статус работы'
   },
