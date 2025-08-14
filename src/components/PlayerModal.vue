@@ -11,41 +11,26 @@
 
       <ul class="players-list">
         <template v-if="!activeGroup">
-          <li v-for="player in mainPlayers" :key="player.key">
+          <li v-for="item in mixedPlayersList" :key="item.type === 'player' ? item.data.key : item.name">
             <button
-              :class="['player-item', { active: isSelected(player) }]"
-              @click="selectPlayer(player)"
+              v-if="item.type === 'player'"
+              :class="['player-item', { active: isSelected(item.data) }]"
+              @click="selectPlayer(item.data)"
             >
-              {{ cleanName(player.translate) }}
-              <span v-if="player.warning" class="warning-icon material-icons" title="Внимание!"
+              {{ cleanName(item.data.translate) }}
+              <span v-if="item.data.warning" class="warning-icon material-icons" title="Внимание!"
                 >warning</span
               >
             </button>
-          </li>
-          <li v-if="hasVeoVeoGroup">
             <button
-              :class="['group-item', { active: isGroupSelected('veoveo') }]"
-              @click="expandGroup('veoveo')"
+              v-else
+              :class="['group-item', { active: isGroupSelected(item.name) }]"
+              @click="expandGroup(item.name)"
             >
               <span class="material-icons group-icon">folder</span>
-              VeoVeo
+              {{ item.displayName }}
               <span
-                v-if="groupHasWarning('veoveo')"
-                class="warning-icon material-icons"
-                title="Внимание!"
-                >warning</span
-              >
-            </button>
-          </li>
-          <li v-if="hasKodikGroup">
-            <button
-              :class="['group-item', { active: isGroupSelected('kodik') }]"
-              @click="expandGroup('kodik')"
-            >
-              <span class="material-icons group-icon">folder</span>
-              Kodik
-              <span
-                v-if="groupHasWarning('kodik')"
+                v-if="groupHasWarning(item.name)"
                 class="warning-icon material-icons"
                 title="Внимание!"
                 >warning</span
@@ -88,11 +73,30 @@ const emit = defineEmits(['close', 'select'])
 
 const activeGroup = ref(null)
 
-const mainPlayers = computed(() =>
-  props.players.filter((player) => !isVeoVeo(player) && !isKodik(player))
-)
-const hasVeoVeoGroup = computed(() => props.players.some((player) => isVeoVeo(player)))
-const hasKodikGroup = computed(() => props.players.some((player) => isKodik(player)))
+const mixedPlayersList = computed(() => {
+  const result = []
+  const seenGroups = new Set()
+  
+  for (const player of props.players) {
+    if (isVeoVeo(player)) {
+      if (!seenGroups.has('veoveo')) {
+        result.push({ type: 'group', name: 'veoveo', displayName: 'VeoVeo' })
+        seenGroups.add('veoveo')
+      }
+    } else if (isKodik(player)) {
+      if (!seenGroups.has('kodik')) {
+        result.push({ type: 'group', name: 'kodik', displayName: 'Kodik' })
+        seenGroups.add('kodik')
+      }
+    } else {
+      result.push({ type: 'player', data: player })
+    }
+  }
+  
+  return result
+})
+
+
 
 const isVeoVeo = (player) => player.name.toUpperCase().includes('VEOVEO')
 const isKodik = (player) => player.name.toUpperCase().includes('KODIK')
