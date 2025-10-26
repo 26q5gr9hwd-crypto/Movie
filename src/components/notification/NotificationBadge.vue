@@ -35,11 +35,14 @@ onMounted(() => {
   if (authStore.token) {
     notificationsStore.fetchUnreadCount()
 
-    pollingInterval = setInterval(() => {
-      if (authStore.token) {
-        notificationsStore.fetchUnreadCount()
-      }
-    }, 30000)
+    pollingInterval = setInterval(
+      () => {
+        if (authStore.token) {
+          notificationsStore.fetchUnreadCount()
+        }
+      },
+      1000 * 60 * 5
+    ) // 30 minutes
   }
 })
 

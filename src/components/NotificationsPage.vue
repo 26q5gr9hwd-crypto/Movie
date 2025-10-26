@@ -89,7 +89,7 @@ let pollingInterval = null
 function startPolling() {
   pollingInterval = setInterval(() => {
     notificationsStore.fetchUnreadCount()
-  }, 30000)
+  }, 1000 * 60 * 5 ) // 30 minutes
 }
 
 function stopPolling() {
