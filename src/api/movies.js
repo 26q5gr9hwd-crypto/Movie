@@ -200,6 +200,11 @@ const markAsCleanText = async (submissionId) => {
   return data
 }
 
+const getTwitchStream = async (username) => {
+  const { data } = await apiCall((api) => api.get(`/twitch/${username}`))
+  return data
+}
+
 export {
   apiSearch,
   getShikiInfo,
@@ -228,7 +233,8 @@ export {
   getRandomMovie,
   approveTiming,
   rejectTiming,
-  markAsCleanText
+  markAsCleanText,
+  getTwitchStream
 }
 
 // ===== Функция для включения/выключения симуляции =====
