@@ -402,11 +402,12 @@ footer {
 }
 
 .footer-static {
-  position: static;
+  position: absolute;
+  bottom: 0;
+  left: 0;
 }
 
 .donaters-wrapper {
-  width: 100%;
   min-height: 60px;
   display: flex;
   justify-content: center;
