@@ -71,7 +71,6 @@ export const getCurrentApiInfo = () => {
     description: apiStore.getCurrentApiDescription(),
     isCheckingHealth: apiStore.isCheckingHealth,
     lastCheckedAt: apiStore.lastCheckedAt,
-    availableEndpoints: apiStore.availableEndpoints,
-    userSelectedApiUrl: apiStore.userSelectedApiUrl
+    availableEndpoints: apiStore.availableEndpoints
   }
 }

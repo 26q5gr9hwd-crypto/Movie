@@ -21,7 +21,7 @@ import { computed, ref, onMounted } from 'vue'
 import DesktopMenu from './MenuNavigation/DesktopMenu.vue'
 import MobileMenu from './MenuNavigation/MobileMenu.vue'
 import ModalSearch from './ModalSearch.vue'
-import { getBaseURL } from '@/api/axios'
+import { getBaseURLSync, getBaseURL } from '@/api/axios'
 import { getUser } from '@/api/user'
 import { handleApiError } from '@/constants'
 
@@ -30,20 +30,8 @@ const authStore = useAuthStore()
 const navbarStore = useNavbarStore()
 const isMobile = computed(() => store.isMobile)
 const navLinks = ref([])
-onMounted(async () => {
-  const baseURL = await getBaseURL()
-  if (authStore.token) {
-    try {
-      let user = await getUser()
-      authStore.setUser(user)
-    } catch (error) {
-      const { code } = handleApiError(error)
-      if (code === 401) {
-        authStore.logout()
-      }
-    }
-  }
 
+const initializeNavLinks = (baseURL) => {
   navLinks.value = [
     { to: '/', exact: true, icon: 'fas fa-home', text: 'Главная' },
     {
@@ -52,7 +40,7 @@ onMounted(async () => {
       icon: authStore.user
         ? authStore.user.photo
           ? `${baseURL}${authStore.user.photo}`
-          : 'fas fa-user' // Иконка человека, если фото нет
+          : 'fas fa-user'
         : 'fas fa-right-to-bracket',
       text: authStore.user ? 'Профиль' : 'Войти'
     },
@@ -73,11 +61,29 @@ onMounted(async () => {
           }
         ]
       : []),
-    // { href: 'https://t.me/ReYohoho/169', icon: 'fa-solid fa-bolt', text: 'Новинки' },
     { to: '/top', icon: 'fa-solid fa-trophy', text: 'Популярное' },
     { to: '/settings', icon: 'fa-solid fa-gear', text: 'Настройки' },
     { to: '/links', icon: 'fa-solid fa-info-circle', text: 'Полезные ссылки' }
   ]
+}
+
+const baseURL = getBaseURLSync()
+initializeNavLinks(baseURL)
+
+onMounted(async () => {
+  if (authStore.token) {
+    try {
+      let user = await getUser()
+      authStore.setUser(user)
+      const updatedBaseURL = await getBaseURL()
+      initializeNavLinks(updatedBaseURL)
+    } catch (error) {
+      const { code } = handleApiError(error)
+      if (code === 401) {
+        authStore.logout()
+      }
+    }
+  }
 })
 </script>
 

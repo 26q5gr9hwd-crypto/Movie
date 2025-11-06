@@ -8,7 +8,6 @@ export const useApiStore = defineStore(API_STORE_NAME, {
     lastCheckedAt: null,
     isCheckingHealth: false,
     fallbackUrl: import.meta.env.VITE_APP_API_URL,
-    userSelectedApiUrl: null,
     endpointsHash: null
   }),
 
@@ -38,33 +37,6 @@ export const useApiStore = defineStore(API_STORE_NAME, {
       this.isCheckingHealth = true
 
       try {
-        if (this.userSelectedApiUrl) {
-          const userEndpoint = endpoints.find((ep) => ep.url === this.userSelectedApiUrl)
-          if (userEndpoint) {
-            const isHealthy = await this.checkEndpointHealth(this.userSelectedApiUrl)
-            if (isHealthy) {
-              console.log(`Using user selected API: ${this.userSelectedApiUrl}`)
-              this.currentApiUrl = this.userSelectedApiUrl
-              this.lastCheckedAt = Date.now()
-              this.isCheckingHealth = false
-              return this.userSelectedApiUrl
-            } else {
-              console.warn(
-                `User selected API ${this.userSelectedApiUrl} is not healthy, but keeping user selection`
-              )
-              this.currentApiUrl = this.userSelectedApiUrl
-              this.lastCheckedAt = Date.now()
-              this.isCheckingHealth = false
-              return this.userSelectedApiUrl
-            }
-          } else {
-            console.warn(
-              `User selected API ${this.userSelectedApiUrl} is not in available endpoints, resetting`
-            )
-            this.userSelectedApiUrl = null
-          }
-        }
-
         for (const endpoint of endpoints) {
           console.log(`Checking health for: ${endpoint.url}`)
 
@@ -97,8 +69,7 @@ export const useApiStore = defineStore(API_STORE_NAME, {
       const newHash = this.generateEndpointsHash(endpoints)
 
       if (this.endpointsHash && this.endpointsHash !== newHash) {
-        console.log('API endpoints changed, resetting user selection')
-        this.userSelectedApiUrl = null
+        console.log('API endpoints changed')
       }
 
       this.availableEndpoints = endpoints
@@ -107,17 +78,6 @@ export const useApiStore = defineStore(API_STORE_NAME, {
 
     setCurrentApiUrl(url) {
       this.currentApiUrl = url
-    },
-
-    setUserSelectedApiUrl(url) {
-      this.userSelectedApiUrl = url
-      if (url) {
-        this.currentApiUrl = url
-      }
-    },
-
-    resetUserSelection() {
-      this.userSelectedApiUrl = null
     },
 
     generateEndpointsHash(endpoints) {
@@ -152,12 +112,6 @@ export const useApiStore = defineStore(API_STORE_NAME, {
 
   persist: {
     key: API_STORE_NAME,
-    pick: [
-      'currentApiUrl',
-      'availableEndpoints',
-      'lastCheckedAt',
-      'userSelectedApiUrl',
-      'endpointsHash'
-    ]
+    pick: ['currentApiUrl', 'availableEndpoints', 'lastCheckedAt', 'endpointsHash']
   }
 })

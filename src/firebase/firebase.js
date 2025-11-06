@@ -54,8 +54,6 @@ function parseApiEndpoints(configValue) {
 }
 
 async function initRemoteConfig() {
-  if (isConfigInitialized) return
-
   if (initPromise) {
     return initPromise
   }
@@ -64,8 +62,10 @@ async function initRemoteConfig() {
     const apiStore = useApiStore()
 
     try {
-      await fetchAndActivate(remoteConfig)
-      isConfigInitialized = true
+      if (!isConfigInitialized) {
+        await fetchAndActivate(remoteConfig)
+        isConfigInitialized = true
+      }
 
       const endpointsConfig = getValue(remoteConfig, 'api_endpoints').asString()
       const endpoints = parseApiEndpoints(endpointsConfig)
