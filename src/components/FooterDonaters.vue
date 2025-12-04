@@ -163,12 +163,17 @@ const currentFeaturedDonor = computed(() => {
   return featuredDonors.value[currentFeaturedDonorIndex.value]
 })
 
+let scrollTimeout = null
 const handleScroll = () => {
-  const scrollTop = window.pageYOffset || document.documentElement.scrollTop
-  const windowHeight = window.innerHeight
-  const documentHeight = document.documentElement.scrollHeight
+  if (scrollTimeout) return
+  scrollTimeout = window.requestAnimationFrame(() => {
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop
+    const windowHeight = window.innerHeight
+    const documentHeight = document.documentElement.scrollHeight
 
-  isAtBottom.value = scrollTop + windowHeight >= documentHeight - 10
+    isAtBottom.value = scrollTop + windowHeight >= documentHeight - 10
+    scrollTimeout = null
+  })
 }
 
 const safeGetFromStorage = (key, cacheType) => {
@@ -283,31 +288,47 @@ const fetchTwitchData = async () => {
 }
 
 const updateDonorsWithTwitchData = (twitchData) => {
-  featuredDonors.value = featuredDonors.value
-    .map((donor) => {
-      if (!donor.twitchUsername) return donor
+  const twitchMap = new Map(
+    twitchData.map((d) => [d.username.toLowerCase(), d])
+  )
+  
+  let hasChanges = false
+  const updatedDonors = featuredDonors.value.map((donor) => {
+    if (!donor.twitchUsername) return donor
 
-      const streamData = twitchData.find(
-        (d) => d.username.toLowerCase() === donor.twitchUsername.toLowerCase()
-      )
-      if (streamData) {
+    const streamData = twitchMap.get(donor.twitchUsername.toLowerCase())
+    if (streamData) {
+      const newIsLive = streamData.isLive || false
+      const newCategory = streamData.category || null
+      const newAvatar = streamData.avatar || donor.avatar
+      
+      if (
+        donor.isLive !== newIsLive ||
+        donor.category !== newCategory ||
+        donor.avatar !== newAvatar
+      ) {
+        hasChanges = true
         return {
           ...donor,
-          isLive: streamData.isLive || false,
-          category: streamData.category || null,
-          avatar: streamData.avatar || donor.avatar
+          isLive: newIsLive,
+          category: newCategory,
+          avatar: newAvatar
         }
       }
-      return donor
-    })
-    .sort((a, b) => {
+    }
+    return donor
+  })
+  
+  if (hasChanges) {
+    updatedDonors.sort((a, b) => {
       if (a.isLive !== b.isLive) {
         return a.isLive ? -1 : 1
       }
       return a.originalIndex - b.originalIndex
     })
-
-  currentFeaturedDonorIndex.value = 0
+    featuredDonors.value = updatedDonors
+    currentFeaturedDonorIndex.value = 0
+  }
 }
 
 const fetchDonaters = async () => {
@@ -378,7 +399,7 @@ onMounted(async () => {
   await fetchDonaters()
   startShowingDonaters()
   startCarousel()
-  window.addEventListener('scroll', handleScroll)
+  window.addEventListener('scroll', handleScroll, { passive: true })
   handleScroll()
 
   await fetchTwitchData()
@@ -390,6 +411,7 @@ onUnmounted(() => {
   if (intervalId) clearInterval(intervalId)
   if (carouselIntervalId) clearInterval(carouselIntervalId)
   if (twitchCheckInterval) clearInterval(twitchCheckInterval)
+  if (scrollTimeout) window.cancelAnimationFrame(scrollTimeout)
   window.removeEventListener('scroll', handleScroll)
 })
 </script>
@@ -397,8 +419,7 @@ onUnmounted(() => {
 <style scoped>
 footer {
   width: 100%;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(10px);
+  background: rgba(0, 0, 0, 0.9);
   z-index: 1000;
   transition: all 0.3s ease;
 }
@@ -422,8 +443,7 @@ footer {
   align-items: center;
   padding: 8px 20px;
   gap: 15px;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(10px);
+  background: rgba(0, 0, 0, 0.9);
 }
 
 .donaters-text {
@@ -449,7 +469,7 @@ footer {
   background: #18181b;
   border-radius: 6px;
   overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s ease, box-shadow 0.3s ease;
   cursor: pointer;
   position: relative;
   border: 2px solid transparent;
@@ -457,6 +477,7 @@ footer {
   display: flex;
   flex-direction: row;
   align-items: center;
+  will-change: transform;
 }
 
 .donor-card.no-link {
@@ -494,11 +515,12 @@ footer {
   background-position: center;
   background-repeat: no-repeat;
   filter: brightness(0.9);
-  transition: all 0.3s ease;
+  transition: filter 0.3s ease, transform 0.3s ease;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+  will-change: filter, transform;
 }
 
 .donor-card:hover .donor-avatar {
@@ -530,6 +552,7 @@ footer {
   letter-spacing: 0.3px;
   animation: pulse 2s ease-in-out infinite;
   z-index: 2;
+  will-change: box-shadow;
 }
 
 @keyframes pulse {
@@ -548,6 +571,7 @@ footer {
   background: #fff;
   border-radius: 50%;
   animation: blink 1.5s ease-in-out infinite;
+  will-change: opacity;
 }
 
 @keyframes blink {

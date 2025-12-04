@@ -10,8 +10,8 @@
       <button
         v-if="canGoBack"
         class="back-btn"
-        @click="goBack"
         :title="isSidebarOpen ? '' : 'Назад'"
+        @click="goBack"
       >
         <i class="fas fa-arrow-left"></i>
         <span v-show="isSidebarOpen" class="back-text">Назад</span>
@@ -42,8 +42,8 @@
             </template>
 
             <component
-              v-else
               :is="link.to ? 'router-link' : 'a'"
+              v-else
               v-bind="
                 link.to ? { to: link.to, exact: link.exact } : { href: link.href, target: '_blank' }
               "
@@ -117,26 +117,51 @@ const closeSidebar = () => {
   isSidebarOpen.value = false
 }
 
-// Закрываем боковую панель, если кликнули вне её области
+let clickOutsideTimeout = null
 const handleClickOutside = (event) => {
-  if (sidebar.value && !sidebar.value.contains(event.target)) {
-    isSidebarOpen.value = false
-  }
+  if (clickOutsideTimeout) return
+  clickOutsideTimeout = window.requestAnimationFrame(() => {
+    if (sidebar.value && !sidebar.value.contains(event.target) && isSidebarOpen.value) {
+      isSidebarOpen.value = false
+    }
+    clickOutsideTimeout = null
+  })
 }
 
-// Всплывающая подсказка при свернутом сайдбаре
 const tooltipPosition = ref({ x: 0, y: 0 })
 const activeTooltip = ref(null)
+let tooltipTimeout = null
+let tooltipEvent = null
+
 const showTooltip = (index, event) => {
-  activeTooltip.value = index
-  const rect = event.target.getBoundingClientRect()
-  tooltipPosition.value = {
-    x: rect.right + 10,
-    y: rect.top + 5
+  if (isSidebarOpen.value) return
+  
+  tooltipEvent = event
+  
+  if (tooltipTimeout) {
+    clearTimeout(tooltipTimeout)
   }
+  
+  tooltipTimeout = setTimeout(() => {
+    if (tooltipEvent) {
+      activeTooltip.value = index
+      const rect = tooltipEvent.target.getBoundingClientRect()
+      tooltipPosition.value = {
+        x: rect.right + 10,
+        y: rect.top + 5
+      }
+    }
+    tooltipTimeout = null
+  }, 150)
 }
+
 const hideTooltip = () => {
+  if (tooltipTimeout) {
+    clearTimeout(tooltipTimeout)
+    tooltipTimeout = null
+  }
   activeTooltip.value = null
+  tooltipEvent = null
 }
 const tooltipStyle = computed(() => ({
   left: `${tooltipPosition.value.x}px`,
@@ -190,6 +215,12 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside)
+  if (clickOutsideTimeout) {
+    window.cancelAnimationFrame(clickOutsideTimeout)
+  }
+  if (tooltipTimeout) {
+    clearTimeout(tooltipTimeout)
+  }
 })
 
 watch(
@@ -213,9 +244,7 @@ watch(
   flex-direction: column;
   width: 250px;
   height: 100vh;
-  background: rgba(23, 23, 23, 0.95);
-  -webkit-backdrop-filter: blur(10px); /* Для Safari 9+ */
-  backdrop-filter: blur(10px);
+  background: rgba(23, 23, 23, 0.98);
   position: fixed;
   top: 0;
   left: 0;
@@ -223,6 +252,7 @@ watch(
   padding: 1rem 0;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
   z-index: 5;
+  will-change: width;
 }
 .side-panel.collapsed {
   width: 80px;
@@ -381,6 +411,10 @@ watch(
 .side-panel.collapsed .nav-links a img {
   margin: 0;
 }
+.nav-links a {
+  will-change: transform;
+}
+
 .nav-links a:hover {
   background: var(--accent-transparent, rgba(108, 92, 231, 0.15));
   color: var(--accent-color, #6c5ce7);
