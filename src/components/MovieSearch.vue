@@ -122,7 +122,13 @@
 </template>
 
 <script setup>
-import { apiSearch, getKpIDfromIMDB, getKpIDfromSHIKI, getRandomMovie } from '@/api/movies'
+import {
+  apiSearch,
+  getKpIDfromIMDB,
+  getKpIDfromSHIKI,
+  getRandomMovie,
+  getKpInfo
+} from '@/api/movies'
 import { handleApiError } from '@/constants'
 import { getMyLists, delAllFromList } from '@/api/user'
 import BaseModal from '@/components/BaseModal.vue'
@@ -409,7 +415,28 @@ const fetchRandomMovie = async () => {
 
   try {
     const response = await getRandomMovie()
-    randomMovie.value = response
+
+    if (response.kp_id) {
+      try {
+        const kpInfo = await getKpInfo(response.kp_id)
+        randomMovie.value = {
+          ...response,
+          description: kpInfo.description,
+          budget: kpInfo.budget,
+          fees_world: kpInfo.fees_world,
+          fees_russia: kpInfo.fees_russia,
+          premiere_ru: kpInfo.premiere_ru,
+          premiere_world: kpInfo.premiere_world,
+          age_rating: kpInfo.age_rating,
+          duration: kpInfo.duration,
+          total_rating: kpInfo.total_rating
+        }
+      } catch (kpError) {
+        randomMovie.value = response
+      }
+    } else {
+      randomMovie.value = response
+    }
   } catch (error) {
     const { message } = handleApiError(error)
     randomError.value = message

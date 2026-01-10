@@ -39,12 +39,44 @@
                 {{ formatType(movie.type) }}
               </div>
 
+              <div v-if="movie.description" class="movie-description">
+                {{ movie.description }}
+              </div>
+
+              <div v-if="movie.duration" class="movie-duration">
+                <strong>Длительность:</strong> {{ formatDuration(movie.duration) }}
+              </div>
+
+              <div v-if="movie.age_rating" class="movie-age-rating">
+                <strong>Возрастной рейтинг:</strong> {{ movie.age_rating }}
+              </div>
+
               <div v-if="movie.countries" class="movie-countries">
                 <strong>Страны:</strong> {{ movie.countries }}
               </div>
 
               <div v-if="movie.genres" class="movie-genres">
                 <strong>Жанры:</strong> {{ movie.genres }}
+              </div>
+
+              <div v-if="movie.premiere_ru || movie.premiere_world" class="movie-premiere">
+                <strong>Премьера:</strong>
+                <span v-if="movie.premiere_ru"> {{ formatDate(movie.premiere_ru) }} (Россия)</span>
+                <span v-if="movie.premiere_world && !movie.premiere_ru">
+                  {{ formatDate(movie.premiere_world) }} (Мир)
+                </span>
+              </div>
+
+              <div v-if="movie.budget || movie.fees_world || movie.fees_russia" class="movie-finances">
+                <div v-if="movie.budget">
+                  <strong>Бюджет:</strong> {{ movie.budget }}
+                </div>
+                <div v-if="movie.fees_world">
+                  <strong>Сборы в мире:</strong> {{ movie.fees_world }}
+                </div>
+                <div v-if="movie.fees_russia">
+                  <strong>Сборы в России:</strong> {{ movie.fees_russia }}
+                </div>
               </div>
 
               <div class="ratings">
@@ -62,6 +94,10 @@
                   <img src="/src/assets/icon-imdb-logo.svg" alt="IMDb" class="rating-logo" />
                   {{ movie.rating_imdb }}
                 </div>
+              </div>
+
+              <div v-if="movie.total_rating" class="total-ratings">
+                Всего оценок: {{ movie.total_rating }}
               </div>
 
               <div class="external-links">
@@ -136,6 +172,26 @@ const formatType = (type) => {
   return typeMap[type] || type
 }
 
+const formatDuration = (duration) => {
+  if (!duration) return ''
+  const hours = Math.floor(duration / 60)
+  const minutes = duration % 60
+  if (hours > 0) {
+    return `${hours} ч ${minutes} мин`
+  }
+  return `${minutes} мин`
+}
+
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return date.toLocaleDateString('ru-RU', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+}
+
 const handleImageError = (event) => {
   event.target.src = '/src/assets/image-no-poster.gif'
 }
@@ -173,7 +229,7 @@ const handleImageError = (event) => {
 }
 
 .random-movie-modal {
-  width: 600px;
+  width: 700px;
   max-width: 95vw;
   max-height: 90vh;
   overflow-y: auto;
@@ -276,8 +332,8 @@ const handleImageError = (event) => {
 }
 
 .movie-poster {
-  width: 150px;
-  height: 225px;
+  width: 180px;
+  height: 270px;
   object-fit: cover;
   border-radius: 8px;
 }
@@ -311,14 +367,42 @@ const handleImageError = (event) => {
 }
 
 .movie-countries,
-.movie-genres {
+.movie-genres,
+.movie-duration,
+.movie-age-rating,
+.movie-premiere,
+.movie-finances {
   font-size: 0.9rem;
   line-height: 1.4;
 }
 
 .movie-countries strong,
-.movie-genres strong {
+.movie-genres strong,
+.movie-duration strong,
+.movie-age-rating strong,
+.movie-premiere strong,
+.movie-finances strong {
   color: #a0a0a0;
+}
+
+.movie-description {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #d0d0d0;
+  margin: 10px 0;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  border-left: 3px solid var(--accent-color);
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.movie-finances {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
 }
 
 .ratings {
