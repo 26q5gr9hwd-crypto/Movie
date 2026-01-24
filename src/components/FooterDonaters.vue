@@ -150,7 +150,16 @@ const featuredDonors = ref([
     isLive: false,
     category: null,
     originalIndex: 5
+  },
+  { 
+    name: 'RomanovaLera',
+    twitchUsername: 'RomanovaLera',
+    avatar: null,
+    isLive: false,
+    category: null,
+    originalIndex: 6
   }
+
 ])
 
 const currentDonater = computed(() => {
