@@ -36,7 +36,7 @@ const router = createRouter({
 })
 
 router.beforeEach((to, _from, next) => {
-  const title = to.meta.title || 'ReYohoho'
+  const title = to.meta.title || 'DanFlix'
   document.title = title
 
   startTracking()
