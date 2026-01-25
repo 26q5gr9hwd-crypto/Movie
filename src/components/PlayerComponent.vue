@@ -1,5 +1,9 @@
 <template>
-  <ErrorMessage v-if="errorMessage" :message="errorMessage" :code="errorCode" />
+  <ErrorMessage
+    v-if="errorMessage"
+    :message="errorMessage"
+    :code="errorCode"
+  />
 
   <template v-else>
     <!-- Минималистичный селектор плеера -->
@@ -7,9 +11,11 @@
       <button class="player-selector-btn" @click="openPlayerModal">
         <span class="material-icons">play_circle</span>
         <span class="player-name">
-          selectedPlayerInternal
-            ? cleanName(selectedPlayerInternal.translate)
-            : 'Выбрать плеер'
+          {{
+            selectedPlayerInternal
+              ? cleanName(selectedPlayerInternal.translate)
+              : 'Выбрать плеер'
+          }}
         </span>
         <span class="material-icons chevron">expand_more</span>
       </button>
@@ -30,7 +36,10 @@
       :class="['player-container', { 'theater-mode': theaterMode }]"
       :style="!theaterMode ? containerStyle : {}"
     >
-      <div class="iframe-wrapper" :style="!theaterMode ? iframeWrapperStyle : {}">
+      <div
+        class="iframe-wrapper"
+        :style="!theaterMode ? iframeWrapperStyle : {}"
+      >
         <iframe
           v-show="!iframeLoading && selectedPlayerInternal?.iframe"
           ref="playerIframe"
@@ -72,10 +81,18 @@
         @click="toggleList(USER_LIST_TYPES_ENUM.FAVORITE)"
       >
         <span class="material-icons">
-          movieInfo?.lists?.isFavorite ? 'favorite' : 'favorite_border'
+          {{
+            movieInfo?.lists?.isFavorite
+              ? 'favorite'
+              : 'favorite_border'
+          }}
         </span>
         <span class="favorite-text">
-          movieInfo?.lists?.isFavorite ? 'В избранном' : 'В избранное'
+          {{
+            movieInfo?.lists?.isFavorite
+              ? 'В избранном'
+              : 'В избранное'
+          }}
         </span>
       </button>
     </div>
@@ -95,7 +112,14 @@ import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
 import { useAuthStore } from '@/store/auth'
 import { USER_LIST_TYPES_ENUM } from '@/constants'
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch
+} from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import PlayerModal from '@/components/PlayerModal.vue'
 
@@ -129,7 +153,9 @@ const errorMessage = ref('')
 const errorCode = ref(null)
 
 const maxPlayerHeightValue = ref(window.innerHeight * 0.9)
-const maxPlayerHeight = computed(() => `${maxPlayerHeightValue.value}px`)
+const maxPlayerHeight = computed(
+  () => `${maxPlayerHeightValue.value}px`
+)
 const isMobile = computed(() => mainStore.isMobile)
 
 const notificationRef = ref(null)
@@ -154,7 +180,7 @@ const updateScaleFactor = () => {
   const [w, h] = aspectRatio.value.split(':').map(Number)
   maxPlayerHeightValue.value = window.innerHeight * 0.9
   naturalHeight.value = Math.min(
-    containerRef.value.clientWidth * (h / w),
+    (containerRef.value.clientWidth * h) / w,
     maxPlayerHeightValue.value
   )
 }
@@ -214,11 +240,15 @@ const fetchPlayers = async () => {
     }))
     if (playersInternal.value.length > 0) {
       if (preferredPlayer.value) {
-        const normalizedPreferred = normalizeKey(preferredPlayer.value)
-        const preferred = playersInternal.value.find(
-          (player) => normalizeKey(player.key) === normalizedPreferred
+        const normalizedPreferred = normalizeKey(
+          preferredPlayer.value
         )
-        selectedPlayerInternal.value = preferred || playersInternal.value[0]
+        const preferred = playersInternal.value.find(
+          (player) =>
+            normalizeKey(player.key) === normalizedPreferred
+        )
+        selectedPlayerInternal.value =
+          preferred || playersInternal.value[0]
       } else {
         selectedPlayerInternal.value = playersInternal.value[0]
       }
@@ -328,12 +358,18 @@ watch(
 
 const getListStatus = (listType) => {
   const statusMap = {
-    [USER_LIST_TYPES_ENUM.FAVORITE]: props.movieInfo?.lists?.isFavorite || false,
-    [USER_LIST_TYPES_ENUM.HISTORY]: props.movieInfo?.lists?.isHistory || false,
-    [USER_LIST_TYPES_ENUM.LATER]: props.movieInfo?.lists?.isLater || false,
-    [USER_LIST_TYPES_ENUM.COMPLETED]: props.movieInfo?.lists?.isCompleted || false,
-    [USER_LIST_TYPES_ENUM.ABANDONED]: props.movieInfo?.lists?.isAbandoned || false,
-    [USER_LIST_TYPES_ENUM.WATCHING]: props.movieInfo?.lists?.isWatching || false
+    [USER_LIST_TYPES_ENUM.FAVORITE]:
+      props.movieInfo?.lists?.isFavorite || false,
+    [USER_LIST_TYPES_ENUM.HISTORY]:
+      props.movieInfo?.lists?.isHistory || false,
+    [USER_LIST_TYPES_ENUM.LATER]:
+      props.movieInfo?.lists?.isLater || false,
+    [USER_LIST_TYPES_ENUM.COMPLETED]:
+      props.movieInfo?.lists?.isCompleted || false,
+    [USER_LIST_TYPES_ENUM.ABANDONED]:
+      props.movieInfo?.lists?.isAbandoned || false,
+    [USER_LIST_TYPES_ENUM.WATCHING]:
+      props.movieInfo?.lists?.isWatching || false
   }
 
   return statusMap[listType] ?? false
@@ -356,10 +392,14 @@ const toggleList = async (type) => {
 
     if (getListStatus(type)) {
       await delFromList(kp_id.value, type)
-      notificationRef.value.showNotification(`Удалено из ${listNames[type]}`)
+      notificationRef.value.showNotification(
+        `Удалено из ${listNames[type]}`
+      )
     } else {
       await addToList(kp_id.value, type)
-      notificationRef.value.showNotification(`Добавлено в ${listNames[type]}`)
+      notificationRef.value.showNotification(
+        `Добавлено в ${listNames[type]}`
+      )
     }
   } catch (error) {
     const { message, code } = handleApiError(error)
@@ -479,8 +519,13 @@ onBeforeUnmount(() => {
 }
 
 @keyframes heartPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.2); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
 }
 
 .favorite-text {
