@@ -1,8 +1,8 @@
 <template>
   <aside ref="sidebar" class="side-panel">
     <div class="top-section">
-      <router-link to="/" class="home-link" title="Home">
-        <img :src="logoIcon" alt="ReYohoho" class="logo-image" />
+      <router-link to="/" class="home-link" title="DanFlix">
+        <span class="brand-logo">DanFlix</span>
       </router-link>
     </div>
 
@@ -65,8 +65,8 @@
     </nav>
 
     <div v-if="activeTooltip !== null" class="tooltip" :style="tooltipStyle">
-  {{ tooltipText }}
-</div>
+       tooltipText 
+    </div>
   </aside>
 </template>
 
@@ -75,9 +75,6 @@ import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useNavbarStore } from '@/store/navbar'
 import NotificationBadge from '@/components/notification/NotificationBadge.vue'
-import { isNewYearPeriod } from '@/utils/dateUtils'
-import basedgeIcon from '@/assets/basedge.png'
-import basedgeNyIcon from '@/assets/basedge_ny.png'
 
 const props = defineProps({
   links: Array
@@ -87,10 +84,6 @@ const route = useRoute()
 const router = useRouter()
 const navbarStore = useNavbarStore()
 const sidebar = ref(null)
-
-const logoIcon = computed(() => {
-  return isNewYearPeriod() ? basedgeNyIcon : basedgeIcon
-})
 
 const internalNavigationHistory = ref([])
 const isNavigatingBack = ref(false)
@@ -198,17 +191,19 @@ watch(
   align-items: center;
   width: var(--nav-width, 64px);
   height: 100vh;
-  background: var(--bg-secondary);
+  background: linear-gradient(180deg, rgba(20, 20, 20, 0.95) 0%, rgba(15, 15, 15, 0.98) 100%);
+  backdrop-filter: blur(20px);
   position: fixed;
   top: 0;
   left: 0;
   padding: 16px 0;
   z-index: 10;
-  border-right: 1px solid var(--border-color);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .top-section {
-  margin-bottom: 24px;
+  margin-bottom: 32px;
+  padding: 8px 0;
 }
 
 .home-link {
@@ -218,16 +213,20 @@ watch(
   text-decoration: none;
 }
 
-.logo-image {
-  height: 36px;
-  width: 36px;
-  object-fit: contain;
-  border-radius: 8px;
-  transition: transform 0.2s ease;
+.brand-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.9rem;
+  color: var(--accent-color);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  transition: text-shadow 0.3s ease;
 }
 
-.logo-image:hover {
-  transform: scale(1.08);
+.brand-logo:hover {
+  text-shadow: 0 0 20px var(--accent-semi-transparent);
 }
 
 .side-nav {
@@ -267,6 +266,7 @@ watch(
   border-radius: 12px;
   transition: all 0.2s ease;
   cursor: pointer;
+  position: relative;
 }
 
 .nav-link i {
@@ -284,11 +284,30 @@ watch(
   color: var(--accent-color);
 }
 
+.nav-link.router-link-active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 24px;
+  background: var(--accent-color);
+  border-radius: 0 3px 3px 0;
+}
+
 .icon-user {
   height: 24px;
   width: 24px;
   object-fit: cover;
   border-radius: 50%;
+  border: 2px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+.nav-link:hover .icon-user,
+.nav-link.router-link-active .icon-user {
+  border-color: var(--accent-color);
 }
 
 .icon-donut {
