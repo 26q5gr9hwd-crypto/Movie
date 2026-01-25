@@ -6,19 +6,6 @@
         <button :class="{ active: searchType === 'title' }" @click="setSearchType('title')">
           Название
         </button>
-        <button :class="{ active: searchType === 'kinopoisk' }" @click="setSearchType('kinopoisk')">
-          ID Кинопоиск
-        </button>
-        <button :class="{ active: searchType === 'shikimori' }" @click="setSearchType('shikimori')">
-          ID Shikimori
-        </button>
-        <button :class="{ active: searchType === 'imdb' }" @click="setSearchType('imdb')">
-          ID IMDB
-        </button>
-        <button class="random-button" :disabled="randomLoading" @click="openRandomMovie">
-          <i class="fas fa-dice"></i>
-           randomLoading ? 'Загрузка...' : 'Случайный' 
-        </button>
       </div>
 
       <!-- Search Input -->
@@ -358,9 +345,9 @@ const performSearch = async () => {
       const response = await apiSearch(searchTerm.value)
       movies.value = response.map((movie) => ({
         ...movie,
-        kp_id: movie.id.toString(),
-        rating_kp: movie.raw_data?.rating !== 'null' ? movie.raw_data?.rating : null,
-        type: movie.raw_data?.type
+        kp_id: movie.kp_id?.toString() || movie.id?.toString(),
+        rating_kp: movie.rating_kp || (movie.raw_data?.rating !== 'null' ? movie.raw_data?.rating : null),
+        type: movie.type || movie.raw_data?.type
       }))
     }
   } catch (error) {
