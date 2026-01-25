@@ -129,9 +129,9 @@ onMounted(() => {
 }
 
 .movie-card:hover {
-  transform: scale(1.05) translateY(-8px);
+  transform: scale(1.05);
   box-shadow:
-    0 12px 30px rgba(0, 0, 0, 0.5),
+    0 16px 40px rgba(0, 0, 0, 0.6),
     0 0 30px var(--accent-transparent);
   z-index: 10;
 }
