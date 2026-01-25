@@ -119,24 +119,13 @@
       </div>
     </div>
 
-    <RandomMovieModal
-      :is-open="showRandomModal"
-      :movie="randomMovie"
-      :loading="randomLoading"
-      :error="randomError"
-      @close="closeRandomModal"
-      @get-new-movie="fetchRandomMovie"
-    />
+
   </div>
 </template>
 
 <script setup>
 import {
   apiSearch,
-  getKpIDfromIMDB,
-  getKpIDfromSHIKI,
-  getRandomMovie,
-  getKpInfo,
   getMovies
 } from '@/api/movies'
 import { handleApiError } from '@/constants'
@@ -153,7 +142,7 @@ import debounce from 'lodash/debounce'
 import { watchEffect, onMounted, ref, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import SpinnerLoading from '@/components/SpinnerLoading.vue'
-import RandomMovieModal from '@/components/RandomMovieModal.vue'
+
 
 const mainStore = useMainStore()
 const authStore = useAuthStore()
@@ -179,10 +168,7 @@ const popularError = ref('')
 const showLayoutWarning = ref(false)
 const suggestedLayout = ref('')
 
-const showRandomModal = ref(false)
-const randomMovie = ref(null)
-const randomLoading = ref(false)
-const randomError = ref('')
+
 
 const searchInput = ref(null)
 
