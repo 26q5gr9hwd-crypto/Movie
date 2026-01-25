@@ -247,7 +247,7 @@ const searchPerformed = ref(false)
 const showModal = ref(false)
 const errorMessage = ref('')
 const errorCode = ref(null)
-const isMobile = computed(() => mainStore.isMobile)
+// isMobile removed - was unused
 const history = ref([])
 const historyLoading = ref(false)
 
@@ -362,13 +362,7 @@ const resetSearch = () => {
   errorCode.value = null
 }
 
-const focusSearch = () => {
-  // Show search without marking as performed (so home content stays visible)
-  // Wait for DOM update, then focus
-  nextTick(() => {
-    searchInput.value?.focus()
-  })
-}
+// focusSearch removed - was unused
 
 const search = () => {
   debouncedPerformSearch.cancel()
