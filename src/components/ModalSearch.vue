@@ -100,6 +100,7 @@
 <script setup>
 import { apiSearch } from '@/api/movies'
 import ErrorMessage from '@/components/ErrorMessage.vue'
+// eslint-disable-next-line no-unused-vars
 import { handleApiError, TYPES_ENUM } from '@/constants'
 import { useNavbarStore } from '@/store/navbar'
 import debounce from 'lodash/debounce'
