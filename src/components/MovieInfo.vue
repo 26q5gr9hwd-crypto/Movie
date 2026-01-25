@@ -1,5 +1,8 @@
 <template>
   <div class="movie-info">
+    <button class="back-button" @click="router.back()" title="Назад">
+      <i class="fas fa-arrow-left"></i>
+    </button>
     <div class="content">
       <div v-if="(infoLoading || !movieInfo) && !errorMessage" class="content-card">
         <div class="movie-skeleton">
@@ -2604,6 +2607,39 @@ const handleFilterSelect = () => {
 </script>
 
 <style scoped>
+.back-button {
+  position: fixed;
+  top: 80px;
+  left: 20px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  transition: all 0.2s ease;
+}
+.back-button:hover {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px var(--accent-semi-transparent);
+}
+@media (max-width: 600px) {
+  .back-button {
+    top: 70px;
+    left: 10px;
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+}
 .content {
   min-height: 100vh;
 }
