@@ -8,6 +8,7 @@
     <div class="cinematic-vignette"></div>
     <div class="cinematic-glow cinematic-glow-1"></div>
     <div class="cinematic-glow cinematic-glow-2"></div>
+    <div class="cinematic-glow cinematic-glow-3"></div>
   </div>
   
   <!-- Dynamic/Stars Background -->
@@ -168,7 +169,7 @@ watch(backgroundType, (newType) => {
   opacity: 1;
 }
 
-/* ===== CINEMATIC BACKGROUND ===== */
+/* ===== CINEMATIC BACKGROUND - Netflix-inspired ===== */
 .cinematic-container {
   position: fixed;
   top: 0;
@@ -177,83 +178,96 @@ watch(backgroundType, (newType) => {
   height: 100vh;
   z-index: -1;
   overflow: hidden;
-  background: #0a0a0a;
+  background: #0d0d0d;
 }
 
-/* Main gradient - deep cinematic blacks with subtle red undertones */
+/* Main gradient - Netflix-inspired dark with rich undertones */
 .cinematic-gradient {
   position: absolute;
   inset: 0;
   background: 
-    radial-gradient(ellipse 120% 80% at 50% 100%, rgba(20, 5, 5, 0.9) 0%, transparent 60%),
-    radial-gradient(ellipse 80% 60% at 0% 50%, rgba(30, 5, 10, 0.6) 0%, transparent 50%),
-    radial-gradient(ellipse 80% 60% at 100% 50%, rgba(20, 5, 15, 0.5) 0%, transparent 50%),
+    /* Bottom spotlight - warm red glow from below */
+    radial-gradient(ellipse 100% 50% at 50% 105%, rgba(180, 10, 20, 0.25) 0%, transparent 50%),
+    /* Left ambient glow */
+    radial-gradient(ellipse 60% 80% at -10% 60%, rgba(120, 10, 30, 0.2) 0%, transparent 50%),
+    /* Right ambient glow */
+    radial-gradient(ellipse 50% 70% at 110% 40%, rgba(80, 5, 20, 0.15) 0%, transparent 50%),
+    /* Top subtle blue-ish highlight for depth */
+    radial-gradient(ellipse 80% 30% at 50% -5%, rgba(40, 40, 60, 0.3) 0%, transparent 50%),
+    /* Base gradient - rich dark with slight warm variation */
     linear-gradient(180deg, 
-      #050505 0%, 
-      #0a0508 20%, 
-      #0d0609 40%,
-      #0a0507 60%,
-      #080406 80%,
-      #050303 100%
+      #101014 0%, 
+      #0e0a0c 25%, 
+      #110a0d 50%,
+      #0d080a 75%,
+      #0a0608 100%
     );
 }
 
-/* Film grain noise overlay */
+/* Film grain noise overlay - subtle texture for cinematic feel */
 .cinematic-noise {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: 0.06;
-  background-image:
-    repeating-radial-gradient(
-      circle at 0 0,
-      rgba(255, 255, 255, 0.15) 0,
-      rgba(255, 255, 255, 0.15) 1px,
-      transparent 1px,
-      transparent 2px
-    );
-  background-size: 3px 3px;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
 }
 
-/* Vignette effect - darker edges like cinema */
+/* Vignette effect - cinematic edge darkening */
 .cinematic-vignette {
   position: absolute;
   inset: 0;
   background: radial-gradient(
-    ellipse 70% 60% at 50% 50%,
+    ellipse 75% 70% at 50% 50%,
     transparent 0%,
-    rgba(0, 0, 0, 0.3) 70%,
-    rgba(0, 0, 0, 0.7) 100%
+    transparent 40%,
+    rgba(0, 0, 0, 0.25) 70%,
+    rgba(0, 0, 0, 0.6) 100%
   );
   pointer-events: none;
 }
 
-/* Subtle ambient glow animations */
+/* Ambient glow effects - uses CSS variable for accent color */
 .cinematic-glow {
   position: absolute;
   border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.15;
+  filter: blur(100px);
   pointer-events: none;
   will-change: transform, opacity;
 }
 
+/* Primary glow - bottom left, Netflix red accent */
 .cinematic-glow-1 {
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, rgba(229, 9, 20, 0.4) 0%, transparent 70%);
-  bottom: -200px;
-  left: -100px;
-  animation: glowPulse1 12s ease-in-out infinite;
+  width: 900px;
+  height: 900px;
+  background: radial-gradient(circle, var(--accent-color, #e50914) 0%, transparent 60%);
+  bottom: -400px;
+  left: -250px;
+  opacity: 0.15;
+  animation: glowPulse1 15s ease-in-out infinite;
 }
 
+/* Secondary glow - top right, deeper red/maroon */
 .cinematic-glow-2 {
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, rgba(139, 0, 50, 0.3) 0%, transparent 70%);
-  top: -150px;
-  right: -100px;
-  animation: glowPulse2 15s ease-in-out infinite;
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(circle, rgba(150, 20, 50, 0.9) 0%, transparent 60%);
+  top: -250px;
+  right: -200px;
+  opacity: 0.1;
+  animation: glowPulse2 18s ease-in-out infinite;
+}
+
+/* Tertiary glow - center bottom, subtle warmth */
+.cinematic-glow-3 {
+  width: 1200px;
+  height: 400px;
+  background: radial-gradient(ellipse, rgba(229, 9, 20, 0.5) 0%, transparent 70%);
+  bottom: -200px;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0.08;
+  animation: glowPulse3 20s ease-in-out infinite;
 }
 
 @keyframes glowPulse1 {
@@ -261,27 +275,43 @@ watch(backgroundType, (newType) => {
     transform: translate(0, 0) scale(1);
     opacity: 0.15;
   }
-  50% {
-    transform: translate(50px, -30px) scale(1.1);
-    opacity: 0.2;
+  33% {
+    transform: translate(40px, -20px) scale(1.05);
+    opacity: 0.18;
+  }
+  66% {
+    transform: translate(-20px, 10px) scale(0.98);
+    opacity: 0.12;
   }
 }
 
 @keyframes glowPulse2 {
   0%, 100% {
     transform: translate(0, 0) scale(1);
-    opacity: 0.12;
+    opacity: 0.1;
   }
   50% {
-    transform: translate(-40px, 20px) scale(1.15);
-    opacity: 0.18;
+    transform: translate(-30px, 25px) scale(1.1);
+    opacity: 0.14;
+  }
+}
+
+@keyframes glowPulse3 {
+  0%, 100% {
+    transform: translateX(-50%) scale(1);
+    opacity: 0.08;
+  }
+  50% {
+    transform: translateX(-50%) scale(1.05);
+    opacity: 0.12;
   }
 }
 
 /* Reduce motion for accessibility */
 @media (prefers-reduced-motion: reduce) {
   .cinematic-glow-1,
-  .cinematic-glow-2 {
+  .cinematic-glow-2,
+  .cinematic-glow-3 {
     animation: none;
   }
 }
