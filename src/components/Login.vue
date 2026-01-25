@@ -1,6 +1,6 @@
 <template>
   <div class="login-page">
-    <h1>{{ isSignup ? 'Регистрация' : 'Вход в систему' }}</h1>
+    <h1> isSignup ? 'Регистрация' : 'Вход' </h1>
 
     <div class="login-container dark-theme">
       <div v-if="loading" class="loading-container">
@@ -46,11 +46,11 @@
         </div>
 
         <div v-if="error" class="error-message">
-          {{ error }}
+           error 
         </div>
 
         <button type="submit" class="submit-btn" :disabled="loading">
-          {{ isSignup ? 'Зарегистрироваться' : 'Войти' }}
+           isSignup ? 'Зарегистрироваться' : 'Войти' 
         </button>
 
         <div class="toggle-mode">
@@ -117,13 +117,6 @@ const handleSubmit = async () => {
         username: username.value.trim(),
         password: password.value
       })
-      // Auto-login after signup if no session returned
-      if (!response.session) {
-        response = await login({
-          username: username.value.trim(),
-          password: password.value
-        })
-      }
     } else {
       response = await login({
         username: username.value.trim(),
@@ -131,22 +124,25 @@ const handleSubmit = async () => {
       })
     }
 
-    // Supabase returns session and user
-    if (response.session) {
-      authStore.setSession(response.session)
+    // Backend returns { token, user }
+    if (response.token) {
+      authStore.setToken(response.token)
       authStore.setUser(response.user)
-      // Full reload to ensure initAuth() picks up the new session
+      // Redirect to home
       window.location.href = '/'
+    } else {
+      error.value = 'Ошибка авторизации: токен не получен'
     }
   } catch (err) {
-    if (err.message?.includes('Invalid login credentials')) {
+    if (err.response?.data?.error) {
+      error.value = err.response.data.error
+    } else if (err.message?.includes('Invalid login credentials') || err.message?.includes('Invalid credentials')) {
       error.value = 'Неверное имя пользователя или пароль'
-    } else if (err.message?.includes('User already registered')) {
+    } else if (err.message?.includes('User already registered') || err.message?.includes('already exists')) {
       error.value = 'Пользователь с таким именем уже существует'
     } else {
       error.value = err.message || 'Произошла ошибка. Попробуйте позже.'
     }
-    // console.error('Auth error:', err)
   } finally {
     loading.value = false
   }
