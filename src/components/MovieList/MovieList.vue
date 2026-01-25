@@ -319,8 +319,8 @@ onUnmounted(() => {
   scroll-behavior: smooth;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  padding: 10px 4% 30px 4%;
-  margin: -10px 0 -30px 0;
+  padding: 20px 4% 40px 4%;
+  margin: -20px 0 -40px 0;
 }
 
 .carousel-wrapper::-webkit-scrollbar {
