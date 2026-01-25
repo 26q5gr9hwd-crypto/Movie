@@ -131,15 +131,9 @@ onMounted(() => {
 .movie-card:hover {
   transform: scale(1.05);
   box-shadow:
-    0 16px 40px rgba(0, 0, 0, 0.6),
-    0 0 30px var(--accent-transparent);
+    0 8px 24px rgba(0, 0, 0, 0.5),
+    0 0 20px var(--accent-transparent);
   z-index: 10;
-}
-/* Ensure image stays within rounded corners on hover */
-.movie-card:hover :deep(.movie-poster-wrapper),
-.movie-card:hover :deep(.movie-poster-wrapper img) {
-  border-radius: 8px 8px 0 0;
-  overflow: hidden;
 }
 
 .hover-disabled:hover {
