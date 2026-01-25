@@ -8,7 +8,7 @@
         <p>Загрузка...</p>
       </div>
 
-      <form v-else @submit.prevent="handleSubmit" class="auth-form">
+      <form v-else class="auth-form" @submit.prevent="handleSubmit">
         <div class="form-group">
           <label for="username">Имя пользователя</label>
           <input
@@ -70,11 +70,9 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
 import { login, signup } from '@/api/user'
 
-const router = useRouter()
 const authStore = useAuthStore()
 
 const username = ref('')
@@ -148,7 +146,7 @@ const handleSubmit = async () => {
     } else {
       error.value = err.message || 'Произошла ошибка. Попробуйте позже.'
     }
-    console.error('Auth error:', err)
+    // console.error('Auth error:', err)
   } finally {
     loading.value = false
   }
