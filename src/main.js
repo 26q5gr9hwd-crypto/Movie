@@ -19,6 +19,10 @@ const app = createApp(App)
 
 useAppSetup(app)
 
-// Может перенести это в App.vue? Выглядит здесь не к месту после .mount
+// Initialize stores after app setup
 const themeStore = useThemeStore()
 themeStore.initTheme()
+// Initialize auth (restores session if user was logged in)
+import { useAuthStore } from './store/auth'
+const authStore = useAuthStore()
+authStore.initAuth()
