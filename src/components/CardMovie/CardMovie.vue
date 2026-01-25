@@ -25,15 +25,23 @@
     />
 
     <CardMovieDetails v-if="!isCarousel" :movie :is-history />
-    
+
     <!-- Compact overlay for carousel mode -->
     <div v-if="isCarousel" class="card-overlay">
       <div class="card-overlay-content">
-        <h4 class="card-overlay-title"> movie.title || movie.name </h4>
+        <h4 class="card-overlay-title">
+          {{ movie.title || movie.name }}
+        </h4>
         <div class="card-overlay-meta">
-          <span v-if="movie.year" class="card-overlay-year"> movie.year </span>
-          <span v-if="movie.rating_kp" class="card-overlay-rating" :class="getRatingColorClass(movie.rating_kp)">
-            ★  movie.rating_kp.toFixed(1) 
+          <span v-if="movie.year" class="card-overlay-year">
+            {{ movie.year }}
+          </span>
+          <span
+            v-if="movie.rating_kp"
+            class="card-overlay-rating"
+            :class="getRatingColorClass(movie.rating_kp)"
+          >
+            ★ {{ movie.rating_kp.toFixed(1) }}
           </span>
         </div>
       </div>
@@ -50,7 +58,9 @@ import { useMainStore } from '@/store/main'
 
 const backgroundStore = useBackgroundStore()
 const mainStore = useMainStore()
-const isCardHoverDisabled = computed(() => backgroundStore.isCardHoverDisabled)
+const isCardHoverDisabled = computed(
+  () => backgroundStore.isCardHoverDisabled
+)
 const cardSize = computed(() => mainStore.cardSize)
 
 const {
@@ -158,7 +168,12 @@ onMounted(() => {
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.7) 60%, transparent 100%);
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.95) 0%,
+    rgba(0, 0, 0, 0.7) 60%,
+    transparent 100%
+  );
   padding: 40px 12px 12px 12px;
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -276,21 +291,21 @@ onMounted(() => {
     width: 100%;
     border-radius: 15px;
   }
-  
+
   .movie-card.carousel-mode {
     border-radius: 6px;
   }
-  
+
   .movie-card.carousel-mode .card-overlay {
     opacity: 1;
     padding: 30px 8px 8px 8px;
   }
-  
+
   .card-overlay-title {
     font-size: 0.75rem;
     -webkit-line-clamp: 1;
   }
-  
+
   .card-overlay-meta {
     font-size: 0.7rem;
   }
