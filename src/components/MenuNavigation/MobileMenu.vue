@@ -3,7 +3,11 @@
     <nav v-if="isNavbarVisible" class="mobile-navbar" @click.stop>
       <div class="mobile-header">
         <router-link to="/" class="mobile-logo" @click="closeNavbar">
-          <img src="@/assets/basedge.png" alt="ReYohoho" class="logo-image" />
+          <img
+            src="@/assets/basedge.png"
+            alt="ReYohoho"
+            class="logo-image"
+          />
           <span class="logo-text">ReYohoho</span>
         </router-link>
       </div>
@@ -11,6 +15,7 @@
       <div class="nav-links-wrapper">
         <ul class="nav-links">
           <li v-for="link in props.links" :key="link.text">
+            <!-- Notification badge link -->
             <template v-if="link.component === 'NotificationBadge'">
               <router-link
                 :to="link.to"
@@ -21,31 +26,55 @@
                 <div class="nav-icon">
                   <NotificationBadge />
                 </div>
-                <span class="nav-text"> link.text </span>
+                <span class="nav-text">{{ link.text }}</span>
               </router-link>
             </template>
 
+            <!-- Normal link -->
             <component
               v-else
               :is="link.to ? 'router-link' : 'a'"
               v-bind="
-                link.to ? { to: link.to, exact: link.exact } : { href: link.href, target: '_blank' }
+                link.to
+                  ? { to: link.to, exact: link.exact }
+                  : { href: link.href, target: '_blank' }
               "
               class="nav-link"
               @click="closeNavbar"
             >
               <div class="nav-icon">
-                <template v-if="typeof link.icon === 'string' && link.icon.startsWith('fa')">
+                <template
+                  v-if="
+                    typeof link.icon === 'string' &&
+                    link.icon.startsWith('fa')
+                  "
+                >
                   <i :class="link.icon"></i>
                 </template>
-                <template v-else-if="typeof link.icon === 'string' && link.icon.startsWith('http')">
-                  <img :src="link.icon" alt="icon" class="icon-user" />
+
+                <template
+                  v-else-if="
+                    typeof link.icon === 'string' &&
+                    link.icon.startsWith('http')
+                  "
+                >
+                  <img
+                    :src="link.icon"
+                    alt="icon"
+                    class="icon-user"
+                  />
                 </template>
+
                 <template v-else>
-                  <img src="@/assets/icon-donut.png" alt="icon" class="icon-donut" />
+                  <img
+                    src="@/assets/icon-donut.png"
+                    alt="icon"
+                    class="icon-donut"
+                  />
                 </template>
               </div>
-              <span class="nav-text"> link.text </span>
+
+              <span class="nav-text">{{ link.text }}</span>
             </component>
           </li>
         </ul>
@@ -53,7 +82,11 @@
     </nav>
   </transition>
 
-  <div v-if="isNavbarVisible" class="overlay" @click="closeNavbar"></div>
+  <div
+    v-if="isNavbarVisible"
+    class="overlay"
+    @click="closeNavbar"
+  ></div>
 </template>
 
 <script setup>
