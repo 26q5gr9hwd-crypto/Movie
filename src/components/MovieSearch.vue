@@ -15,28 +15,28 @@
         <div class="hero-gradient"></div>
         <div class="hero-content">
           <h1 class="hero-title">
-            \( featuredMovie.title || featuredMovie.name \)
+            {{ featuredMovie.title || featuredMovie.name }}
           </h1>
           <div class="hero-meta">
             <span
               v-if="featuredMovie.rating_kp"
               class="hero-rating"
             >
-              ★ \( featuredMovie.rating_kp?.toFixed?.(1) ||
-              featuredMovie.rating_kp \)
+              ★ {{ featuredMovie.rating_kp?.toFixed?.(1) ||
+              featuredMovie.rating_kp }}
             </span>
             <span v-if="featuredMovie.year" class="hero-year">
-              \( featuredMovie.year \)
+              {{ featuredMovie.year }}
             </span>
             <span v-if="featuredMovie.type" class="hero-type">
-              \( TYPES_ENUM[featuredMovie.type] || featuredMovie.type \)
+              {{ TYPES_ENUM[featuredMovie.type] || featuredMovie.type }}
             </span>
           </div>
           <p
             v-if="featuredMovie.raw_data?.description"
             class="hero-description"
           >
-            \( featuredMovie.raw_data.description.slice(0, 200) \)...
+            {{ featuredMovie.raw_data.description.slice(0, 200) }}...
           </p>
           <div class="hero-buttons">
             <router-link
@@ -151,7 +151,7 @@
         <div v-if="searchPerformed" class="search-results-section">
           <div class="search-results-header">
             <h2 class="section-title">
-              Результаты поиска: "\( lastSearchTerm \)"
+              Результаты поиска: "{{ lastSearchTerm }}"
             </h2>
             <button class="back-to-home-btn" @click="resetSearch">
               <i class="fas fa-arrow-left"></i> На главную
@@ -245,7 +245,9 @@ watch(
   featuredMovie,
   (movie) => {
     if (movie && (movie.backdrop || movie.cover)) {
-      backgroundStore.updateMainPagePoster(movie.backdrop || movie.cover)
+      backgroundStore.updateMainPagePoster(
+        movie.backdrop || movie.cover
+      )
     }
   },
   { immediate: true }
@@ -264,7 +266,8 @@ const fetchPopularMovies = async () => {
       rating_kp: movie.rating_kp || movie.raw_data?.rating,
       type: movie.type || movie.raw_data?.type,
       backdrop:
-        movie.raw_data?.backdrop?.url || movie.raw_data?.poster?.url
+        movie.raw_data?.backdrop?.url ||
+        movie.raw_data?.poster?.url
     }))
   } catch (error) {
     const { message } = handleApiError(error)
@@ -279,7 +282,9 @@ watchEffect(async () => {
   if (authStore.token) {
     historyLoading.value = true
     try {
-      history.value = await getMyLists(USER_LIST_TYPES_ENUM.HISTORY)
+      history.value = await getMyLists(
+        USER_LIST_TYPES_ENUM.HISTORY
+      )
     } catch (error) {
       const { message, code } = handleApiError(error)
       errorMessage.value = message
@@ -298,7 +303,9 @@ watchEffect(async () => {
 })
 
 function handleItemDeleted(deletedItemId) {
-  history.value = history.value.filter((item) => item.kp_id !== deletedItemId)
+  history.value = history.value.filter(
+    (item) => item.kp_id !== deletedItemId
+  )
 }
 
 const resetSearch = () => {
@@ -322,7 +329,9 @@ const performSearch = async () => {
       kp_id: movie.kp_id?.toString() || movie.id?.toString(),
       rating_kp:
         movie.rating_kp ||
-        (movie.raw_data?.rating !== 'null' ? movie.raw_data?.rating : null),
+        (movie.raw_data?.rating !== 'null'
+          ? movie.raw_data?.rating
+          : null),
       type: movie.type || movie.raw_data?.type
     }))
   } catch (error) {
@@ -366,7 +375,9 @@ onMounted(() => {
 
   const hash = window.location.hash
   if (hash.startsWith('#search=')) {
-    const searchQuery = decodeURIComponent(hash.replace('#search=', ''))
+    const searchQuery = decodeURIComponent(
+      hash.replace('#search=', '')
+    )
     searchTerm.value = searchQuery
     lastSearchTerm.value = searchQuery
     performSearch()
