@@ -15,28 +15,28 @@
         <div class="hero-gradient"></div>
         <div class="hero-content">
           <h1 class="hero-title">
-            {{ featuredMovie.title || featuredMovie.name }}
+            \( featuredMovie.title || featuredMovie.name \)
           </h1>
           <div class="hero-meta">
             <span
               v-if="featuredMovie.rating_kp"
               class="hero-rating"
             >
-              ★ {{ featuredMovie.rating_kp?.toFixed?.(1) ||
-              featuredMovie.rating_kp }}
+              ★ \( featuredMovie.rating_kp?.toFixed?.(1) ||
+              featuredMovie.rating_kp \)
             </span>
             <span v-if="featuredMovie.year" class="hero-year">
-              {{ featuredMovie.year }}
+              \( featuredMovie.year \)
             </span>
             <span v-if="featuredMovie.type" class="hero-type">
-              {{ TYPES_ENUM[featuredMovie.type] || featuredMovie.type }}
+              \( TYPES_ENUM[featuredMovie.type] || featuredMovie.type \)
             </span>
           </div>
           <p
             v-if="featuredMovie.raw_data?.description"
             class="hero-description"
           >
-            {{ featuredMovie.raw_data.description.slice(0, 200) }}...
+            \( featuredMovie.raw_data.description.slice(0, 200) \)...
           </p>
           <div class="hero-buttons">
             <router-link
@@ -65,56 +65,10 @@
       <button
         v-if="!searchPerformed && featuredMovie"
         class="floating-search-btn"
-        @click="openSearchModal"
+        @click="navbarStore.openSearchModal()"
       >
         <i class="fas fa-search"></i>
       </button>
-
-      <!-- Search Modal Overlay -->
-      <Teleport to="body">
-        <Transition name="modal-fade">
-          <div
-            v-if="isSearchModalOpen"
-            class="search-modal-overlay"
-            @click.self="closeSearchModal"
-          >
-            <div class="search-modal">
-              <div class="search-modal-header">
-                <div class="search-pill-modal">
-                  <i class="fas fa-search search-icon"></i>
-                  <input
-                    ref="modalSearchInput"
-                    v-model="searchTerm"
-                    placeholder="Поиск фильмов и сериалов..."
-                    class="search-input-modal"
-                    inputmode="text"
-                    @keydown.enter.prevent="executeSearch"
-                    @keydown.esc="closeSearchModal"
-                  />
-                  <button
-                    v-if="searchTerm"
-                    class="reset-button"
-                    @click="clearSearch"
-                  >
-                    <i class="fas fa-times"></i>
-                  </button>
-                </div>
-                <button class="close-modal-btn" @click="closeSearchModal">
-                  <i class="fas fa-times"></i>
-                </button>
-              </div>
-
-              <!-- Quick suggestions or recent searches could go here -->
-              <div class="search-modal-hint">
-                <span
-                  ><i class="fas fa-keyboard"></i> Enter для поиска • Esc
-                  для закрытия</span
-                >
-              </div>
-            </div>
-          </div>
-        </Transition>
-      </Teleport>
 
       <!-- Content Container -->
       <div class="content-container">
@@ -197,7 +151,7 @@
         <div v-if="searchPerformed" class="search-results-section">
           <div class="search-results-header">
             <h2 class="section-title">
-              Результаты поиска: "{{ lastSearchTerm }}"
+              Результаты поиска: "\( lastSearchTerm \)"
             </h2>
             <button class="back-to-home-btn" @click="resetSearch">
               <i class="fas fa-arrow-left"></i> На главную
@@ -243,19 +197,17 @@ import { MovieList } from '@/components/MovieList/'
 import { useMainStore } from '@/store/main'
 import { useAuthStore } from '@/store/auth'
 import { useBackgroundStore } from '@/store/background'
+import { useNavbarStore } from '@/store/navbar'
 import { USER_LIST_TYPES_ENUM, TYPES_ENUM } from '@/constants'
 
-import { watchEffect, onMounted, ref, computed, nextTick, watch } from 'vue'
+import { watchEffect, onMounted, ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 const mainStore = useMainStore()
 const authStore = useAuthStore()
 const backgroundStore = useBackgroundStore()
+const navbarStore = useNavbarStore()
 const router = useRouter()
-
-// Search modal state
-const isSearchModalOpen = ref(false)
-const modalSearchInput = ref(null)
 
 const searchTerm = ref('')
 const lastSearchTerm = ref('')
@@ -297,43 +249,6 @@ watch(
   },
   { immediate: true }
 )
-
-// Debounced search while typing
-let searchDebounceTimer = null
-watch(searchTerm, (newVal) => {
-  if (searchDebounceTimer) clearTimeout(searchDebounceTimer)
-  if (newVal.trim()) {
-    searchDebounceTimer = setTimeout(() => {
-      lastSearchTerm.value = newVal
-      performSearch()
-    }, 400)
-  }
-})
-
-// Search modal functions
-const openSearchModal = () => {
-  isSearchModalOpen.value = true
-  nextTick(() => {
-    modalSearchInput.value?.focus()
-  })
-}
-
-const closeSearchModal = () => {
-  isSearchModalOpen.value = false
-}
-
-const clearSearch = () => {
-  searchTerm.value = ''
-  modalSearchInput.value?.focus()
-}
-
-const executeSearch = () => {
-  if (searchTerm.value.trim()) {
-    lastSearchTerm.value = searchTerm.value
-    closeSearchModal()
-    performSearch()
-  }
-}
 
 // Fetch popular movies on mount
 const fetchPopularMovies = async () => {
@@ -630,138 +545,6 @@ onMounted(() => {
   transform: scale(1.1);
 }
 
-/* ===== SEARCH MODAL ===== */
-.search-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(20px);
-  z-index: 9999;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding-top: 15vh;
-}
-
-.search-modal {
-  width: 100%;
-  max-width: 650px;
-  padding: 0 20px;
-  animation: modalSlideDown 0.3s ease-out;
-}
-
-@keyframes modalSlideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.search-modal-header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.search-pill-modal {
-  flex: 1;
-  background: rgba(40, 40, 40, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  padding: 18px 24px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  transition: all 0.3s ease;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-}
-
-.search-pill-modal:focus-within {
-  border-color: var(--accent-color);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
-    0 0 0 3px var(--accent-transparent);
-}
-
-.search-icon {
-  color: var(--text-muted);
-  font-size: 1.3rem;
-}
-
-.search-input-modal {
-  flex: 1;
-  background: transparent;
-  border: none;
-  color: var(--text-color);
-  font-size: 1.2rem;
-  outline: none;
-}
-
-.search-input-modal::placeholder {
-  color: var(--text-muted);
-}
-
-.reset-button {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  padding: 4px;
-  transition: color 0.2s ease;
-  display: flex;
-  align-items: center;
-}
-
-.reset-button:hover {
-  color: var(--text-color);
-}
-
-.close-modal-btn {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: rgba(60, 60, 60, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: var(--text-color);
-  font-size: 1.1rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-}
-
-.close-modal-btn:hover {
-  background: rgba(80, 80, 80, 0.9);
-  transform: scale(1.05);
-}
-
-.search-modal-hint {
-  text-align: center;
-  color: var(--text-muted);
-  font-size: 0.85rem;
-  margin-top: 20px;
-  opacity: 0.7;
-}
-
-.search-modal-hint i {
-  margin-right: 6px;
-}
-
-/* Modal transitions */
-.modal-fade-enter-active,
-.modal-fade-leave-active {
-  transition: opacity 0.25s ease;
-}
-
-.modal-fade-enter-from,
-.modal-fade-leave-to {
-  opacity: 0;
-}
-
 /* Movie Row Styles */
 .movie-row {
   margin-bottom: 40px;
@@ -975,18 +758,6 @@ onMounted(() => {
     right: 15px;
     width: 44px;
     height: 44px;
-  }
-
-  .search-modal-overlay {
-    padding-top: 10vh;
-  }
-
-  .search-pill-modal {
-    padding: 14px 18px;
-  }
-
-  .search-input-modal {
-    font-size: 1rem;
   }
 }
 
