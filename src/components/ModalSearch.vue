@@ -15,7 +15,11 @@
             @keydown.down.prevent="focusFirstMovieCard"
             @keydown.esc="closeModal"
           />
-          <button v-if="searchTerm" class="reset-button" @click="clearSearch">
+          <button
+            v-if="searchTerm"
+            class="reset-button"
+            @click="clearSearch"
+          >
             <i class="fas fa-times"></i>
           </button>
         </div>
@@ -25,7 +29,10 @@
       </div>
 
       <!-- Search Hint (when no search) -->
-      <div v-if="searchTerm?.length < 2 && !loading" class="search-modal-hint">
+      <div
+        v-if="searchTerm?.length < 2 && !loading"
+        class="search-modal-hint"
+      >
         <span
           ><i class="fas fa-keyboard"></i> Enter для поиска • Esc для
           закрытия</span
@@ -73,25 +80,31 @@
               loading="lazy"
             />
             <div class="result-info">
-              <div class="result-title">\( getMovieName(movie) \)</div>
+              <div class="result-title">
+                {{ getMovieName(movie) }}
+              </div>
               <div class="result-meta">
                 <span
                   class="result-rating"
                   :class="getRatingColor(movie.raw_data?.rating)"
                 >
-                  ★ \( movie.raw_data?.rating || '—' \)
+                  ★ {{ movie.raw_data?.rating || '—' }}
                 </span>
                 <span class="result-type">
-                  \( TYPES_ENUM[movie.type] || movie.type \)
+                  {{ TYPES_ENUM[movie.type] || movie.type }}
                 </span>
-                <span class="result-year">\( movie.year \)</span>
+                <span class="result-year">{{ movie.year }}</span>
               </div>
             </div>
           </router-link>
         </div>
 
         <!-- Error -->
-        <ErrorMessage v-if="errorMessage" :message="errorMessage" :code="errorCode" />
+        <ErrorMessage
+          v-if="errorMessage"
+          :message="errorMessage"
+          :code="errorCode"
+        />
       </div>
     </div>
   </div>
@@ -202,7 +215,8 @@ const focusFirstMovieCard = () => {
 
 const handleKeyDown = (event) => {
   if (!movies.value?.length) return
-  if (!event.target?.classList?.contains('search-result-item')) return
+  if (!event.target?.classList?.contains('search-result-item'))
+    return
 
   switch (event.key) {
     case 'ArrowDown':
