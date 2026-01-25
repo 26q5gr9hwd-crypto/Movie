@@ -170,7 +170,7 @@ const fetchPopularMovies = async () => {
   popularError.value = ''
   
   try {
-    const data = await getMovies({ activeTime: '7d', limit: 20 })
+    const data = await getMovies({ activeTime: '7d' })
     popularMovies.value = data.map((movie) => ({
       ...movie,
       kp_id: movie.kp_id?.toString() || movie.id?.toString(),
