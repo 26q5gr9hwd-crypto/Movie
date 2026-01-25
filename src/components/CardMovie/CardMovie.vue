@@ -7,7 +7,8 @@
       'has-border': isCardBorder,
       'hover-disabled': isCardHoverDisabled,
       'card-border': isCardBorder,
-      [`card-size-${cardSize}`]: true
+      [`card-size-${cardSize}`]: true,
+      'carousel-mode': isCarousel
     }"
     :to="{ name: 'movie-info', params: { kp_id: movie.kp_id } }"
     :data-test-id="`movie-card-${movie.kp_id}`"
@@ -23,7 +24,20 @@
       @remove:from-history="(data) => emit('remove:from-history', data)"
     />
 
-    <CardMovieDetails :movie :is-history />
+    <CardMovieDetails v-if="!isCarousel" :movie :is-history />
+    
+    <!-- Compact overlay for carousel mode -->
+    <div v-if="isCarousel" class="card-overlay">
+      <div class="card-overlay-content">
+        <h4 class="card-overlay-title"> movie.title || movie.name </h4>
+        <div class="card-overlay-meta">
+          <span v-if="movie.year" class="card-overlay-year"> movie.year </span>
+          <span v-if="movie.rating_kp" class="card-overlay-rating" :class="getRatingColorClass(movie.rating_kp)">
+            ★  movie.rating_kp.toFixed(1) 
+          </span>
+        </div>
+      </div>
+    </div>
   </RouterLink>
 </template>
 
@@ -45,6 +59,7 @@ const {
   isCardBorder = false,
   isMobile = false,
   isUserList = false,
+  isCarousel = false,
   activeMovieIndex = null,
   index = 0,
   showDelete = true,
@@ -55,6 +70,7 @@ const {
   isMobile: Boolean,
   isCardBorder: Boolean,
   isUserList: Boolean,
+  isCarousel: Boolean,
   index: Number,
   activeMovieIndex: [Number, null],
   showDelete: Boolean,
@@ -63,6 +79,12 @@ const {
 
 const emit = defineEmits(['remove:from-history', 'save:element'])
 const element = useTemplateRef('element')
+
+const getRatingColorClass = (rating) => {
+  if (rating >= 7) return 'high'
+  if (rating >= 5) return 'medium'
+  return 'low'
+}
 
 onMounted(() => {
   if (element.value && element.value.$el) {
@@ -77,18 +99,19 @@ onMounted(() => {
   color: inherit;
   width: 100%;
   background: rgba(30, 30, 30, 0.6);
-  border-radius: 10px;
+  border-radius: 8px;
   overflow: hidden;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   transition:
-    transform 0.3s ease,
+    transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
     box-shadow 0.3s ease,
     border 0.3s ease;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
   border: none;
+  position: relative;
 }
 
 .has-border {
@@ -96,10 +119,11 @@ onMounted(() => {
 }
 
 .movie-card:hover {
-  transform: translateY(-5px);
+  transform: scale(1.05) translateY(-8px);
   box-shadow:
-    0 8px 16px rgba(0, 0, 0, 0.3),
-    0 0 20px var(--accent-semi-transparent);
+    0 12px 30px rgba(0, 0, 0, 0.5),
+    0 0 30px var(--accent-transparent);
+  z-index: 10;
 }
 
 .hover-disabled:hover {
@@ -117,6 +141,78 @@ onMounted(() => {
 
 .movie-card:hover :deep(.delete-button) {
   opacity: 1;
+}
+
+/* Carousel mode - poster focused */
+.movie-card.carousel-mode {
+  background: transparent;
+  border-radius: 6px;
+}
+
+.movie-card.carousel-mode:hover {
+  transform: scale(1.08);
+}
+
+.card-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.7) 60%, transparent 100%);
+  padding: 40px 12px 12px 12px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.movie-card.carousel-mode:hover .card-overlay {
+  opacity: 1;
+}
+
+.card-overlay-content {
+  transform: translateY(10px);
+  transition: transform 0.3s ease;
+}
+
+.movie-card.carousel-mode:hover .card-overlay-content {
+  transform: translateY(0);
+}
+
+.card-overlay-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0 0 6px 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.3;
+}
+
+.card-overlay-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8rem;
+}
+
+.card-overlay-year {
+  color: var(--text-secondary);
+}
+
+.card-overlay-rating {
+  font-weight: 600;
+}
+
+.card-overlay-rating.high {
+  color: #46d369;
+}
+
+.card-overlay-rating.medium {
+  color: #f5c518;
+}
+
+.card-overlay-rating.low {
+  color: #ff6b6b;
 }
 
 .movie-card.card-size-small :deep(.movie-details) {
@@ -173,12 +269,30 @@ onMounted(() => {
 
 /* Мобильная версия */
 @media (max-width: 620px) {
-  .movie-card {
+  .movie-card:not(.carousel-mode) {
     flex-direction: row;
     align-items: flex-start;
     height: 200px;
     width: 100%;
     border-radius: 15px;
+  }
+  
+  .movie-card.carousel-mode {
+    border-radius: 6px;
+  }
+  
+  .movie-card.carousel-mode .card-overlay {
+    opacity: 1;
+    padding: 30px 8px 8px 8px;
+  }
+  
+  .card-overlay-title {
+    font-size: 0.75rem;
+    -webkit-line-clamp: 1;
+  }
+  
+  .card-overlay-meta {
+    font-size: 0.7rem;
   }
 }
 </style>
