@@ -234,9 +234,7 @@ const suggestedLayout = ref('')
 
 const searchInput = ref(null)
 
-const getTypeLabel = (type) => {
-  return TYPES_ENUM[type] || type
-}
+
 
 // Fetch popular movies on mount
 const fetchPopularMovies = async () => {
