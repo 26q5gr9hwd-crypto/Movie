@@ -5,7 +5,7 @@
         <router-link to="/" class="mobile-logo" @click="closeNavbar">
           <img
             src="@/assets/basedge.png"
-            alt="ReYohoho"
+            alt="DanFlix"
             class="logo-image"
           />
           <span class="logo-text">DanFlix</span>
@@ -233,3 +233,4 @@ const { closeNavbar } = navbarStore
   z-index: 99;
 }
 </style>
+</tr>
