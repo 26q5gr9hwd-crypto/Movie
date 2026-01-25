@@ -4,7 +4,7 @@
   <!-- Dynamic Background - switches between cinematic glow and movie backdrop -->
   <div v-else-if="backgroundType === 'dynamic'" class="dynamic-container">
     <!-- Cinematic Glow (always present as base layer, fades when backdrop is active) -->
-    <div class="cinematic-layer" :class="{ 'cinematic-hidden': isOnMoviePage && hasMoviePoster }">
+    <div class="cinematic-layer" :class="{ 'cinematic-hidden': (isOnMoviePage && hasMoviePoster) || isOnHomeWithPoster }">
       <div class="cinematic-glow-wrap">
         <div class="cinematic-glow cinematic-glow-1"></div>
         <div class="cinematic-glow cinematic-glow-2"></div>
@@ -14,7 +14,7 @@
     </div>
     
     <!-- Movie Backdrop (shown when on movie page with poster) -->
-    <div class="backdrop-layer" :class="{ 'backdrop-active': isOnMoviePage && hasMoviePoster }">
+    <div class="backdrop-layer" :class="{ 'backdrop-active': (isOnMoviePage && hasMoviePoster) || isOnHomeWithPoster }">
       <div
         v-for="(bg, index) in backgrounds"
         :key="index"
@@ -53,9 +53,13 @@ const backgroundType = computed(() => backgroundStore.backgroundType)
 const isBlurActive = computed(() => backgroundStore.isBlurActive)
 const moviePoster = computed(() => backgroundStore.moviePoster)
 
-// Check if currently on a movie page
+// Check if currently on a movie page OR home with main poster
 const isOnMoviePage = computed(() => {
   return route.path.includes('/movie/')
+})
+// Check if on home page with a main poster set
+const isOnHomeWithPoster = computed(() => {
+  return route.path === '/' && !!backgroundStore.mainPagePoster
 })
 
 // Check if we have a movie poster to show
@@ -66,7 +70,7 @@ const hasMoviePoster = computed(() => {
 const getBackdropStyle = (index) => {
   return {
     backgroundImage: backgrounds.value[index] ? 'url(' + backgrounds.value[index] + ')' : 'none',
-    filter: 'brightness(25%) ' + (isBlurActive.value ? 'blur(8px)' : 'blur(0px)'),
+    filter: 'brightness(45%) ' + (isBlurActive.value ? 'blur(8px)' : 'blur(4px)'),
     backgroundSize: 'cover',
     backgroundPosition: 'center top'
   }
