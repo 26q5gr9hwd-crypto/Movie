@@ -1,7 +1,7 @@
 <template>
   <div class="wrapper">
     <div class="mainpage">
-      <!-- Кнопки выбора типа поиска -->
+      <!-- Search Type Buttons -->
       <div class="search-type-buttons">
         <button :class="{ active: searchType === 'title' }" @click="setSearchType('title')">
           Название
@@ -17,11 +17,11 @@
         </button>
         <button class="random-button" :disabled="randomLoading" @click="openRandomMovie">
           <i class="fas fa-dice"></i>
-          {{ randomLoading ? 'Подбираем...' : 'Случайный фильм' }}
+           randomLoading ? 'Загрузка...' : 'Случайный' 
         </button>
       </div>
 
-      <!-- Поиск -->
+      <!-- Search Input -->
       <div class="search-container">
         <div class="input-wrapper">
           <input
@@ -47,15 +47,15 @@
           <div v-if="showLayoutWarning" class="layout-warning" :class="{ show: showLayoutWarning }">
             <i class="fas fa-keyboard"></i>
             Возможно, вы используете неправильную раскладку. Нажмите Tab для переключения на
-            {{ suggestedLayout }} раскладку
+             suggestedLayout  раскладку
           </div>
         </div>
       </div>
 
-      <!-- Контейнер для истории и результатов -->
+      <!-- Content Container -->
       <div class="content-container">
-        <!-- История просмотра -->
-        <div v-if="!searchTerm">
+        <!-- History Section (when not searching) -->
+        <div v-if="!searchTerm && !searchPerformed">
           <h2>
             История просмотра
             <span v-if="history.length > 0">
@@ -68,7 +68,7 @@
               />
             </span>
           </h2>
-          <div v-if="loading" class="loading-container">
+          <div v-if="historyLoading" class="loading-container">
             <SpinnerLoading />
           </div>
           <div v-else-if="history.length === 0" class="empty-history">
@@ -83,29 +83,52 @@
             @item-deleted="handleItemDeleted"
           />
         </div>
-        <ErrorMessage
-          v-if="!searchTerm && errorMessage"
-          :message="errorMessage"
-          :code="errorCode"
-        />
 
-        <!-- Результаты поиска -->
+        <!-- Popular Movies Section (when not searching) -->
+        <div v-if="!searchTerm && !searchPerformed" class="popular-section">
+          <h2>Популярные фильмы</h2>
+          <div v-if="popularLoading" class="loading-container">
+            <SpinnerLoading />
+          </div>
+          <div v-else-if="popularMovies.length === 0 && !popularError" class="empty-history">
+            <span class="material-icons">movie</span>
+            <p>Нет данных</p>
+          </div>
+          <MovieList
+            v-else
+            :movies-list="popularMovies"
+            :is-history="false"
+            :loading="false"
+          />
+          <ErrorMessage
+            v-if="popularError"
+            :message="popularError"
+          />
+        </div>
+
+        <!-- Search Results -->
         <div v-if="searchPerformed">
           <h2>Результаты поиска</h2>
-          <MovieList :movies-list="movies" :is-history="false" :loading="loading" />
-          <div v-if="movies.length === 0 && !loading && !errorMessage" class="no-results">
+          <MovieList :movies-list="movies" :is-history="false" :loading="searchLoading" />
+          <div v-if="movies.length === 0 && !searchLoading && !errorMessage" class="no-results">
             Ничего не найдено
           </div>
           <ErrorMessage v-if="errorMessage" :message="errorMessage" :code="errorCode" />
         </div>
 
-        <!-- Подсказка, когда ничего не введено в поиске -->
+        <!-- Search Prompt -->
         <div
-          v-if="searchTerm && !searchPerformed && !loading && !errorMessage"
+          v-if="searchTerm && !searchPerformed && !searchLoading && !errorMessage"
           class="search-prompt"
         >
           Нажмите кнопку "Поиск" или Enter для поиска
         </div>
+
+        <ErrorMessage
+          v-if="!searchTerm && errorMessage"
+          :message="errorMessage"
+          :code="errorCode"
+        />
       </div>
     </div>
 
@@ -126,14 +149,14 @@ import {
   getKpIDfromIMDB,
   getKpIDfromSHIKI,
   getRandomMovie,
-  getKpInfo
+  getKpInfo,
+  getMovies
 } from '@/api/movies'
 import { handleApiError } from '@/constants'
 import { getMyLists, delAllFromList } from '@/api/user'
 import BaseModal from '@/components/BaseModal.vue'
 import DeleteButton from '@/components/buttons/DeleteButton.vue'
 import ErrorMessage from '@/components/ErrorMessage.vue'
-
 import { MovieList } from '@/components/MovieList/'
 import { useMainStore } from '@/store/main'
 import { useAuthStore } from '@/store/auth'
@@ -152,13 +175,19 @@ const router = useRouter()
 const searchType = ref('title')
 const searchTerm = ref('')
 const movies = ref([])
-const loading = ref(false)
+const searchLoading = ref(false)
 const searchPerformed = ref(false)
 const showModal = ref(false)
 const errorMessage = ref('')
 const errorCode = ref(null)
 const isMobile = computed(() => mainStore.isMobile)
 const history = ref([])
+const historyLoading = ref(false)
+
+// Popular movies state
+const popularMovies = ref([])
+const popularLoading = ref(false)
+const popularError = ref('')
 
 const showLayoutWarning = ref(false)
 const suggestedLayout = ref('')
@@ -170,23 +199,46 @@ const randomError = ref('')
 
 const searchInput = ref(null)
 
+// Fetch popular movies on mount
+const fetchPopularMovies = async () => {
+  popularLoading.value = true
+  popularError.value = ''
+  
+  try {
+    const data = await getMovies({ activeTime: 'week', limit: 20 })
+    popularMovies.value = data.map((movie) => ({
+      ...movie,
+      kp_id: movie.kp_id?.toString() || movie.id?.toString(),
+      rating_kp: movie.rating_kp || movie.raw_data?.rating,
+      type: movie.type || movie.raw_data?.type
+    }))
+  } catch (error) {
+    const { message } = handleApiError(error)
+    popularError.value = message
+    console.error('Error loading popular movies:', error)
+  } finally {
+    popularLoading.value = false
+  }
+}
+
+// Load history
 watchEffect(async () => {
   if (authStore.token) {
-    loading.value = true
+    historyLoading.value = true
     try {
       history.value = await getMyLists(USER_LIST_TYPES_ENUM.HISTORY)
     } catch (error) {
       const { message, code } = handleApiError(error)
       errorMessage.value = message
       errorCode.value = code
-      console.error('Ошибка загрузки истории:', error)
+      console.error('Error loading history:', error)
       if (code === 401) {
         authStore.logout()
         await router.push('/login')
         router.go(0)
       }
     } finally {
-      loading.value = false
+      historyLoading.value = false
     }
   } else {
     history.value = mainStore.history
@@ -197,7 +249,6 @@ function handleItemDeleted(deletedItemId) {
   history.value = history.value.filter((item) => item.kp_id !== deletedItemId)
 }
 
-// Установка типа поиска
 const setSearchType = (type) => {
   searchType.value = type
   resetSearch()
@@ -227,7 +278,6 @@ const handleTabKey = () => {
   }
 }
 
-// Получение placeholder для input
 const getPlaceholder = () => {
   return (
     {
@@ -239,7 +289,6 @@ const getPlaceholder = () => {
   )
 }
 
-// Очистка поиска
 const resetSearch = () => {
   searchTerm.value = ''
   movies.value = []
@@ -260,7 +309,7 @@ const search = () => {
 }
 
 const performSearch = async () => {
-  loading.value = true
+  searchLoading.value = true
   searchPerformed.value = true
   movies.value = []
 
@@ -304,6 +353,7 @@ const performSearch = async () => {
       router.push({ name: 'movie-info-shiki', params: { shiki_id: `shiki${searchTerm.value}` } })
       return
     }
+
     if (searchType.value === 'title') {
       const response = await apiSearch(searchTerm.value)
       movies.value = response.map((movie) => ({
@@ -317,36 +367,36 @@ const performSearch = async () => {
     const { message, code } = handleApiError(error)
     errorMessage.value = message
     errorCode.value = code
-    console.error('Ошибка при поиске:', error)
+    console.error('Search error:', error)
   } finally {
-    loading.value = false
+    searchLoading.value = false
   }
 }
 
 const clearAllHistory = async () => {
-  loading.value = true
+  historyLoading.value = true
   if (authStore.token) {
     try {
       await delAllFromList(USER_LIST_TYPES_ENUM.HISTORY)
       history.value = []
-      loading.value = false
+      historyLoading.value = false
       showModal.value = false
     } catch (error) {
       const { message, code } = handleApiError(error)
       errorMessage.value = message
       errorCode.value = code
-      console.error('Ошибка загрузки истории:', error)
+      console.error('Error clearing history:', error)
       if (code === 401) {
         authStore.logout()
         await router.push('/login')
         router.go(0)
       }
-      loading.value = false
+      historyLoading.value = false
       showModal.value = false
     }
   } else {
     mainStore.clearAllHistory()
-    loading.value = false
+    historyLoading.value = false
     showModal.value = false
   }
 }
@@ -361,6 +411,9 @@ const debouncedPerformSearch = debounce(() => {
 }, 700)
 
 onMounted(() => {
+  // Load popular movies
+  fetchPopularMovies()
+  
   const hash = window.location.hash
   if (hash.startsWith('#search=')) {
     const searchQuery = decodeURIComponent(hash.replace('#search=', ''))
@@ -380,7 +433,6 @@ onMounted(() => {
   searchInput.value?.focus()
 })
 
-// Автопоиск с задержкой (только для поиска по названию)
 watch(searchTerm, () => {
   if (searchType.value !== 'title') {
     return
@@ -439,7 +491,7 @@ const fetchRandomMovie = async () => {
   } catch (error) {
     const { message } = handleApiError(error)
     randomError.value = message
-    console.error('Ошибка при получении случайного фильма:', error)
+    console.error('Random movie error:', error)
   } finally {
     randomLoading.value = false
   }
@@ -459,7 +511,7 @@ const fetchRandomMovie = async () => {
   padding-bottom: 40px;
 }
 
-/* Общие стили */
+/* Search Type Buttons */
 .search-type-buttons {
   display: flex;
   justify-content: center;
@@ -526,6 +578,7 @@ const fetchRandomMovie = async () => {
   display: none;
 }
 
+/* Search Container */
 .search-container {
   display: flex;
   justify-content: center;
@@ -595,6 +648,7 @@ const fetchRandomMovie = async () => {
   height: 20px;
 }
 
+/* Section Headers */
 h2 {
   display: flex;
   font-size: 20px;
@@ -604,7 +658,11 @@ h2 {
   gap: 10px;
 }
 
-/* Сообщение "Ничего не найдено" */
+.popular-section {
+  margin-top: 40px;
+}
+
+/* No Results */
 .no-results {
   width: 100%;
   text-align: center;
@@ -613,7 +671,7 @@ h2 {
   margin-top: 20px;
 }
 
-/* Подсказка для поиска */
+/* Search Prompt */
 .search-prompt {
   text-align: center;
   color: #fff;
@@ -621,6 +679,7 @@ h2 {
   margin-top: 20px;
 }
 
+/* Layout Warning */
 .layout-warning {
   position: absolute;
   bottom: -40px;
@@ -655,10 +714,7 @@ h2 {
   color: #ff8c00;
 }
 
-.layout-warning {
-  color: #ff8c00;
-}
-
+/* Loading & Empty States */
 .loading-container {
   display: flex;
   justify-content: center;
@@ -689,6 +745,7 @@ h2 {
   color: #888;
 }
 
+/* Mobile Responsive */
 @media (max-width: 600px) {
   .mainpage {
     padding-top: 0;
