@@ -198,6 +198,7 @@ import { useMainStore } from '@/store/main'
 import { useAuthStore } from '@/store/auth'
 import { useBackgroundStore } from '@/store/background'
 import { useNavbarStore } from '@/store/navbar'
+// eslint-disable-next-line no-unused-vars
 import { USER_LIST_TYPES_ENUM, TYPES_ENUM } from '@/constants'
 
 import { watchEffect, onMounted, ref, computed, watch } from 'vue'
