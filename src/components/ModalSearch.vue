@@ -73,18 +73,18 @@
               loading="lazy"
             />
             <div class="result-info">
-              <div class="result-title">{{ getMovieName(movie) }}</div>
+              <div class="result-title">\( getMovieName(movie) \)</div>
               <div class="result-meta">
                 <span
                   class="result-rating"
                   :class="getRatingColor(movie.raw_data?.rating)"
                 >
-                  ★ {{ movie.raw_data?.rating || '—' }}
+                  ★ \( movie.raw_data?.rating || '—' \)
                 </span>
                 <span class="result-type">
-                  {{ TYPES_ENUM[movie.type] || movie.type }}
+                  \( TYPES_ENUM[movie.type] || movie.type \)
                 </span>
-                <span class="result-year">{{ movie.year }}</span>
+                <span class="result-year">\( movie.year \)</span>
               </div>
             </div>
           </router-link>
