@@ -1,37 +1,49 @@
 import { defineStore } from 'pinia'
 import { AUTH_STORE_NAME } from '../constants'
-import { updateUserName as updateUserNameApi } from '@/api/user'
+import { supabase } from '@/lib/supabase'
+import { logout as logoutApi } from '@/api/user'
 
 export const useAuthStore = defineStore(AUTH_STORE_NAME, {
   state: () => ({
-    token: null,
+    session: null,
     user: null
   }),
 
   getters: {
-    isAuthenticated: (state) => !!state.token && !!state.user
+    isAuthenticated: (state) => !!state.session && !!state.user,
+    token: (state) => state.session?.access_token || null
   },
 
   actions: {
     setUser(user) {
       this.user = user
     },
-    setToken(token) {
-      this.token = token
+    setSession(session) {
+      this.session = session
     },
-    logout() {
+    async logout() {
+      await logoutApi()
       this.user = null
-      this.token = null
+      this.session = null
     },
-    async updateUserName(name) {
-      await updateUserNameApi(name)
-      if (this.user) {
-        this.user.name = name
+    async initAuth() {
+      // Check for existing session on app load
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        this.session = session
+        this.user = session.user
       }
+
+      // Listen for auth changes
+      supabase.auth.onAuthStateChange((event, session) => {
+        this.session = session
+        this.user = session?.user || null
+      })
     }
   },
 
   persist: {
-    key: AUTH_STORE_NAME
+    key: AUTH_STORE_NAME,
+    pick: ['session', 'user']
   }
 })
