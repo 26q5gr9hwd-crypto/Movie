@@ -93,7 +93,9 @@
                 <span class="result-type">
                   {{ TYPES_ENUM[movie.type] || movie.type }}
                 </span>
-                <span class="result-year">{{ movie.year }}</span>
+                <span class="result-year">
+                  {{ movie.year }}
+                </span>
               </div>
             </div>
           </router-link>
@@ -179,7 +181,6 @@ const performSearch = async () => {
     const { message, code } = handleApiError(error)
     errorMessage.value = message
     errorCode.value = code
-    // eslint-disable-next-line no-console
     console.error('Search error:', error)
     movies.value = []
   } finally {
@@ -232,7 +233,10 @@ const handleKeyDown = (event) => {
         searchInput.value?.focus()
         activeMovieIndex.value = null
       } else {
-        activeMovieIndex.value = Math.max(activeMovieIndex.value - 1, 0)
+        activeMovieIndex.value = Math.max(
+          activeMovieIndex.value - 1,
+          0
+        )
       }
       break
   }
@@ -245,7 +249,6 @@ watch(activeMovieIndex, (newIndex) => {
   }
 })
 
-// Debounced search while typing
 watch(searchTerm, () => {
   debouncedPerformSearch()
 })
@@ -490,7 +493,6 @@ watch(searchTerm, () => {
   }
 }
 
-/* Skeleton Loading */
 .movie-skeleton {
   display: flex;
   align-items: center;
@@ -556,7 +558,6 @@ watch(searchTerm, () => {
   background-size: 200% 100%;
 }
 
-/* Mobile Responsive */
 @media (max-width: 768px) {
   .search-modal-overlay {
     padding-top: 8vh;
