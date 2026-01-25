@@ -243,7 +243,7 @@ import {
   convertLayout
 } from '@/utils/keyboardLayout'
 import debounce from 'lodash/debounce'
-import { watchEffect, onMounted, ref, watch, computed } from 'vue'
+import { watchEffect, onMounted, ref, watch, computed, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import SpinnerLoading from '@/components/SpinnerLoading.vue'
 
@@ -386,7 +386,12 @@ const resetSearch = () => {
 }
 
 const focusSearch = () => {
-  searchInput.value?.focus()
+  // Force the search section to show by setting searchPerformed
+  searchPerformed.value = true
+  // Wait for DOM update, then focus
+  nextTick(() => {
+    searchInput.value?.focus()
+  })
 }
 
 const search = () => {
