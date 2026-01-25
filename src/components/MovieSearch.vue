@@ -2,33 +2,56 @@
   <div class="wrapper">
     <div class="mainpage">
       <!-- Hero Section with Featured Movie -->
-      <section v-if="!searchTerm && !searchPerformed && featuredMovie" class="hero-section">
-        <img 
-          v-if="featuredMovie.backdrop || featuredMovie.cover" 
-          :src="featuredMovie.backdrop || featuredMovie.cover" 
+      <section
+        v-if="!searchTerm && !searchPerformed && featuredMovie"
+        class="hero-section"
+      >
+        <img
+          v-if="featuredMovie.backdrop || featuredMovie.cover"
+          :src="featuredMovie.backdrop || featuredMovie.cover"
           :alt="featuredMovie.title || featuredMovie.name"
           class="hero-backdrop"
         />
         <div class="hero-gradient"></div>
         <div class="hero-content">
-          <h1 class="hero-title"> featuredMovie.title || featuredMovie.name </h1>
+          <h1 class="hero-title">
+            {{ featuredMovie.title || featuredMovie.name }}
+          </h1>
           <div class="hero-meta">
-            <span v-if="featuredMovie.rating_kp" class="hero-rating">★  featuredMovie.rating_kp.toFixed(1) </span>
-            <span v-if="featuredMovie.year" class="hero-year"> featuredMovie.year </span>
-            <span v-if="featuredMovie.type" class="hero-type"> getTypeLabel(featuredMovie.type) </span>
+            <span
+              v-if="featuredMovie.rating_kp"
+              class="hero-rating"
+            >
+              ★ {{ featuredMovie.rating_kp.toFixed(1) }}
+            </span>
+            <span v-if="featuredMovie.year" class="hero-year">
+              {{ featuredMovie.year }}
+            </span>
+            <span v-if="featuredMovie.type" class="hero-type">
+              {{ getTypeLabel(featuredMovie.type) }}
+            </span>
           </div>
-          <p v-if="featuredMovie.raw_data?.description" class="hero-description">
-             featuredMovie.raw_data.description 
+          <p
+            v-if="featuredMovie.raw_data?.description"
+            class="hero-description"
+          >
+            {{ featuredMovie.raw_data.description }}
           </p>
           <div class="hero-buttons">
-            <router-link 
-              :to="{ name: 'movie-info', params: { kp_id: featuredMovie.kp_id } }" 
+            <router-link
+              :to="{
+                name: 'movie-info',
+                params: { kp_id: featuredMovie.kp_id }
+              }"
               class="hero-btn hero-btn-primary"
             >
               <i class="fas fa-play"></i> Смотреть
             </router-link>
-            <router-link 
-              :to="{ name: 'movie-info', params: { kp_id: featuredMovie.kp_id } }" 
+            <router-link
+              :to="{
+                name: 'movie-info',
+                params: { kp_id: featuredMovie.kp_id }
+              }"
               class="hero-btn hero-btn-secondary"
             >
               <i class="fas fa-info-circle"></i> Подробнее
@@ -40,7 +63,10 @@
       <!-- Search Section (visible when searching or no hero) -->
       <div v-if="searchTerm || searchPerformed || !featuredMovie" class="search-section">
         <div class="search-type-buttons">
-          <button :class="{ active: searchType === 'title' }" @click="setSearchType('title')">
+          <button
+            :class="{ active: searchType === 'title' }"
+            @click="setSearchType('title')"
+          >
             Название
           </button>
         </div>
@@ -65,18 +91,22 @@
                 <i class="fas fa-times"></i>
               </button>
             </div>
-            <div v-if="showLayoutWarning" class="layout-warning" :class="{ show: showLayoutWarning }">
+            <div
+              v-if="showLayoutWarning"
+              class="layout-warning"
+              :class="{ show: showLayoutWarning }"
+            >
               <i class="fas fa-keyboard"></i>
-              Возможно, вы используете неправильную раскладку. Нажмите Tab для переключения на
-               suggestedLayout  раскладку
+              Возможно, вы используете неправильную раскладку. Нажмите Tab для
+              переключения на {{ suggestedLayout }} раскладку
             </div>
           </div>
         </div>
       </div>
 
       <!-- Floating Search Button (when hero is visible) -->
-      <button 
-        v-if="!searchTerm && !searchPerformed && featuredMovie" 
+      <button
+        v-if="!searchTerm && !searchPerformed && featuredMovie"
         class="floating-search-btn"
         @click="focusSearch"
       >
@@ -108,11 +138,12 @@
         </div>
 
         <!-- History Section (horizontal carousel) -->
-        <div v-if="!searchTerm && !searchPerformed && history.length > 0" class="movie-row">
+        <div
+          v-if="!searchTerm && !searchPerformed && history.length > 0"
+          class="movie-row"
+        >
           <div class="row-header">
-            <h2 class="row-title">
-              📺 Продолжить просмотр
-            </h2>
+            <h2 class="row-title">📺 Продолжить просмотр</h2>
             <span class="row-actions">
               <DeleteButton @click="showModal = true" />
               <BaseModal
@@ -138,11 +169,21 @@
         </div>
 
         <!-- Empty History State -->
-        <div v-if="!searchTerm && !searchPerformed && history.length === 0 && !historyLoading" class="empty-history-notice">
+        <div
+          v-if="
+            !searchTerm &&
+            !searchPerformed &&
+            history.length === 0 &&
+            !historyLoading
+          "
+          class="empty-history-notice"
+        >
           <div class="empty-history-content">
             <span class="material-icons">history</span>
             <p>История просмотров пуста</p>
-            <span class="empty-history-hint">Начните смотреть, чтобы видеть историю здесь</span>
+            <span class="empty-history-hint"
+              >Начните смотреть, чтобы видеть историю здесь</span
+            >
           </div>
         </div>
 
@@ -150,16 +191,25 @@
         <div v-if="searchPerformed" class="search-results-section">
           <h2 class="section-title">Результаты поиска</h2>
           <MovieList :movies-list="movies" :is-history="false" :loading="searchLoading" />
-          <div v-if="movies.length === 0 && !searchLoading && !errorMessage" class="no-results">
+          <div
+            v-if="movies.length === 0 && !searchLoading && !errorMessage"
+            class="no-results"
+          >
             <span class="material-icons">search_off</span>
             <p>Ничего не найдено</p>
           </div>
-          <ErrorMessage v-if="errorMessage" :message="errorMessage" :code="errorCode" />
+          <ErrorMessage
+            v-if="errorMessage"
+            :message="errorMessage"
+            :code="errorCode"
+          />
         </div>
 
         <!-- Search Prompt -->
         <div
-          v-if="searchTerm && !searchPerformed && !searchLoading && !errorMessage"
+          v-if="
+            searchTerm && !searchPerformed && !searchLoading && !errorMessage
+          "
           class="search-prompt"
         >
           <i class="fas fa-arrow-up"></i>
@@ -187,7 +237,11 @@ import { MovieList } from '@/components/MovieList/'
 import { useMainStore } from '@/store/main'
 import { useAuthStore } from '@/store/auth'
 import { USER_LIST_TYPES_ENUM } from '@/constants'
-import { hasConsecutiveConsonants, suggestLayout, convertLayout } from '@/utils/keyboardLayout'
+import {
+  hasConsecutiveConsonants,
+  suggestLayout,
+  convertLayout
+} from '@/utils/keyboardLayout'
 import debounce from 'lodash/debounce'
 import { watchEffect, onMounted, ref, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
@@ -234,13 +288,11 @@ const suggestedLayout = ref('')
 
 const searchInput = ref(null)
 
-
-
 // Fetch popular movies on mount
 const fetchPopularMovies = async () => {
   popularLoading.value = true
   popularError.value = ''
-  
+
   try {
     const data = await getMovies({ activeTime: '7d' })
     popularMovies.value = data.map((movie) => ({
@@ -248,7 +300,8 @@ const fetchPopularMovies = async () => {
       kp_id: movie.kp_id?.toString() || movie.id?.toString(),
       rating_kp: movie.rating_kp || movie.raw_data?.rating,
       type: movie.type || movie.raw_data?.type,
-      backdrop: movie.raw_data?.backdrop?.url || movie.raw_data?.poster?.url
+      backdrop:
+        movie.raw_data?.backdrop?.url || movie.raw_data?.poster?.url
     }))
   } catch (error) {
     const { message } = handleApiError(error)
@@ -313,6 +366,16 @@ const getPlaceholder = () => {
   return 'Поиск фильмов и сериалов...'
 }
 
+const getTypeLabel = (type) => {
+  const labels = {
+    movie: 'Фильм',
+    series: 'Сериал',
+    cartoon: 'Мультфильм',
+    anime: 'Аниме'
+  }
+  return labels[type] || type
+}
+
 const resetSearch = () => {
   searchTerm.value = ''
   movies.value = []
@@ -345,7 +408,9 @@ const performSearch = async () => {
     movies.value = response.map((movie) => ({
       ...movie,
       kp_id: movie.kp_id?.toString() || movie.id?.toString(),
-      rating_kp: movie.rating_kp || (movie.raw_data?.rating !== 'null' ? movie.raw_data?.rating : null),
+      rating_kp:
+        movie.rating_kp ||
+        (movie.raw_data?.rating !== 'null' ? movie.raw_data?.rating : null),
       type: movie.type || movie.raw_data?.type
     }))
   } catch (error) {
@@ -395,7 +460,7 @@ const debouncedPerformSearch = debounce(() => {
 
 onMounted(() => {
   fetchPopularMovies()
-  
+
   const hash = window.location.hash
   if (hash.startsWith('#search=')) {
     const searchQuery = decodeURIComponent(hash.replace('#search=', ''))
@@ -458,18 +523,18 @@ const focusFirstMovieCard = () => {
   width: 100%;
   height: 100%;
   background: linear-gradient(
-    to bottom,
-    rgba(20, 20, 20, 0) 0%,
-    rgba(20, 20, 20, 0.4) 50%,
-    rgba(20, 20, 20, 0.9) 80%,
-    var(--bg-primary) 100%
-  ),
-  linear-gradient(
-    to right,
-    rgba(20, 20, 20, 0.9) 0%,
-    rgba(20, 20, 20, 0.4) 30%,
-    rgba(20, 20, 20, 0) 60%
-  );
+      to bottom,
+      rgba(20, 20, 20, 0) 0%,
+      rgba(20, 20, 20, 0.4) 50%,
+      rgba(20, 20, 20, 0.9) 80%,
+      var(--bg-primary) 100%
+    ),
+    linear-gradient(
+      to right,
+      rgba(20, 20, 20, 0.9) 0%,
+      rgba(20, 20, 20, 0.4) 30%,
+      rgba(20, 20, 20, 0) 60%
+    );
 }
 
 .hero-content {
@@ -868,32 +933,32 @@ const focusFirstMovieCard = () => {
     height: 60vh;
     min-height: 400px;
   }
-  
+
   .hero-content {
     left: 4%;
     right: 4%;
     max-width: none;
     bottom: 12%;
   }
-  
+
   .hero-title {
     font-size: 1.8rem;
   }
-  
+
   .hero-description {
     font-size: 0.9rem;
     -webkit-line-clamp: 2;
   }
-  
+
   .hero-btn {
     padding: 10px 20px;
     font-size: 0.95rem;
   }
-  
+
   .row-title {
     font-size: 1.2rem;
   }
-  
+
   .floating-search-btn {
     top: 15px;
     right: 15px;
@@ -907,11 +972,11 @@ const focusFirstMovieCard = () => {
     flex-direction: column;
     gap: 8px;
   }
-  
+
   .hero-btn {
     justify-content: center;
   }
-  
+
   .search-pill {
     padding: 12px 18px;
   }
