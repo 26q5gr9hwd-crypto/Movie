@@ -1,123 +1,98 @@
 <template>
   <LavaLampBackground v-if="backgroundType === 'lava-lamp'" />
   
-  <!-- Cinematic Background -->
-  <div v-else-if="backgroundType === 'cinematic'" class="cinematic-container">
-    <div class="cinematic-glow-wrap">
-      <div class="cinematic-glow cinematic-glow-1"></div>
-      <div class="cinematic-glow cinematic-glow-2"></div>
-      <div class="cinematic-glow cinematic-glow-3"></div>
-    </div>
-    <div class="cinematic-vignette"></div>
+  <!-- Dynamic Background - switches between cinematic glow and movie backdrop -->
+  <div v-else-if="backgroundType === 'dynamic'" class="dynamic-container">
+    <!-- Cinematic Glow (shown when NOT on movie page) -->
+    <transition name="fade-cinematic">
+      <div v-if="!isOnMoviePage || !hasMoviePoster" class="cinematic-layer">
+        <div class="cinematic-glow-wrap">
+          <div class="cinematic-glow cinematic-glow-1"></div>
+          <div class="cinematic-glow cinematic-glow-2"></div>
+          <div class="cinematic-glow cinematic-glow-3"></div>
+        </div>
+        <div class="cinematic-vignette"></div>
+      </div>
+    </transition>
+    
+    <!-- Movie Backdrop (shown when on movie page with poster) -->
+    <transition name="fade-backdrop">
+      <div v-if="isOnMoviePage && hasMoviePoster" class="backdrop-layer">
+        <div
+          v-for="(bg, index) in backgrounds"
+          :key="index"
+          class="background-image"
+          :class="{ active: activeIndex === index }"
+          :style="getBackdropStyle(index)"
+        ></div>
+        <div class="backdrop-vignette"></div>
+      </div>
+    </transition>
   </div>
   
-  <!-- Dynamic/Stars Background -->
-  <div v-else-if="backgroundType !== 'disabled'" class="background-container">
+  <!-- Stars Background -->
+  <div v-else-if="backgroundType === 'stars'" class="background-container">
     <div
-      v-for="(bg, index) in backgrounds"
-      :key="index"
-      class="background-layer"
-      :class="{ active: activeIndex === index }"
-      :style="getLayerStyle(index)"
+      class="background-layer active"
+      :style="{ backgroundImage: `url(${starsBackground})`, filter: 'brightness(100%)' }"
     ></div>
   </div>
 </template>
 
 <script setup>
 import LavaLampBackground from './LavaLampBackground.vue'
-import { getMovies } from '@/api/movies'
+import starsBackground from '@/assets/image-back-stars.png'
 import { useBackgroundStore } from '@/store/background'
 import { computed, onMounted, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 
 const backgroundStore = useBackgroundStore()
 const route = useRoute()
-const router = useRouter()
 
 const backgrounds = ref(['', ''])
 const activeIndex = ref(0)
-const isFetching = ref(false)
 
 const backgroundUrl = computed(() => backgroundStore.backgroundUrl)
 const backgroundType = computed(() => backgroundStore.backgroundType)
 const isBlurActive = computed(() => backgroundStore.isBlurActive)
+const moviePoster = computed(() => backgroundStore.moviePoster)
 
-const CACHE_KEY = 'topMoviePoster'
+// Check if currently on a movie page
+const isOnMoviePage = computed(() => {
+  return route.path.includes('/movie/')
+})
 
-const getLayerStyle = (index) => {
-  const brightnessFilter = backgroundType.value === 'stars' ? 'brightness(100%)' : 'brightness(20%)'
-  const blurFilter = isBlurActive.value ? 'blur(20px)' : 'blur(0px)'
+// Check if we have a movie poster to show
+const hasMoviePoster = computed(() => {
+  return !!moviePoster.value && moviePoster.value.length > 0
+})
 
+const getBackdropStyle = (index) => {
   return {
-    backgroundImage: `url(${backgrounds.value[index]})`,
-    filter: `${brightnessFilter} ${blurFilter}`,
+    backgroundImage: backgrounds.value[index] ? `url(${backgrounds.value[index]})` : 'none',
+    filter: `brightness(25%) ${isBlurActive.value ? 'blur(8px)' : 'blur(0px)'}`,
     backgroundSize: 'cover',
-    backgroundPosition: 'center'
+    backgroundPosition: 'center top'
   }
 }
 
-const fetchTopMovie = async () => {
-  if (isFetching.value) return
-  isFetching.value = true
-
-  try {
-    const topMovies = await getMovies({ activeTime: '24h', limit: 1 })
-
-    if (topMovies?.[0]?.cover) {
-      const expiresAt = new Date().setHours(24, 0, 0, 0)
-      localStorage.setItem(CACHE_KEY, JSON.stringify({ url: topMovies[0].cover, expiresAt }))
-      backgroundStore.updateTopMoviePoster(topMovies[0].cover)
-    }
-  } catch (err) {
-    console.error('Ошибка:', err)
-  } finally {
-    isFetching.value = false
-  }
-}
-
-const checkCachedTopMovie = () => {
-  const cached = localStorage.getItem(CACHE_KEY)
-  if (!cached) return false
-
-  try {
-    const { url, expiresAt } = JSON.parse(cached)
-    if (Date.now() < expiresAt) {
-      backgroundStore.updateTopMoviePoster(url)
-      return true
-    }
-    localStorage.removeItem(CACHE_KEY)
-  } catch (e) {
-    localStorage.removeItem(CACHE_KEY)
-    throw new Error(e)
-  }
-  return false
-}
-
-onMounted(async () => {
-  backgrounds.value = [backgroundUrl.value, backgroundUrl.value]
-  await router.isReady()
-
-  if (route.path.includes('movie')) return
-
-  if (backgroundType.value !== 'disabled' && backgroundType.value !== 'cinematic') {
-    const hasValidCache = checkCachedTopMovie()
-    if (!hasValidCache && !isFetching.value) {
-      await fetchTopMovie()
-    }
+onMounted(() => {
+  if (backgroundUrl.value) {
+    backgrounds.value = [backgroundUrl.value, backgroundUrl.value]
   }
 })
 
-watch(route, async (newRoute) => {
-  if (newRoute.path.includes('movie')) return
-
-  if (backgroundType.value === 'dynamic') {
-    const hasValidCache = checkCachedTopMovie()
-    if (!hasValidCache && !isFetching.value) {
-      await fetchTopMovie()
+// Watch for route changes to clear poster when leaving movie pages
+watch(
+  () => route.path,
+  (newPath) => {
+    if (!newPath.includes('/movie/')) {
+      backgroundStore.clearMoviePoster()
     }
   }
-})
+)
 
+// Smooth crossfade when background URL changes (on movie pages)
 watch(backgroundUrl, (newUrl) => {
   if (!newUrl) return
 
@@ -129,46 +104,12 @@ watch(backgroundUrl, (newUrl) => {
     activeIndex.value = inactiveIndex
   }
 })
-
-watch(backgroundType, (newType) => {
-  if (newType === 'dynamic') {
-    const hasValidCache = checkCachedTopMovie()
-    if (!hasValidCache && !isFetching.value) {
-      fetchTopMovie()
-    }
-  }
-})
 </script>
 
 <style scoped>
-/* ===== DYNAMIC/STARS BACKGROUND ===== */
+/* ===== BASE CONTAINER ===== */
+.dynamic-container,
 .background-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: -1;
-  overflow: hidden;
-}
-
-.background-layer {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  transition: filter 0.6s ease-in-out, opacity 0.6s ease-in-out;
-  background-size: cover;
-  background-position: center;
-  will-change: opacity, filter;
-}
-
-.background-layer.active {
-  opacity: 1;
-}
-
-/* ===== CINEMATIC BACKGROUND - Netflix style ===== */
-.cinematic-container {
   position: fixed;
   top: 0;
   left: 0;
@@ -179,14 +120,18 @@ watch(backgroundType, (newType) => {
   background: #0a0a0a;
 }
 
-/* Blur wrapper - same technique as lava lamp */
+/* ===== CINEMATIC GLOW LAYER ===== */
+.cinematic-layer {
+  position: absolute;
+  inset: 0;
+}
+
 .cinematic-glow-wrap {
   filter: blur(80px);
   height: 100%;
   width: 100%;
 }
 
-/* Glow elements - solid colors with high opacity like lava lamp */
 .cinematic-glow {
   position: absolute;
   border-radius: 50%;
@@ -194,7 +139,6 @@ watch(backgroundType, (newType) => {
   background: var(--accent-color, #e50914);
 }
 
-/* Primary glow - bottom left */
 .cinematic-glow-1 {
   width: 45vw;
   height: 45vw;
@@ -203,7 +147,6 @@ watch(backgroundType, (newType) => {
   animation: cinematicDrift1 30s ease-in-out infinite;
 }
 
-/* Secondary glow - top right, darker shade */
 .cinematic-glow-2 {
   width: 35vw;
   height: 35vw;
@@ -214,7 +157,6 @@ watch(backgroundType, (newType) => {
   animation: cinematicDrift2 25s ease-in-out infinite;
 }
 
-/* Tertiary glow - center area, deep red */
 .cinematic-glow-3 {
   width: 30vw;
   height: 30vw;
@@ -241,7 +183,6 @@ watch(backgroundType, (newType) => {
   66% { transform: translate(-8vw, 4vh); }
 }
 
-/* Vignette - darker edges for cinema feel */
 .cinematic-vignette {
   position: absolute;
   inset: 0;
@@ -255,11 +196,84 @@ watch(backgroundType, (newType) => {
   pointer-events: none;
 }
 
+/* ===== MOVIE BACKDROP LAYER ===== */
+.backdrop-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.background-image {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.8s ease-in-out, filter 0.6s ease-in-out;
+  background-size: cover;
+  background-position: center top;
+  will-change: opacity, filter;
+}
+
+.background-image.active {
+  opacity: 1;
+}
+
+.backdrop-vignette {
+  position: absolute;
+  inset: 0;
+  background: 
+    linear-gradient(to bottom, rgba(10, 10, 10, 0.3) 0%, rgba(10, 10, 10, 0.6) 70%, rgba(10, 10, 10, 0.95) 100%),
+    linear-gradient(to right, rgba(10, 10, 10, 0.5) 0%, transparent 30%, transparent 70%, rgba(10, 10, 10, 0.5) 100%);
+  pointer-events: none;
+}
+
+/* ===== STARS BACKGROUND ===== */
+.background-layer {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+}
+
+.background-layer.active {
+  opacity: 1;
+}
+
+/* ===== TRANSITIONS ===== */
+.fade-cinematic-enter-active,
+.fade-cinematic-leave-active {
+  transition: opacity 0.6s ease-in-out;
+}
+
+.fade-cinematic-enter-from,
+.fade-cinematic-leave-to {
+  opacity: 0;
+}
+
+.fade-backdrop-enter-active,
+.fade-backdrop-leave-active {
+  transition: opacity 0.6s ease-in-out;
+}
+
+.fade-backdrop-enter-from,
+.fade-backdrop-leave-to {
+  opacity: 0;
+}
+
+/* ===== REDUCED MOTION ===== */
 @media (prefers-reduced-motion: reduce) {
   .cinematic-glow-1,
   .cinematic-glow-2,
   .cinematic-glow-3 {
     animation: none;
+  }
+  
+  .background-image,
+  .fade-cinematic-enter-active,
+  .fade-cinematic-leave-active,
+  .fade-backdrop-enter-active,
+  .fade-backdrop-leave-active {
+    transition-duration: 0.1s;
   }
 }
 </style>
