@@ -4,7 +4,7 @@ export const routes = [
     component: () => import('@/components/MovieSearch.vue'),
     name: 'home',
     meta: {
-      title: 'ReYohoho - Поиск фильмов'
+      title: 'DanFlix - Поиск фильмов'
     }
   },
   {
@@ -12,7 +12,7 @@ export const routes = [
     component: () => import('@/components/TopMovies.vue'),
     name: 'top-movies',
     meta: {
-      title: 'ReYohoho - Популярное'
+      title: 'DanFlix - Популярное'
     }
   },
   {
@@ -20,7 +20,7 @@ export const routes = [
     component: () => import('@/components/MovieInfo.vue'),
     name: 'movie-info',
     meta: {
-      title: 'ReYohoho - Просмотр фильма'
+      title: 'DanFlix - Просмотр фильма'
     }
   },
   {
@@ -28,7 +28,7 @@ export const routes = [
     component: () => import('@/components/MovieInfoShiki.vue'),
     name: 'movie-info-shiki',
     meta: {
-      title: 'ReYohoho - Просмотр аниме'
+      title: 'DanFlix - Просмотр аниме'
     }
   },
   {
@@ -36,7 +36,7 @@ export const routes = [
     name: 'ContactsPage',
     component: () => import('@/components/ContactsPage.vue'),
     meta: {
-      title: 'ReYohoho - Контакты'
+      title: 'DanFlix - Контакты'
     }
   },
   {
@@ -44,7 +44,7 @@ export const routes = [
     name: 'Settings',
     component: () => import('@/components/Settings.vue'),
     meta: {
-      title: 'ReYohoho - Настройки'
+      title: 'DanFlix - Настройки'
     }
   },
   {
@@ -52,7 +52,7 @@ export const routes = [
     name: 'notifications',
     component: () => import('@/components/NotificationsPage.vue'),
     meta: {
-      title: 'ReYohoho - Уведомления',
+      title: 'DanFlix - Уведомления',
       requiresAuth: true
     }
   },
@@ -69,7 +69,7 @@ export const routes = [
     name: 'login',
     component: () => import('@/components/Login.vue'),
     meta: {
-      title: 'ReYohoho - Логин'
+      title: 'DanFlix - Логин'
     }
   },
   {
@@ -77,7 +77,7 @@ export const routes = [
     name: 'user',
     component: () => import('@/components/User.vue'),
     meta: {
-      title: 'ReYohoho - Профиль'
+      title: 'DanFlix - Профиль'
     }
   },
   {
@@ -85,7 +85,7 @@ export const routes = [
     name: 'lists',
     component: () => import('@/components/UserLists.vue'),
     meta: {
-      title: 'ReYohoho - Списки'
+      title: 'DanFlix - Списки'
     }
   },
   {
@@ -93,7 +93,7 @@ export const routes = [
     name: 'auth-success',
     component: () => import('@/components/AuthSuccess.vue'),
     meta: {
-      title: 'ReYohoho - Логин'
+      title: 'DanFlix - Логин'
     }
   },
   {
@@ -101,7 +101,7 @@ export const routes = [
     name: 'links',
     component: () => import('@/components/Links.vue'),
     meta: {
-      title: 'ReYohoho - Полезные ссылки'
+      title: 'DanFlix - Полезные ссылки'
     }
   }
 ]
