@@ -8,7 +8,7 @@
             alt="ReYohoho"
             class="logo-image"
           />
-          <span class="logo-text">ReYohoho</span>
+          <span class="logo-text">DanFlix</span>
         </router-link>
       </div>
 
