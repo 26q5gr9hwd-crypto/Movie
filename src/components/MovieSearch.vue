@@ -178,7 +178,7 @@
 
 <script setup>
 import { apiSearch, getMovies } from '@/api/movies'
-import { handleApiError, TYPES_ENUM } from '@/constants'
+import { handleApiError } from '@/constants'
 import { getMyLists, delAllFromList } from '@/api/user'
 import BaseModal from '@/components/BaseModal.vue'
 import DeleteButton from '@/components/buttons/DeleteButton.vue'
