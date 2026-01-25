@@ -434,9 +434,7 @@
           </div>
         </div>
 
-        <div v-if="isCommentsEnabled" class="comments-section">
-          <Comments :movie-id="kp_id" :key="kp_id" />
-        </div>
+        
 
         <div v-if="movieInfo.staff" class="staff-section">
           <div class="staff-categories">
