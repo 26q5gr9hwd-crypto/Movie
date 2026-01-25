@@ -51,22 +51,22 @@
           @pointerenter="showTooltip(links.length, $event)"
           @pointerleave="hideTooltip"
         >
-          <a class="nav-link" @click="toggleSearch" title="Поиск">
+          <a class="nav-link" title="Поиск" @click="toggleSearch">
             <i class="fas fa-search"></i>
           </a>
         </li>
       </ul>
 
       <div v-if="canGoBack" class="bottom-section">
-        <button class="back-btn" @click="goBack" title="Назад">
+        <button class="back-btn" title="Назад" @click="goBack">
           <i class="fas fa-arrow-left"></i>
         </button>
       </div>
     </nav>
 
     <div v-if="activeTooltip !== null" class="tooltip" :style="tooltipStyle">
-       tooltipText 
-    </div>
+  {{ tooltipText }}
+</div>
   </aside>
 </template>
 
