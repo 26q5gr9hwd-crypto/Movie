@@ -242,7 +242,7 @@ import ErrorMessage from '@/components/ErrorMessage.vue'
 import { MovieList } from '@/components/MovieList/'
 import { useMainStore } from '@/store/main'
 import { useAuthStore } from '@/store/auth'
-import { useBackgroundStore } from '@/store/Background'
+import { useBackgroundStore } from '@/store/background'
 import { USER_LIST_TYPES_ENUM, TYPES_ENUM } from '@/constants'
 
 import { watchEffect, onMounted, ref, computed, nextTick, watch } from 'vue'
