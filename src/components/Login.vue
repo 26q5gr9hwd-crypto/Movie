@@ -119,6 +119,13 @@ const handleSubmit = async () => {
         username: username.value.trim(),
         password: password.value
       })
+      // Auto-login after signup if no session returned
+      if (!response.session) {
+        response = await login({
+          username: username.value.trim(),
+          password: password.value
+        })
+      }
     } else {
       response = await login({
         username: username.value.trim(),
@@ -130,10 +137,8 @@ const handleSubmit = async () => {
     if (response.session) {
       authStore.setSession(response.session)
       authStore.setUser(response.user)
-      router.push('/')
-    } else if (response.user && !response.session) {
-      // Email confirmation required
-      error.value = 'Проверьте почту для подтверждения регистрации'
+      // Full reload to ensure initAuth() picks up the new session
+      window.location.href = '/'
     }
   } catch (err) {
     if (err.message?.includes('Invalid login credentials')) {
