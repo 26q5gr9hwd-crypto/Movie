@@ -9,7 +9,7 @@
         @click.stop.prevent="emit('remove:from-history', movie.kp_id)"
       />
       <div
-        v-if="movie.rating_kp || movie.rating_imdb || movie.average_rating"
+        v-if="movie.rating_kp || movie.average_rating"
         class="ratings-overlay"
       >
         <span
@@ -20,20 +20,12 @@
             [getRatingColor(movie.rating || movie.average_rating)]: true
           }"
         >
-          <img src="/icons/icon-192x192.png" alt="ReYohoho" class="rating-logo" />
+          <img src="/icons/icon-192x192.png" alt="DanFlix" class="rating-logo" />
           {{ `${(movie.rating || movie.average_rating).toFixed(1).replace(/\.0$/, '')}` }}
         </span>
         <span v-if="movie.rating_kp" class="rating-kp" :class="getRatingColor(movie.rating_kp)">
           <img src="/src/assets/icon-kp-logo.svg" alt="КП" class="rating-logo" />
-          {{ movie.rating_kp }}
-        </span>
-        <span
-          v-if="movie.rating_imdb"
-          class="rating-imdb"
-          :class="getRatingColor(movie.rating_imdb)"
-        >
-          <img src="/src/assets/icon-imdb-logo.svg" alt="IMDb" class="rating-logo" />
-          {{ movie.rating_imdb }}
+          {{ `${movie.rating_kp.toFixed(1).replace(/\.0$/, '')}` }}
         </span>
       </div>
       <!-- Добавлен блок для отображения типа (сериал/фильм) в правом верхнем углу постера -->
