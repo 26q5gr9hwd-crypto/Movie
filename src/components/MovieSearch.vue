@@ -15,27 +15,27 @@
         <div class="hero-gradient"></div>
         <div class="hero-content">
           <h1 class="hero-title">
-             featuredMovie.title || featuredMovie.name 
+            \{\{ featuredMovie.title || featuredMovie.name \}\}
           </h1>
           <div class="hero-meta">
             <span
               v-if="featuredMovie.rating_kp"
               class="hero-rating"
             >
-              ★  featuredMovie.rating_kp?.toFixed?.(1) || featuredMovie.rating_kp 
+              ★ \{\{ featuredMovie.rating_kp?.toFixed?.(1) || featuredMovie.rating_kp \}\}  
             </span>
             <span v-if="featuredMovie.year" class="hero-year">
-               featuredMovie.year 
+              \{\{ featuredMovie.year \}\}
             </span>
             <span v-if="featuredMovie.type" class="hero-type">
-               getTypeLabel(featuredMovie.type) 
+              \{\{ getTypeLabel(featuredMovie.type) \}\}
             </span>
           </div>
           <p
             v-if="featuredMovie.raw_data?.description"
             class="hero-description"
           >
-             featuredMovie.raw_data.description.slice(0, 200) ...
+             \{\{ featuredMovie.raw_data.description.slice(0, 200) \}\}...
           </p>
           <div class="hero-buttons">
             <router-link
@@ -180,7 +180,7 @@
         <!-- Search Results -->
         <div v-if="searchPerformed" class="search-results-section">
           <div class="search-results-header">
-            <h2 class="section-title">Результаты поиска: " lastSearchTerm "</h2>
+            <h2 class="section-title">Результаты поиска: "\{\{ lastSearchTerm \}\}"</h2>
             <button class="back-to-home-btn" @click="resetSearch">
               <i class="fas fa-arrow-left"></i> На главную
             </button>
