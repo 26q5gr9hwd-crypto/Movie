@@ -4,7 +4,7 @@
       <div class="logo-section">
         <router-link to="/" class="home-link" @click="closeSidebar">
           <img :src="logoIcon" alt="Base Edge" class="logo-image" />
-          <h1 v-show="isSidebarOpen" class="logo-title">Cinema</h1>
+          <h1 v-show="isSidebarOpen" class="logo-title"> </h1>
         </router-link>
       </div>
       <button
