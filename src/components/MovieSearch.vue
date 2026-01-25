@@ -66,14 +66,14 @@ import { ref } from 'vue'
 const featuredMovie = ref({
   id: 1,
   title: 'Example Movie',
-  poster_url: 'https://via.placeholder.com/300x450',
+  poster_url: 'https://via.placeholder.com/300x450'',
   rating_kp: 8.5,
   year: 2023,
   type: 'Film',
   description:
     'This is a sample description that will be truncated ' +
     'if it exceeds 200 characters. ' +
-    'Add more text here to test the truncation functionality.',
+    'Add more text here to test the truncation functionality.'
 })
 
 const suggestedLayout = ref('grid')
@@ -87,15 +87,15 @@ const movieTypes = ref([
         id: 1,
         title: 'Movie 1',
         year: 2023,
-        poster_url: 'https://via.placeholder.com/200x300',
+        poster_url: 'https://via.placeholder.com/200x300''
       },
       {
         id: 2,
         title: 'Movie 2',
         year: 2023,
-        poster_url: 'https://via.placeholder.com/200x300',
-      },
-    ],
+        poster_url: 'https://via.placeholder.com/200x300''
+      }
+    ]
   },
   {
     id: 2,
@@ -105,16 +105,16 @@ const movieTypes = ref([
         id: 3,
         title: 'Movie 3',
         year: 2023,
-        poster_url: 'https://via.placeholder.com/200x300',
+        poster_url: 'https://via.placeholder.com/200x300''
       },
       {
         id: 4,
         title: 'Movie 4',
         year: 2023,
-        poster_url: 'https://via.placeholder.com/200x300',
-      },
-    ],
-  },
+        poster_url: 'https://via.placeholder.com/200x300''
+      }
+    ]
+  }
 ])
 
 const truncateText = (text, maxLength) => {
