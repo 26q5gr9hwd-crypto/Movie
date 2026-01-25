@@ -311,16 +311,18 @@ onUnmounted(() => {
 .carousel-container {
   position: relative;
   padding: 0;
+  overflow: visible;
 }
 
 .carousel-wrapper {
   overflow-x: auto;
-  overflow-y: visible;
+  overflow-y: clip;
   scroll-behavior: smooth;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  padding: 20px 4% 40px 4%;
-  margin: -20px 0 -40px 0;
+  padding: 60px 4% 40px 4%;
+  margin: -60px 0 -40px 0;
+  clip-path: inset(-60px -100% -100% -100%);
 }
 
 .carousel-wrapper::-webkit-scrollbar {
