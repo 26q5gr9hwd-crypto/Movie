@@ -135,6 +135,12 @@ onMounted(() => {
     0 0 30px var(--accent-transparent);
   z-index: 10;
 }
+/* Ensure image stays within rounded corners on hover */
+.movie-card:hover :deep(.movie-poster-wrapper),
+.movie-card:hover :deep(.movie-poster-wrapper img) {
+  border-radius: 8px 8px 0 0;
+  overflow: hidden;
+}
 
 .hover-disabled:hover {
   transform: none;
