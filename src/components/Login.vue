@@ -9,14 +9,14 @@
 
       <form v-else @submit.prevent="handleSubmit" class="auth-form">
         <div class="form-group">
-          <label for="username">Имя пользователя</label>
+          <label for="email">Email</label>
           <input
-            id="username"
-            v-model="username"
-            type="text"
-            placeholder="Введите имя пользователя"
+            id="email"
+            v-model="email"
+            type="email"
+            placeholder="Введите email"
             required
-            autocomplete="username"
+            autocomplete="email"
           />
         </div>
 
@@ -76,7 +76,7 @@ import { login, signup } from '@/api/user'
 const router = useRouter()
 const authStore = useAuthStore()
 
-const username = ref('')
+const email = ref('')
 const password = ref('')
 const confirmPassword = ref('')
 const isSignup = ref(false)
@@ -93,7 +93,7 @@ const handleSubmit = async () => {
   error.value = null
 
   // Validation
-  if (!username.value.trim() || !password.value) {
+  if (!email.value.trim() || !password.value) {
     error.value = 'Заполните все поля'
     return
   }
@@ -115,30 +115,32 @@ const handleSubmit = async () => {
     let response
     if (isSignup.value) {
       response = await signup({
-        username: username.value.trim(),
+        email: email.value.trim(),
         password: password.value
       })
     } else {
       response = await login({
-        username: username.value.trim(),
+        email: email.value.trim(),
         password: password.value
       })
     }
 
-    if (response.token) {
-      authStore.setToken(response.token)
-      if (response.user) {
-        authStore.setUser(response.user)
-      }
+    // Supabase returns session and user
+    if (response.session) {
+      authStore.setSession(response.session)
+      authStore.setUser(response.user)
       router.push('/')
+    } else if (response.user && !response.session) {
+      // Email confirmation required
+      error.value = 'Проверьте почту для подтверждения регистрации'
     }
   } catch (err) {
-    if (err.response?.status === 401) {
-      error.value = 'Неверное имя пользователя или пароль'
-    } else if (err.response?.status === 409) {
-      error.value = 'Пользователь с таким именем уже существует'
+    if (err.message?.includes('Invalid login credentials')) {
+      error.value = 'Неверный email или пароль'
+    } else if (err.message?.includes('User already registered')) {
+      error.value = 'Пользователь с таким email уже существует'
     } else {
-      error.value = err.response?.data?.message || 'Произошла ошибка. Попробуйте позже.'
+      error.value = err.message || 'Произошла ошибка. Попробуйте позже.'
     }
     console.error('Auth error:', err)
   } finally {
