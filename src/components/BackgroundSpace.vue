@@ -1,5 +1,16 @@
 <template>
   <LavaLampBackground v-if="backgroundType === 'lava-lamp'" />
+  
+  <!-- Cinematic Background -->
+  <div v-else-if="backgroundType === 'cinematic'" class="cinematic-container">
+    <div class="cinematic-gradient"></div>
+    <div class="cinematic-noise"></div>
+    <div class="cinematic-vignette"></div>
+    <div class="cinematic-glow cinematic-glow-1"></div>
+    <div class="cinematic-glow cinematic-glow-2"></div>
+  </div>
+  
+  <!-- Dynamic/Stars Background -->
   <div v-else-if="backgroundType !== 'disabled'" class="background-container">
     <div
       v-for="(bg, index) in backgrounds"
@@ -24,7 +35,7 @@ const router = useRouter()
 
 const backgrounds = ref(['', ''])
 const activeIndex = ref(0)
-const isFetching = ref(false) // Флаг для отслеживания состояния запроса
+const isFetching = ref(false)
 
 const backgroundUrl = computed(() => backgroundStore.backgroundUrl)
 const backgroundType = computed(() => backgroundStore.backgroundType)
@@ -82,22 +93,14 @@ const checkCachedTopMovie = () => {
 }
 
 onMounted(async () => {
-  'mounted'
   backgrounds.value = [backgroundUrl.value, backgroundUrl.value]
   await router.isReady()
-  ;('route check')
 
   if (route.path.includes('movie')) return
-  ;('route check passed')
 
-  if (backgroundType.value !== 'disabled') {
-    ;('first if')
-
+  if (backgroundType.value !== 'disabled' && backgroundType.value !== 'cinematic') {
     const hasValidCache = checkCachedTopMovie()
-    ;('valid cache')
-
     if (!hasValidCache && !isFetching.value) {
-      ;('second if')
       await fetchTopMovie()
     }
   }
@@ -127,7 +130,6 @@ watch(backgroundUrl, (newUrl) => {
 })
 
 watch(backgroundType, (newType) => {
-  // Если тип фона изменился на 'dynamic', обновляем фон
   if (newType === 'dynamic') {
     const hasValidCache = checkCachedTopMovie()
     if (!hasValidCache && !isFetching.value) {
@@ -138,6 +140,7 @@ watch(backgroundType, (newType) => {
 </script>
 
 <style scoped>
+/* ===== DYNAMIC/STARS BACKGROUND ===== */
 .background-container {
   position: fixed;
   top: 0;
@@ -163,5 +166,115 @@ watch(backgroundType, (newType) => {
 
 .background-layer.active {
   opacity: 1;
+}
+
+/* ===== CINEMATIC BACKGROUND ===== */
+.cinematic-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  overflow: hidden;
+  background: #0a0a0a;
+}
+
+/* Main gradient - deep cinematic blacks with subtle red undertones */
+.cinematic-gradient {
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(ellipse 120% 80% at 50% 100%, rgba(20, 5, 5, 0.9) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 60% at 0% 50%, rgba(30, 5, 10, 0.6) 0%, transparent 50%),
+    radial-gradient(ellipse 80% 60% at 100% 50%, rgba(20, 5, 15, 0.5) 0%, transparent 50%),
+    linear-gradient(180deg, 
+      #050505 0%, 
+      #0a0508 20%, 
+      #0d0609 40%,
+      #0a0507 60%,
+      #080406 80%,
+      #050303 100%
+    );
+}
+
+/* Film grain noise overlay */
+.cinematic-noise {
+  position: absolute;
+  inset: 0;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+/* Vignette effect - darker edges like cinema */
+.cinematic-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 70% 60% at 50% 50%,
+    transparent 0%,
+    rgba(0, 0, 0, 0.3) 70%,
+    rgba(0, 0, 0, 0.7) 100%
+  );
+  pointer-events: none;
+}
+
+/* Subtle ambient glow animations */
+.cinematic-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.15;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.cinematic-glow-1 {
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(229, 9, 20, 0.4) 0%, transparent 70%);
+  bottom: -200px;
+  left: -100px;
+  animation: glowPulse1 12s ease-in-out infinite;
+}
+
+.cinematic-glow-2 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(139, 0, 50, 0.3) 0%, transparent 70%);
+  top: -150px;
+  right: -100px;
+  animation: glowPulse2 15s ease-in-out infinite;
+}
+
+@keyframes glowPulse1 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.15;
+  }
+  50% {
+    transform: translate(50px, -30px) scale(1.1);
+    opacity: 0.2;
+  }
+}
+
+@keyframes glowPulse2 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.12;
+  }
+  50% {
+    transform: translate(-40px, 20px) scale(1.15);
+    opacity: 0.18;
+  }
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .cinematic-glow-1,
+  .cinematic-glow-2 {
+    animation: none;
+  }
 }
 </style>
