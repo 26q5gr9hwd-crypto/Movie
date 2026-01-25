@@ -282,7 +282,7 @@ onMounted(() => {
   font-size: 1em;
 }
 
-/* Мобильная версия */
+/* Mobile version */
 @media (max-width: 620px) {
   .movie-card:not(.carousel-mode) {
     flex-direction: row;
