@@ -7,7 +7,7 @@ export const useMainStore = defineStore(MAIN_STORE_NAME, {
   state: () => ({
     history: [],
     isHistoryAllowed: true,
-    isCommentsEnabled: true,
+    isCommentsEnabled: false,
     isAutoShowComments: false,
     commentsSortBy: 'rating',
     isMobile: false,
