@@ -30,7 +30,7 @@
   <div v-else-if="backgroundType === 'stars'" class="background-container">
     <div
       class="background-layer active"
-      :style="{ backgroundImage: \`url(\${starsBackground})\`, filter: 'brightness(100%)' }"
+      :style="{ backgroundImage: 'url(' + starsBackground + ')', filter: 'brightness(100%)' }"
     ></div>
   </div>
 </template>
@@ -65,8 +65,8 @@ const hasMoviePoster = computed(() => {
 
 const getBackdropStyle = (index) => {
   return {
-    backgroundImage: backgrounds.value[index] ? \`url(\${backgrounds.value[index]})\` : 'none',
-    filter: \`brightness(25%) \${isBlurActive.value ? 'blur(8px)' : 'blur(0px)'}\`,
+    backgroundImage: backgrounds.value[index] ? 'url(' + backgrounds.value[index] + ')' : 'none',
+    filter: 'brightness(25%) ' + (isBlurActive.value ? 'blur(8px)' : 'blur(0px)'),
     backgroundSize: 'cover',
     backgroundPosition: 'center top'
   }
