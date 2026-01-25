@@ -2,9 +2,10 @@ import { defineStore } from 'pinia'
 
 export const useThemeStore = defineStore('theme', {
   state: () => ({
-    accentColor: '#4caf50',
+    accentColor: '#e50914',
     customColors: [],
     accentColors: [
+      { name: 'Netflix Red', value: '#e50914', hover: '#b20710' },
       { name: 'Material Green', value: '#4caf50', hover: '#45a049' },
       { name: 'Classic Purple', value: '#6c5ce7', hover: '#5a4fcf' },
       { name: 'Cherry Lacquer', value: '#c41e3a', hover: '#a51e2f' },
@@ -144,7 +145,7 @@ export const useThemeStore = defineStore('theme', {
   },
 
   persist: {
-    key: 'theme-settings-5',
+    key: 'theme-settings-6',
     storage: localStorage,
     paths: ['accentColor', 'customColors']
   }
