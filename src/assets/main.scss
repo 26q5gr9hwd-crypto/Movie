@@ -2,13 +2,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  // Netflix red accent
-  --accent-color: #e50914;
-  --accent-hover: #b20710;
-  --accent-light: #ff4d55;
-  --accent-dark: #8c0707;
-  --accent-transparent: rgba(229, 9, 20, 0.15);
-  --accent-semi-transparent: rgba(229, 9, 20, 0.5);
+  // Beautiful blue accent (default)
+  --accent-color: #2196f3;
+  --accent-hover: #1976d2;
+  --accent-light: #64b5f6;
+  --accent-dark: #1565c0;
+  --accent-transparent: rgba(33, 150, 243, 0.15);
+  --accent-semi-transparent: rgba(33, 150, 243, 0.5);
 
   --secondary-color: #b3b3b3;
   --secondary-hover: #ffffff;
