@@ -15,27 +15,28 @@
         <div class="hero-gradient"></div>
         <div class="hero-content">
           <h1 class="hero-title">
-            \{\{ featuredMovie.title || featuredMovie.name \}\}
+            {{ featuredMovie.title || featuredMovie.name }}
           </h1>
           <div class="hero-meta">
             <span
               v-if="featuredMovie.rating_kp"
               class="hero-rating"
             >
-              ★ \{\{ featuredMovie.rating_kp?.toFixed?.(1) || featuredMovie.rating_kp \}\}  
+              ★ {{ featuredMovie.rating_kp?.toFixed?.(1) ||
+              featuredMovie.rating_kp }}
             </span>
             <span v-if="featuredMovie.year" class="hero-year">
-              \{\{ featuredMovie.year \}\}
+              {{ featuredMovie.year }}
             </span>
             <span v-if="featuredMovie.type" class="hero-type">
-              \{\{ getTypeLabel(featuredMovie.type) \}\}
+              {{ TYPES_ENUM[featuredMovie.type] || featuredMovie.type }}
             </span>
           </div>
           <p
             v-if="featuredMovie.raw_data?.description"
             class="hero-description"
           >
-             \{\{ featuredMovie.raw_data.description.slice(0, 200) \}\}...
+            {{ featuredMovie.raw_data.description.slice(0, 200) }}...
           </p>
           <div class="hero-buttons">
             <router-link
@@ -72,7 +73,11 @@
       <!-- Search Modal Overlay -->
       <Teleport to="body">
         <Transition name="modal-fade">
-          <div v-if="isSearchModalOpen" class="search-modal-overlay" @click.self="closeSearchModal">
+          <div
+            v-if="isSearchModalOpen"
+            class="search-modal-overlay"
+            @click.self="closeSearchModal"
+          >
             <div class="search-modal">
               <div class="search-modal-header">
                 <div class="search-pill-modal">
@@ -86,7 +91,11 @@
                     @keydown.enter.prevent="executeSearch"
                     @keydown.esc="closeSearchModal"
                   />
-                  <button v-if="searchTerm" class="reset-button" @click="clearSearch">
+                  <button
+                    v-if="searchTerm"
+                    class="reset-button"
+                    @click="clearSearch"
+                  >
                     <i class="fas fa-times"></i>
                   </button>
                 </div>
@@ -94,10 +103,13 @@
                   <i class="fas fa-times"></i>
                 </button>
               </div>
-              
+
               <!-- Quick suggestions or recent searches could go here -->
               <div class="search-modal-hint">
-                <span><i class="fas fa-keyboard"></i> Enter для поиска • Esc для закрытия</span>
+                <span
+                  ><i class="fas fa-keyboard"></i> Enter для поиска • Esc
+                  для закрытия</span
+                >
               </div>
             </div>
           </div>
@@ -109,7 +121,9 @@
         <!-- Popular Movies Section (horizontal carousel on home) -->
         <div v-if="!searchPerformed" class="movie-row">
           <div class="row-header">
-            <h2 class="row-title"><i class="fas fa-fire-alt"></i> Популярные сейчас</h2>
+            <h2 class="row-title">
+              <i class="fas fa-fire-alt"></i> Популярные сейчас
+            </h2>
             <router-link to="/top" class="row-see-all">
               Смотреть все <i class="fas fa-chevron-right"></i>
             </router-link>
@@ -134,7 +148,9 @@
           class="movie-row"
         >
           <div class="row-header">
-            <h2 class="row-title"><i class="fas fa-play-circle"></i> Продолжить просмотр</h2>
+            <h2 class="row-title">
+              <i class="fas fa-play-circle"></i> Продолжить просмотр
+            </h2>
             <span class="row-actions">
               <DeleteButton @click="showModal = true" />
               <BaseModal
@@ -180,12 +196,18 @@
         <!-- Search Results -->
         <div v-if="searchPerformed" class="search-results-section">
           <div class="search-results-header">
-            <h2 class="section-title">Результаты поиска: "\{\{ lastSearchTerm \}\}"</h2>
+            <h2 class="section-title">
+              Результаты поиска: "{{ lastSearchTerm }}"
+            </h2>
             <button class="back-to-home-btn" @click="resetSearch">
               <i class="fas fa-arrow-left"></i> На главную
             </button>
           </div>
-          <MovieList :movies-list="movies" :is-history="false" :loading="searchLoading" />
+          <MovieList
+            :movies-list="movies"
+            :is-history="false"
+            :loading="searchLoading"
+          />
           <div
             v-if="movies.length === 0 && !searchLoading && !errorMessage"
             class="no-results"
@@ -220,14 +242,15 @@ import ErrorMessage from '@/components/ErrorMessage.vue'
 import { MovieList } from '@/components/MovieList/'
 import { useMainStore } from '@/store/main'
 import { useAuthStore } from '@/store/auth'
-import { USER_LIST_TYPES_ENUM } from '@/constants'
+import { useBackgroundStore } from '@/store/Background'
+import { USER_LIST_TYPES_ENUM, TYPES_ENUM } from '@/constants'
 
-import { watchEffect, onMounted, ref, computed, nextTick } from 'vue'
+import { watchEffect, onMounted, ref, computed, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
-
 
 const mainStore = useMainStore()
 const authStore = useAuthStore()
+const backgroundStore = useBackgroundStore()
 const router = useRouter()
 
 // Search modal state
@@ -254,7 +277,7 @@ const popularError = ref('')
 const featuredMovie = computed(() => {
   if (popularMovies.value.length > 0) {
     const topMovies = popularMovies.value
-      .filter(m => m.rating_kp >= 7 && (m.backdrop || m.cover))
+      .filter((m) => m.rating_kp >= 7 && (m.backdrop || m.cover))
       .slice(0, 5)
     if (topMovies.length > 0) {
       return topMovies[Math.floor(Math.random() * topMovies.length)]
@@ -262,6 +285,29 @@ const featuredMovie = computed(() => {
     return popularMovies.value[0]
   }
   return null
+})
+
+// Update background when featured movie changes
+watch(
+  featuredMovie,
+  (movie) => {
+    if (movie && (movie.backdrop || movie.cover)) {
+      backgroundStore.updateMainPagePoster(movie.backdrop || movie.cover)
+    }
+  },
+  { immediate: true }
+)
+
+// Debounced search while typing
+let searchDebounceTimer = null
+watch(searchTerm, (newVal) => {
+  if (searchDebounceTimer) clearTimeout(searchDebounceTimer)
+  if (newVal.trim()) {
+    searchDebounceTimer = setTimeout(() => {
+      lastSearchTerm.value = newVal
+      performSearch()
+    }, 400)
+  }
 })
 
 // Search modal functions
@@ -338,8 +384,6 @@ watchEffect(async () => {
 function handleItemDeleted(deletedItemId) {
   history.value = history.value.filter((item) => item.kp_id !== deletedItemId)
 }
-
-
 
 const resetSearch = () => {
   searchTerm.value = ''
@@ -638,7 +682,8 @@ onMounted(() => {
 
 .search-pill-modal:focus-within {
   border-color: var(--accent-color);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 3px var(--accent-transparent);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 0 3px var(--accent-transparent);
 }
 
 .search-icon {
@@ -873,11 +918,13 @@ onMounted(() => {
   padding: 0 4%;
   overflow: hidden;
 }
+
 .skeleton-row::before {
   content: '';
   display: flex;
   gap: 10px;
 }
+
 .skeleton-row {
   height: 270px;
   background: linear-gradient(
@@ -929,15 +976,15 @@ onMounted(() => {
     width: 44px;
     height: 44px;
   }
-  
+
   .search-modal-overlay {
     padding-top: 10vh;
   }
-  
+
   .search-pill-modal {
     padding: 14px 18px;
   }
-  
+
   .search-input-modal {
     font-size: 1rem;
   }
@@ -952,7 +999,7 @@ onMounted(() => {
   .hero-btn {
     justify-content: center;
   }
-  
+
   .search-results-header {
     flex-direction: column;
     align-items: flex-start;
