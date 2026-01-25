@@ -3,38 +3,34 @@
   
   <!-- Dynamic Background - switches between cinematic glow and movie backdrop -->
   <div v-else-if="backgroundType === 'dynamic'" class="dynamic-container">
-    <!-- Cinematic Glow (shown when NOT on movie page) -->
-    <transition name="fade-cinematic">
-      <div v-if="!isOnMoviePage || !hasMoviePoster" class="cinematic-layer">
-        <div class="cinematic-glow-wrap">
-          <div class="cinematic-glow cinematic-glow-1"></div>
-          <div class="cinematic-glow cinematic-glow-2"></div>
-          <div class="cinematic-glow cinematic-glow-3"></div>
-        </div>
-        <div class="cinematic-vignette"></div>
+    <!-- Cinematic Glow (always present as base layer, fades when backdrop is active) -->
+    <div class="cinematic-layer" :class="{ 'cinematic-hidden': isOnMoviePage && hasMoviePoster }">
+      <div class="cinematic-glow-wrap">
+        <div class="cinematic-glow cinematic-glow-1"></div>
+        <div class="cinematic-glow cinematic-glow-2"></div>
+        <div class="cinematic-glow cinematic-glow-3"></div>
       </div>
-    </transition>
+      <div class="cinematic-vignette"></div>
+    </div>
     
     <!-- Movie Backdrop (shown when on movie page with poster) -->
-    <transition name="fade-backdrop">
-      <div v-if="isOnMoviePage && hasMoviePoster" class="backdrop-layer">
-        <div
-          v-for="(bg, index) in backgrounds"
-          :key="index"
-          class="background-image"
-          :class="{ active: activeIndex === index }"
-          :style="getBackdropStyle(index)"
-        ></div>
-        <div class="backdrop-vignette"></div>
-      </div>
-    </transition>
+    <div class="backdrop-layer" :class="{ 'backdrop-active': isOnMoviePage && hasMoviePoster }">
+      <div
+        v-for="(bg, index) in backgrounds"
+        :key="index"
+        class="background-image"
+        :class="{ active: activeIndex === index }"
+        :style="getBackdropStyle(index)"
+      ></div>
+      <div class="backdrop-vignette"></div>
+    </div>
   </div>
   
   <!-- Stars Background -->
   <div v-else-if="backgroundType === 'stars'" class="background-container">
     <div
       class="background-layer active"
-      :style="{ backgroundImage: `url(${starsBackground})`, filter: 'brightness(100%)' }"
+      :style="{ backgroundImage: \`url(\${starsBackground})\`, filter: 'brightness(100%)' }"
     ></div>
   </div>
 </template>
@@ -69,8 +65,8 @@ const hasMoviePoster = computed(() => {
 
 const getBackdropStyle = (index) => {
   return {
-    backgroundImage: backgrounds.value[index] ? `url(${backgrounds.value[index]})` : 'none',
-    filter: `brightness(25%) ${isBlurActive.value ? 'blur(8px)' : 'blur(0px)'}`,
+    backgroundImage: backgrounds.value[index] ? \`url(\${backgrounds.value[index]})\` : 'none',
+    filter: \`brightness(25%) \${isBlurActive.value ? 'blur(8px)' : 'blur(0px)'}\`,
     backgroundSize: 'cover',
     backgroundPosition: 'center top'
   }
@@ -82,12 +78,17 @@ onMounted(() => {
   }
 })
 
-// Watch for route changes to clear poster when leaving movie pages
+// Watch for route changes - delay clearing poster for smooth transition
 watch(
   () => route.path,
   (newPath) => {
     if (!newPath.includes('/movie/')) {
-      backgroundStore.clearMoviePoster()
+      // Delay clearing to allow cinematic glow to fade in first
+      setTimeout(() => {
+        if (!route.path.includes('/movie/')) {
+          backgroundStore.clearMoviePoster()
+        }
+      }, 600)
     }
   }
 )
@@ -124,6 +125,11 @@ watch(backgroundUrl, (newUrl) => {
 .cinematic-layer {
   position: absolute;
   inset: 0;
+  transition: opacity 0.6s ease-in-out;
+}
+
+.cinematic-layer.cinematic-hidden {
+  opacity: 0;
 }
 
 .cinematic-glow-wrap {
@@ -200,6 +206,13 @@ watch(backgroundUrl, (newUrl) => {
 .backdrop-layer {
   position: absolute;
   inset: 0;
+  opacity: 0;
+  transition: opacity 0.6s ease-in-out;
+  pointer-events: none;
+}
+
+.backdrop-layer.backdrop-active {
+  opacity: 1;
 }
 
 .background-image {
@@ -239,27 +252,6 @@ watch(backgroundUrl, (newUrl) => {
   opacity: 1;
 }
 
-/* ===== TRANSITIONS ===== */
-.fade-cinematic-enter-active,
-.fade-cinematic-leave-active {
-  transition: opacity 0.6s ease-in-out;
-}
-
-.fade-cinematic-enter-from,
-.fade-cinematic-leave-to {
-  opacity: 0;
-}
-
-.fade-backdrop-enter-active,
-.fade-backdrop-leave-active {
-  transition: opacity 0.6s ease-in-out;
-}
-
-.fade-backdrop-enter-from,
-.fade-backdrop-leave-to {
-  opacity: 0;
-}
-
 /* ===== REDUCED MOTION ===== */
 @media (prefers-reduced-motion: reduce) {
   .cinematic-glow-1,
@@ -269,10 +261,8 @@ watch(backgroundUrl, (newUrl) => {
   }
   
   .background-image,
-  .fade-cinematic-enter-active,
-  .fade-cinematic-leave-active,
-  .fade-backdrop-enter-active,
-  .fade-backdrop-leave-active {
+  .cinematic-layer,
+  .backdrop-layer {
     transition-duration: 0.1s;
   }
 }
