@@ -8,14 +8,23 @@ export const useBackgroundStore = defineStore(BACKGROUND_STORE_NAME, {
     backgroundUrl: '',
     moviePoster: '',
     isBlurActive: true,
-    backgroundType: 'dynamic', // Dynamic is now the default and only "smart" mode
+    backgroundType: 'dynamic',
     defaultBackground: starsBackground,
     isCardBorder: false,
-    isCardHoverDisabled: false
+    isCardHoverDisabled: false,
+    mainPagePoster: ''
   }),
 
+  getters: {
+    currentBackground: (state) => {
+      if (state.backgroundType === 'dynamic') {
+        return state.moviePoster || state.mainPagePoster || ''
+      }
+      return state.backgroundUrl
+    }
+  },
+
   actions: {
-    // Called when entering a movie page - updates the background to show the movie's backdrop
     updateMoviePoster(poster) {
       if (this.backgroundType === 'dynamic') {
         const url = poster || ''
@@ -26,10 +35,22 @@ export const useBackgroundStore = defineStore(BACKGROUND_STORE_NAME, {
       }
     },
 
-    // Called when leaving a movie page - clears the movie poster so cinematic glow shows
+    updateMainPagePoster(poster) {
+      if (this.backgroundType === 'dynamic') {
+        this.mainPagePoster = poster || ''
+        if (!this.moviePoster && poster) {
+          this.backgroundUrl = poster
+        }
+      }
+    },
+
     clearMoviePoster() {
       this.moviePoster = ''
-      this.backgroundUrl = ''
+      if (this.mainPagePoster) {
+        this.backgroundUrl = this.mainPagePoster
+      } else {
+        this.backgroundUrl = ''
+      }
     },
 
     toggleBlur(isActive) {
@@ -60,7 +81,6 @@ export const useBackgroundStore = defineStore(BACKGROUND_STORE_NAME, {
 
       if (type === 'dynamic') {
         this.isBlurActive = true
-        // Don't set backgroundUrl here - let the component handle it based on route
       } else if (type === 'disabled') {
         this.isBlurActive = false
         this.backgroundUrl = ''
