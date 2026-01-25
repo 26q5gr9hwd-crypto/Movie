@@ -1,80 +1,129 @@
 <template>
   <div class="wrapper">
     <div class="mainpage">
-      <!-- Кнопки выбора типа поиска -->
-      <div class="search-type-buttons">
-        <button :class="{ active: searchType === 'title' }" @click="setSearchType('title')">
-          Название
-        </button>
-        <button :class="{ active: searchType === 'kinopoisk' }" @click="setSearchType('kinopoisk')">
-          ID Кинопоиск
-        </button>
-        <button :class="{ active: searchType === 'shikimori' }" @click="setSearchType('shikimori')">
-          ID Shikimori
-        </button>
-        <button :class="{ active: searchType === 'imdb' }" @click="setSearchType('imdb')">
-          ID IMDB
-        </button>
-        <button class="random-button" :disabled="randomLoading" @click="openRandomMovie">
-          <i class="fas fa-dice"></i>
-          {{ randomLoading ? 'Подбираем...' : 'Случайный фильм' }}
-        </button>
-      </div>
-
-      <!-- Поиск -->
-      <div class="search-container">
-        <div class="input-wrapper">
-          <input
-            ref="searchInput"
-            v-model="searchTerm"
-            :placeholder="getPlaceholder()"
-            class="search-input"
-            :class="{ 'wrong-layout': showLayoutWarning }"
-            :inputmode="searchType === 'title' ? 'text' : 'numeric'"
-            @keydown.enter.prevent="search"
-            @keydown.tab.prevent="handleTabKey"
-            @keydown.down.prevent="focusFirstMovieCard"
-            @input="handleInput"
-          />
-          <div class="icons">
-            <button v-if="searchTerm" class="reset-button" @click="resetSearch">
-              <i class="fas fa-times"></i>
-            </button>
-            <button class="search-button" @click="search">
-              <i class="fas fa-search"></i>
-            </button>
+      <!-- Hero Section -->
+      <section v-if="featuredMovie" class="hero-section">
+        <div class="hero-backdrop" :style="{ backgroundImage: `url(${featuredMovie.poster})` }"></div>
+        <div class="hero-gradient"></div>
+        <div class="hero-content">
+          <h1 class="hero-title"> featuredMovie.title </h1>
+          <div class="hero-meta">
+            <span v-if="featuredMovie.rating_kp" class="hero-rating">
+              <i class="fas fa-star"></i>  featuredMovie.rating_kp 
+            </span>
+            <span v-if="featuredMovie.year" class="hero-year"> featuredMovie.year </span>
+            <span v-if="featuredMovie.type" class="hero-type"> featuredMovie.type </span>
           </div>
-          <div v-if="showLayoutWarning" class="layout-warning" :class="{ show: showLayoutWarning }">
-            <i class="fas fa-keyboard"></i>
-            Возможно, вы используете неправильную раскладку. Нажмите Tab для переключения на
-            {{ suggestedLayout }} раскладку
+          <p v-if="featuredMovie.description" class="hero-description">
+             truncateText(featuredMovie.description, 200) 
+          </p>
+          <div class="hero-actions">
+            <button class="btn-primary" @click="goToMovie(featuredMovie.kp_id)">
+              <i class="fas fa-play"></i> Смотреть
+            </button>
+            <button class="btn-secondary" @click="openRandomMovie">
+              <i class="fas fa-dice"></i> Случайный фильм
+            </button>
           </div>
         </div>
+      </section>
+
+      <!-- Fallback hero when no featured movie -->
+      <section v-else class="hero-section hero-minimal">
+        <div class="hero-gradient"></div>
+        <div class="hero-content">
+          <h1 class="hero-title">Откройте мир кино</h1>
+          <p class="hero-description">Тысячи фильмов и сериалов в одном месте</p>
+          <div class="hero-actions">
+            <button class="btn-primary" @click="focusSearch">
+              <i class="fas fa-search"></i> Найти фильм
+            </button>
+            <button class="btn-secondary" @click="openRandomMovie">
+              <i class="fas fa-dice"></i> Мне повезёт
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Search Bar -->
+      <div class="search-section">
+        <div class="search-container">
+          <div class="input-wrapper">
+            <i class="fas fa-search search-icon"></i>
+            <input
+              ref="searchInput"
+              v-model="searchTerm"
+              placeholder="Поиск фильмов и сериалов..."
+              class="search-input"
+              :class="{ 'wrong-layout': showLayoutWarning }"
+              @keydown.enter.prevent="search"
+              @keydown.tab.prevent="handleTabKey"
+              @keydown.down.prevent="focusFirstMovieCard"
+              @input="handleInput"
+            />
+            <button v-if="searchTerm" class="clear-button" @click="resetSearch">
+              <i class="fas fa-times"></i>
+            </button>
+            <div v-if="showLayoutWarning" class="layout-warning" :class="{ show: showLayoutWarning }">
+              <i class="fas fa-keyboard"></i>
+              Возможно, неправильная раскладка. Tab — переключить на  suggestedLayout 
+            </div>
+          </div>
+          <!-- Advanced search toggle -->
+          <button class="advanced-toggle" @click="showAdvanced = !showAdvanced" :class="{ active: showAdvanced }">
+            <i class="fas fa-sliders-h"></i>
+          </button>
+        </div>
+        
+        <!-- Advanced Search Options (collapsed by default) -->
+        <transition name="slide">
+          <div v-if="showAdvanced" class="advanced-search">
+            <button 
+              v-for="type in searchTypes" 
+              :key="type.value"
+              :class="['search-type-btn', { active: searchType === type.value }]" 
+              @click="setSearchType(type.value)"
+            >
+               type.label 
+            </button>
+          </div>
+        </transition>
       </div>
 
-      <!-- Контейнер для истории и результатов -->
+      <!-- Content Container -->
       <div class="content-container">
-        <!-- История просмотра -->
-        <div v-if="!searchTerm">
-          <h2>
-            История просмотра
-            <span v-if="history.length > 0">
-              <DeleteButton @click="showModal = true" />
-              <BaseModal
-                :is-open="showModal"
-                message="Вы уверены, что хотите очистить историю?"
-                @confirm="clearAllHistory"
-                @close="showModal = false"
-              />
-            </span>
-          </h2>
+        <!-- Search Results -->
+        <section v-if="searchPerformed" class="content-section">
+          <h2 class="section-title">Результаты поиска</h2>
+          <MovieList :movies-list="movies" :is-history="false" :loading="loading" />
+          <div v-if="movies.length === 0 && !loading && !errorMessage" class="empty-state">
+            <i class="fas fa-film"></i>
+            <p>Ничего не найдено</p>
+          </div>
+          <ErrorMessage v-if="errorMessage" :message="errorMessage" :code="errorCode" />
+        </section>
+
+        <!-- History Section (when not searching) -->
+        <section v-if="!searchTerm" class="content-section">
+          <div class="section-header">
+            <h2 class="section-title">
+              <i class="fas fa-history"></i> Продолжить просмотр
+            </h2>
+            <button v-if="history.length > 0" class="clear-history-btn" @click="showModal = true">
+              <i class="fas fa-trash-alt"></i> Очистить
+            </button>
+          </div>
+          
           <div v-if="loading" class="loading-container">
             <SpinnerLoading />
           </div>
-          <div v-else-if="history.length === 0" class="empty-history">
-            <span class="material-icons">movie</span>
-            <p>Здесь пока пусто</p>
+          
+          <div v-else-if="history.length === 0" class="empty-state">
+            <i class="fas fa-film"></i>
+            <p>История пуста</p>
+            <span class="empty-hint">Ваши просмотренные фильмы появятся здесь</span>
           </div>
+          
           <MovieList
             v-else
             :movies-list="history"
@@ -82,32 +131,20 @@
             :loading="false"
             @item-deleted="handleItemDeleted"
           />
-        </div>
-        <ErrorMessage
-          v-if="!searchTerm && errorMessage"
-          :message="errorMessage"
-          :code="errorCode"
-        />
+          
+          <BaseModal
+            :is-open="showModal"
+            message="Очистить историю просмотра?"
+            @confirm="clearAllHistory"
+            @close="showModal = false"
+          />
+        </section>
 
-        <!-- Результаты поиска -->
-        <div v-if="searchPerformed">
-          <h2>Результаты поиска</h2>
-          <MovieList :movies-list="movies" :is-history="false" :loading="loading" />
-          <div v-if="movies.length === 0 && !loading && !errorMessage" class="no-results">
-            Ничего не найдено
-          </div>
-          <ErrorMessage v-if="errorMessage" :message="errorMessage" :code="errorCode" />
-        </div>
-
-        <!-- Подсказка, когда ничего не введено в поиске -->
-        <div
-          v-if="searchTerm && !searchPerformed && !loading && !errorMessage"
-          class="search-prompt"
-        >
-          Нажмите кнопку "Поиск" или Enter для поиска
-        </div>
+        <ErrorMessage v-if="!searchTerm && errorMessage" :message="errorMessage" :code="errorCode" />
       </div>
     </div>
+    
+    <FooterDonaters />
 
     <RandomMovieModal
       :is-open="showRandomModal"
@@ -131,8 +168,8 @@ import {
 import { handleApiError } from '@/constants'
 import { getMyLists, delAllFromList } from '@/api/user'
 import BaseModal from '@/components/BaseModal.vue'
-import DeleteButton from '@/components/buttons/DeleteButton.vue'
 import ErrorMessage from '@/components/ErrorMessage.vue'
+import FooterDonaters from '@/components/FooterDonaters.vue'
 import { MovieList } from '@/components/MovieList/'
 import { useMainStore } from '@/store/main'
 import { useAuthStore } from '@/store/auth'
@@ -154,10 +191,12 @@ const movies = ref([])
 const loading = ref(false)
 const searchPerformed = ref(false)
 const showModal = ref(false)
+const showAdvanced = ref(false)
 const errorMessage = ref('')
 const errorCode = ref(null)
 const isMobile = computed(() => mainStore.isMobile)
 const history = ref([])
+const featuredMovie = ref(null)
 
 const showLayoutWarning = ref(false)
 const suggestedLayout = ref('')
@@ -169,11 +208,49 @@ const randomError = ref('')
 
 const searchInput = ref(null)
 
+const searchTypes = [
+  { value: 'title', label: 'Название' },
+  { value: 'kinopoisk', label: 'ID Кинопоиск' },
+  { value: 'shikimori', label: 'ID Shikimori' },
+  { value: 'imdb', label: 'ID IMDB' }
+]
+
+const truncateText = (text, maxLength) => {
+  if (!text || text.length <= maxLength) return text
+  return text.substring(0, maxLength).trim() + '...'
+}
+
+const goToMovie = (kpId) => {
+  router.push({ name: 'movie-info', params: { kp_id: kpId } })
+}
+
+const focusSearch = () => {
+  searchInput.value?.focus()
+}
+
+// Load featured movie from history or random
+const loadFeaturedMovie = async () => {
+  if (history.value.length > 0) {
+    const recent = history.value[0]
+    try {
+      const kpInfo = await getKpInfo(recent.kp_id)
+      featuredMovie.value = {
+        ...recent,
+        description: kpInfo.description,
+        poster: recent.poster || kpInfo.poster
+      }
+    } catch {
+      featuredMovie.value = recent
+    }
+  }
+}
+
 watchEffect(async () => {
   if (authStore.token) {
     loading.value = true
     try {
       history.value = await getMyLists(USER_LIST_TYPES_ENUM.HISTORY)
+      await loadFeaturedMovie()
     } catch (error) {
       const { message, code } = handleApiError(error)
       errorMessage.value = message
@@ -189,6 +266,7 @@ watchEffect(async () => {
     }
   } else {
     history.value = mainStore.history
+    await loadFeaturedMovie()
   }
 })
 
@@ -196,7 +274,6 @@ function handleItemDeleted(deletedItemId) {
   history.value = history.value.filter((item) => item.kp_id !== deletedItemId)
 }
 
-// Установка типа поиска
 const setSearchType = (type) => {
   searchType.value = type
   resetSearch()
@@ -226,19 +303,6 @@ const handleTabKey = () => {
   }
 }
 
-// Получение placeholder для input
-const getPlaceholder = () => {
-  return (
-    {
-      title: 'Введите название фильма',
-      kinopoisk: 'Пример: 301 (Матрица)',
-      shikimori: 'Пример: 28171 (Повар-боец Сома)',
-      imdb: 'Пример: 0198781 (Корпорация монстров)'
-    }[searchType.value] || 'Введите название фильма'
-  )
-}
-
-// Очистка поиска
 const resetSearch = () => {
   searchTerm.value = ''
   movies.value = []
@@ -303,6 +367,7 @@ const performSearch = async () => {
       router.push({ name: 'movie-info-shiki', params: { shiki_id: `shiki${searchTerm.value}` } })
       return
     }
+    
     if (searchType.value === 'title') {
       const response = await apiSearch(searchTerm.value)
       movies.value = response.map((movie) => ({
@@ -328,6 +393,7 @@ const clearAllHistory = async () => {
     try {
       await delAllFromList(USER_LIST_TYPES_ENUM.HISTORY)
       history.value = []
+      featuredMovie.value = null
       loading.value = false
       showModal.value = false
     } catch (error) {
@@ -345,6 +411,7 @@ const clearAllHistory = async () => {
     }
   } else {
     mainStore.clearAllHistory()
+    featuredMovie.value = null
     loading.value = false
     showModal.value = false
   }
@@ -376,10 +443,8 @@ onMounted(() => {
     searchTerm.value = shikiId
     performSearch()
   }
-  searchInput.value?.focus()
 })
 
-// Автопоиск с задержкой (только для поиска по названию)
 watch(searchTerm, () => {
   if (searchType.value !== 'title') {
     return
@@ -454,185 +519,284 @@ const fetchRandomMovie = async () => {
 
 .mainpage {
   flex: 1;
-  padding-top: 20px;
-  padding-bottom: 40px;
 }
 
-/* Общие стили */
-.search-type-buttons {
+/* ===== HERO SECTION ===== */
+.hero-section {
+  position: relative;
+  height: 70vh;
+  min-height: 400px;
+  max-height: 600px;
   display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.hero-minimal {
+  height: 50vh;
+  min-height: 300px;
+  max-height: 400px;
+  align-items: center;
   justify-content: center;
-  gap: 20px;
-  padding-top: 10px;
-  margin-bottom: 5px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+}
+
+.hero-backdrop {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center top;
+  filter: brightness(0.4);
+}
+
+.hero-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    var(--bg-primary) 0%,
+    rgba(20, 20, 20, 0.8) 30%,
+    rgba(20, 20, 20, 0.4) 60%,
+    transparent 100%
+  );
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  padding: 40px;
+  max-width: 700px;
+}
+
+.hero-minimal .hero-content {
+  text-align: center;
+  max-width: 600px;
+}
+
+.hero-title {
+  font-size: clamp(1.8rem, 5vw, 3rem);
+  font-weight: 700;
+  margin: 0 0 12px;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+  line-height: 1.1;
+}
+
+.hero-meta {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: var(--text-secondary);
   flex-wrap: wrap;
 }
 
-.search-type-buttons button {
-  padding: 5px 10px;
-  font-size: 16px;
-  border: none;
-  background: none;
-  color: #fff;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
+.hero-minimal .hero-meta {
+  justify-content: center;
 }
 
-.search-type-buttons button::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: -2px;
-  width: 100%;
-  height: 2px;
-  background-color: transparent;
-  transition: background-color 0.3s ease;
-}
-
-.search-type-buttons button.active::after {
-  background-color: var(--accent-color);
-}
-
-.search-type-buttons button:hover {
-  color: #ffffff;
-}
-
-.random-button {
-  background: var(--accent-color) !important;
-  color: white !important;
-  border-radius: 8px;
-  padding: 8px 16px !important;
+.hero-rating {
+  color: #ffd700;
   font-weight: 600;
-  transition: all 0.3s ease;
+}
+
+.hero-rating i {
+  margin-right: 4px;
+}
+
+.hero-description {
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1.5;
+  margin-bottom: 24px;
+  max-width: 500px;
+}
+
+.hero-actions {
   display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.hero-minimal .hero-actions {
+  justify-content: center;
+}
+
+.btn-primary,
+.btn-secondary {
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
 }
 
-.random-button:hover:not(:disabled) {
-  background: var(--accent-hover-color) !important;
-  transform: translateY(-1px);
+.btn-primary {
+  background: var(--accent-color);
+  color: white;
 }
 
-.random-button:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-  transform: none;
+.btn-primary:hover {
+  background: var(--accent-hover);
+  transform: scale(1.02);
 }
 
-.random-button::after {
-  display: none;
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  backdrop-filter: blur(10px);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ===== SEARCH SECTION ===== */
+.search-section {
+  padding: 0 20px 20px;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
 .search-container {
   display: flex;
-  justify-content: center;
-  padding: 20px;
+  gap: 12px;
+  align-items: center;
 }
 
 .input-wrapper {
   position: relative;
-  width: 100%;
-  max-width: 800px;
+  flex: 1;
+}
+
+.search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 16px;
+  pointer-events: none;
 }
 
 .search-input {
-  box-sizing: border-box;
   width: 100%;
-  padding: 10px;
+  padding: 14px 48px 14px 48px;
   font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  background: rgba(30, 30, 30, 0.8);
-  color: #fff;
-  transition: border-color 0.3s ease;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--bg-secondary);
+  color: var(--text-color);
+  transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
 .search-input:focus {
   outline: none;
   border-color: var(--accent-color);
-  box-shadow: 0 0 0 2px var(--accent-transparent);
+  box-shadow: 0 0 0 3px var(--accent-transparent);
 }
 
 .search-input.wrong-layout {
-  border-color: #ff8c00;
-  box-shadow: 0 0 5px rgba(255, 140, 0, 0.2);
+  border-color: var(--error-color);
 }
 
-.icons {
+.clear-button {
   position: absolute;
-  right: 10px;
+  right: 12px;
   top: 50%;
   transform: translateY(-50%);
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.reset-button,
-.search-button {
   background: none;
   border: none;
-  color: #fff;
+  color: var(--text-muted);
   cursor: pointer;
-  padding: 2px;
+  padding: 8px;
   opacity: 0.7;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.2s;
 }
 
-.reset-button:hover,
-.search-button:hover {
+.clear-button:hover {
   opacity: 1;
 }
 
-.reset-button i,
-.search-button i {
-  font-size: 18px;
-  display: block;
-  width: 20px;
-  height: 20px;
-}
-
-h2 {
+.advanced-toggle {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
   display: flex;
-  font-size: 20px;
-  margin-bottom: 20px;
-  justify-content: center;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
 }
 
-/* Сообщение "Ничего не найдено" */
-.no-results {
-  width: 100%;
-  text-align: center;
-  color: #fff;
-  font-size: 18px;
-  margin-top: 20px;
+.advanced-toggle:hover,
+.advanced-toggle.active {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
 }
 
-/* Подсказка для поиска */
-.search-prompt {
-  text-align: center;
-  color: #fff;
-  font-size: 18px;
-  margin-top: 20px;
+.advanced-search {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.search-type-btn {
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: var(--bg-tertiary);
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.search-type-btn:hover {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.search-type-btn.active {
+  background: var(--accent-transparent);
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
+.slide-enter-active,
+.slide-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-enter-from,
+.slide-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
 }
 
 .layout-warning {
   position: absolute;
-  bottom: -40px;
+  bottom: -44px;
   left: 0;
   right: 0;
   text-align: center;
-  color: #ff8c00;
-  font-size: 14px;
-  background: rgba(255, 140, 0, 0.15);
+  color: var(--error-color);
+  font-size: 13px;
+  background: rgba(232, 124, 3, 0.1);
   padding: 8px 12px;
-  border-radius: 5px;
-  pointer-events: none;
-  border: 1px solid rgba(255, 140, 0, 0.5);
+  border-radius: 8px;
+  border: 1px solid rgba(232, 124, 3, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -640,7 +804,6 @@ h2 {
   opacity: 0;
   transform: translateY(-10px);
   transition: all 0.3s ease;
-  z-index: 1;
   backdrop-filter: blur(5px);
 }
 
@@ -649,13 +812,53 @@ h2 {
   transform: translateY(0);
 }
 
-.layout-warning i {
-  font-size: 16px;
-  color: #ff8c00;
+/* ===== CONTENT SECTIONS ===== */
+.content-container {
+  padding: 20px;
 }
 
-.layout-warning {
-  color: #ff8c00;
+.content-section {
+  margin-bottom: 40px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-title i {
+  color: var(--text-muted);
+  font-size: 18px;
+}
+
+.clear-history-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.clear-history-btn:hover {
+  background: var(--bg-tertiary);
+  color: var(--accent-color);
 }
 
 .loading-container {
@@ -663,40 +866,64 @@ h2 {
   justify-content: center;
   align-items: center;
   min-height: 200px;
-  width: 100%;
 }
 
-.empty-history {
+.empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: 200px;
-  color: #888;
-  gap: 15px;
+  color: var(--text-muted);
+  gap: 12px;
 }
 
-.empty-history .material-icons {
-  font-size: 64px;
-  color: #888;
+.empty-state i {
+  font-size: 48px;
+  opacity: 0.5;
+}
+
+.empty-state p {
+  font-size: 16px;
+  margin: 0;
+}
+
+.empty-hint {
+  font-size: 13px;
   opacity: 0.7;
 }
 
-.empty-history p {
-  font-size: 18px;
-  margin: 0;
-  color: #888;
-}
-
+/* ===== MOBILE ===== */
 @media (max-width: 600px) {
-  .mainpage {
-    padding-top: 0;
-    height: calc(100vh - 30px - 63px);
+  .hero-section {
+    height: 50vh;
+    min-height: 300px;
   }
 
-  .search-container,
-  .search-type-buttons {
-    padding: 0;
+  .hero-content {
+    padding: 20px;
+  }
+
+  .hero-title {
+    font-size: 1.5rem;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .search-section {
+    padding: 0 16px 16px;
+  }
+
+  .content-container {
+    padding: 16px;
   }
 }
 </style>
