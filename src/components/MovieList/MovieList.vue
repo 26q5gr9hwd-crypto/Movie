@@ -1,18 +1,80 @@
 <template>
   <div>
-    <div v-show="!loading" class="grid" :class="`card-size-${cardSize}`">
-      <template v-if="(isHistory || isUserList) && isMobile">
-        <CardMovieSwipeWrapper
-          v-for="(movie, index) in moviesList"
-          :key="movie.kp_id"
-          :data-test-id="`movie-card-swipe-wrapper-${movie.kp_id}`"
-          :show-delete="showDelete"
-          @slide="removeFromHistory(movie.kp_id)"
-        >
+    <!-- Carousel/Horizontal Layout -->
+    <div v-if="isCarousel" class="carousel-container">
+      <button 
+        v-if="!isMobile" 
+        class="carousel-arrow carousel-arrow-left" 
+        @click="scrollCarousel('left')"
+        :class="{ hidden: !canScrollLeft }"
+      >
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      
+      <div ref="carouselWrapper" class="carousel-wrapper" @scroll="updateScrollState">
+        <div class="carousel-track">
+          <div 
+            v-for="(movie, index) in displayedMovies" 
+            :key="movie.kp_id" 
+            class="carousel-card"
+          >
+            <CardMovie
+              :movie
+              :is-history="false"
+              :is-mobile
+              :is-carousel="true"
+              :index
+              :show-delete="false"
+              :show-star="false"
+            />
+          </div>
+        </div>
+      </div>
+      
+      <button 
+        v-if="!isMobile" 
+        class="carousel-arrow carousel-arrow-right" 
+        @click="scrollCarousel('right')"
+        :class="{ hidden: !canScrollRight }"
+      >
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+
+    <!-- Grid Layout (default) -->
+    <div v-else>
+      <div v-show="!loading" class="grid" :class="`card-size-${cardSize}`">
+        <template v-if="(isHistory || isUserList) && isMobile">
+          <CardMovieSwipeWrapper
+            v-for="(movie, index) in moviesList"
+            :key="movie.kp_id"
+            :data-test-id="`movie-card-swipe-wrapper-${movie.kp_id}`"
+            :show-delete="showDelete"
+            @slide="removeFromHistory(movie.kp_id)"
+          >
+            <CardMovie
+              :movie
+              :is-history
+              :is-mobile
+              :is-user-list="isUserList"
+              :index
+              :is-card-border="isCardBorder"
+              :active-movie-index
+              :show-delete="showDelete"
+              :show-star="showStar"
+              @remove:from-history="removeFromHistory"
+              @save:element="(el) => (movieRefs[index] = el)"
+            />
+          </CardMovieSwipeWrapper>
+        </template>
+
+        <template v-else>
           <CardMovie
+            v-for="(movie, index) in moviesList"
+            :key="movie.kp_id"
             :movie
-            :is-history
-            :is-mobile
+            :is-history="isHistory"
+            :is-mobile="isMobile"
             :is-user-list="isUserList"
             :index
             :is-card-border="isCardBorder"
@@ -22,28 +84,10 @@
             @remove:from-history="removeFromHistory"
             @save:element="(el) => (movieRefs[index] = el)"
           />
-        </CardMovieSwipeWrapper>
-      </template>
-
-      <template v-else>
-        <CardMovie
-          v-for="(movie, index) in moviesList"
-          :key="movie.kp_id"
-          :movie
-          :is-history="isHistory"
-          :is-mobile="isMobile"
-          :is-user-list="isUserList"
-          :index
-          :is-card-border="isCardBorder"
-          :active-movie-index
-          :show-delete="showDelete"
-          :show-star="showStar"
-          @remove:from-history="removeFromHistory"
-          @save:element="(el) => (movieRefs[index] = el)"
-        />
-      </template>
+        </template>
+      </div>
+      <Spinner v-if="loading" />
     </div>
-    <Spinner v-if="loading" />
   </div>
 </template>
 
@@ -52,7 +96,7 @@ import Spinner from '@/components/SpinnerLoading.vue'
 import { useBackgroundStore } from '@/store/background'
 import { useMainStore } from '@/store/main'
 import { useAuthStore } from '@/store/auth'
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { CardMovie, CardMovieSwipeWrapper } from '../CardMovie'
 import { delFromList } from '@/api/user'
@@ -70,17 +114,24 @@ const {
   isHistory = false,
   loading = true,
   showDelete = true,
-  showStar = false
+  showStar = false,
+  isCarousel = false,
+  carouselLimit = 15
 } = defineProps({
   moviesList: Array,
   isHistory: Boolean,
   loading: Boolean,
   showDelete: Boolean,
-  showStar: Boolean
+  showStar: Boolean,
+  isCarousel: Boolean,
+  carouselLimit: Number
 })
 
 const movieRefs = ref([])
 const activeMovieIndex = ref(null)
+const carouselWrapper = ref(null)
+const canScrollLeft = ref(false)
+const canScrollRight = ref(true)
 
 const isCardBorder = computed(() => backgroundStore.isCardBorder)
 const isMobile = computed(() => mainStore.isMobile)
@@ -90,6 +141,14 @@ const isUserList = computed(() => {
     route.name === 'lists' &&
     (!route.params.user_id || String(route.params.user_id) === String(authStore.user?.id))
   )
+})
+
+// Limit movies for carousel mode
+const displayedMovies = computed(() => {
+  if (isCarousel && carouselLimit) {
+    return moviesList?.slice(0, carouselLimit) || []
+  }
+  return moviesList || []
 })
 
 const movieUrl = (movie) => {
@@ -114,6 +173,27 @@ const removeFromHistory = async (kp_id) => {
   } else {
     mainStore.removeFromHistory(kp_id)
   }
+}
+
+// Carousel scroll functions
+const scrollCarousel = (direction) => {
+  if (!carouselWrapper.value) return
+  const scrollAmount = carouselWrapper.value.clientWidth * 0.8
+  const newScrollLeft = direction === 'left' 
+    ? carouselWrapper.value.scrollLeft - scrollAmount
+    : carouselWrapper.value.scrollLeft + scrollAmount
+  
+  carouselWrapper.value.scrollTo({
+    left: newScrollLeft,
+    behavior: 'smooth'
+  })
+}
+
+const updateScrollState = () => {
+  if (!carouselWrapper.value) return
+  const { scrollLeft, scrollWidth, clientWidth } = carouselWrapper.value
+  canScrollLeft.value = scrollLeft > 10
+  canScrollRight.value = scrollLeft < scrollWidth - clientWidth - 10
 }
 
 const handleKeyDown = (event) => {
@@ -180,8 +260,17 @@ watch(activeMovieIndex, (newIndex) => {
   }
 })
 
+watch(() => moviesList, () => {
+  nextTick(() => {
+    updateScrollState()
+  })
+}, { deep: true })
+
 onMounted(() => {
   document.addEventListener('keydown', handleKeyDown)
+  nextTick(() => {
+    updateScrollState()
+  })
 })
 
 onUnmounted(() => {
@@ -218,11 +307,114 @@ onUnmounted(() => {
   gap: 20px;
 }
 
+/* Carousel Styles */
+.carousel-container {
+  position: relative;
+  padding: 0;
+}
+
+.carousel-wrapper {
+  overflow-x: auto;
+  overflow-y: visible;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 10px 4% 30px 4%;
+  margin: -10px 0 -30px 0;
+}
+
+.carousel-wrapper::-webkit-scrollbar {
+  display: none;
+}
+
+.carousel-track {
+  display: flex;
+  gap: 10px;
+}
+
+.carousel-card {
+  flex: 0 0 auto;
+  width: 180px;
+  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.carousel-card:hover {
+  z-index: 10;
+}
+
+.carousel-card:first-child {
+  margin-left: 0;
+}
+
+.carousel-arrow {
+  position: absolute;
+  top: 0;
+  bottom: 30px;
+  width: 4%;
+  min-width: 40px;
+  background: linear-gradient(to right, rgba(20, 20, 20, 0.9), transparent);
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carousel-container:hover .carousel-arrow:not(.hidden) {
+  opacity: 1;
+}
+
+.carousel-arrow:hover {
+  background: linear-gradient(to right, rgba(20, 20, 20, 0.95), rgba(20, 20, 20, 0.3));
+}
+
+.carousel-arrow-left {
+  left: 0;
+}
+
+.carousel-arrow-right {
+  right: 0;
+  background: linear-gradient(to left, rgba(20, 20, 20, 0.9), transparent);
+}
+
+.carousel-arrow-right:hover {
+  background: linear-gradient(to left, rgba(20, 20, 20, 0.95), rgba(20, 20, 20, 0.3));
+}
+
+.carousel-arrow.hidden {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .carousel-card {
+    width: 130px;
+  }
+  
+  .carousel-wrapper {
+    padding: 5px 4% 20px 4%;
+    margin: -5px 0 -20px 0;
+  }
+  
+  .carousel-track {
+    gap: 8px;
+  }
+}
+
 @media (max-width: 620px) {
   .grid {
     grid-template-columns: 1fr;
     gap: 10px;
     padding: 5px;
+  }
+  
+  .carousel-card {
+    width: 120px;
   }
 }
 </style>
