@@ -118,13 +118,13 @@
         <!-- Popular Movies Section (horizontal carousel on home) -->
         <div v-if="!searchTerm && !searchPerformed" class="movie-row">
           <div class="row-header">
-            <h2 class="row-title">🔥 Популярные сейчас</h2>
+            <h2 class="row-title"><i class="fas fa-fire-alt"></i> Популярные сейчас</h2>
             <router-link to="/top" class="row-see-all">
               Смотреть все <i class="fas fa-chevron-right"></i>
             </router-link>
           </div>
           <div v-if="popularLoading" class="loading-container">
-            <SpinnerLoading />
+            <div class="skeleton-row"></div>
           </div>
           <MovieList
             v-else-if="popularMovies.length > 0"
@@ -143,7 +143,7 @@
           class="movie-row"
         >
           <div class="row-header">
-            <h2 class="row-title">📺 Продолжить просмотр</h2>
+            <h2 class="row-title"><i class="fas fa-play-circle"></i> Продолжить просмотр</h2>
             <span class="row-actions">
               <DeleteButton @click="showModal = true" />
               <BaseModal
@@ -155,7 +155,7 @@
             </span>
           </div>
           <div v-if="historyLoading" class="loading-container">
-            <SpinnerLoading />
+            <div class="skeleton-row"></div>
           </div>
           <MovieList
             v-else
@@ -386,8 +386,7 @@ const resetSearch = () => {
 }
 
 const focusSearch = () => {
-  // Force the search section to show by setting searchPerformed
-  searchPerformed.value = true
+  // Show search without marking as performed (so home content stays visible)
   // Wait for DOM update, then focus
   nextTick(() => {
     searchInput.value?.focus()
@@ -932,6 +931,30 @@ const focusFirstMovieCard = () => {
   transform: translateY(0);
 }
 
+/* Skeleton Loading */
+.skeleton-row {
+  display: flex;
+  gap: 10px;
+  padding: 0 4%;
+  overflow: hidden;
+}
+.skeleton-row::before {
+  content: '';
+  display: flex;
+  gap: 10px;
+}
+.skeleton-row {
+  height: 270px;
+  background: linear-gradient(
+    90deg,
+    var(--bg-secondary) 0%,
+    var(--bg-tertiary) 50%,
+    var(--bg-secondary) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+  border-radius: 8px;
+}
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .hero-section {
