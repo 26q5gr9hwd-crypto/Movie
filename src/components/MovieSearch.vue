@@ -231,7 +231,7 @@ import { useAuthStore } from '@/store/auth'
 import { USER_LIST_TYPES_ENUM } from '@/constants'
 
 import debounce from 'lodash/debounce'
-import { watchEffect, onMounted, ref, watch, computed, nextTick } from 'vue'
+import { watchEffect, onMounted, ref, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 
 
