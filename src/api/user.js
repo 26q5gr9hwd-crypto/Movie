@@ -1,79 +1,29 @@
-import { getApi } from '@/api/axios'
+import { supabase } from '@/lib/supabase'
 
-const apiCall = async (callFn) => {
-  const api = await getApi()
-  return await callFn(api)
-}
-
-const addToList = async (id, type) => {
-  const { data } = await apiCall((api) => api.put(`/list/${type}/${id}`))
+const signup = async ({ email, password }) => {
+  const { data, error } = await supabase.auth.signUp({ email, password })
+  if (error) throw error
   return data
 }
 
-const delFromList = async (id, type) => {
-  const { data } = await apiCall((api) => api.delete(`/list/${type}/${id}`))
+const login = async ({ email, password }) => {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+  if (error) throw error
   return data
 }
 
-const delAllFromList = async (type) => {
-  const { data } = await apiCall((api) => api.delete(`/list/${type}`))
-  return data
-}
-
-const getMyLists = async (type) => {
-  const { data } = await apiCall((api) => api.get(`/list/${type}`))
-  return data
-}
-
-const getUserLists = async (type, userId) => {
-  const { data } = await apiCall((api) => api.get(`/user-list/${userId}/${type}`))
-  return data
-}
-
-const getListCounters = async (userId) => {
-  const { data } = await apiCall((api) => api.get(`/user-list-counters/${userId}`))
-  return data
+const logout = async () => {
+  await supabase.auth.signOut()
 }
 
 const getUser = async () => {
-  const { data } = await apiCall((api) => api.get('/user'))
-  return data
+  const { data: { user } } = await supabase.auth.getUser()
+  return user
 }
 
-const generateToken = async () => {
-  const { data } = await apiCall((api) => api.get('/auth/telegram-login-token'))
-  return data
-}
-
-const getTGAuthResult = async (token) => {
-  const { data } = await apiCall((api) => api.get(`/auth/check-telegram-auth?token=${token}`))
-  return data
-}
-
-const updateUserName = async (name) => {
-  const { data } = await apiCall((api) => api.put('/user/name', { name }))
-  return data
-}
-
-const login = async ({ username, password }) => {
-  const { data } = await apiCall((api) => api.post('/auth/login', { username, password }))
-  return data
-}
-const signup = async ({ username, password }) => {
-  const { data } = await apiCall((api) => api.post('/auth/signup', { username, password }))
-  return data
-}
 export {
-  addToList,
-  getMyLists,
-  getUser,
-  delAllFromList,
-  delFromList,
-  generateToken,
-  getTGAuthResult,
-  getUserLists,
-  getListCounters,
-  updateUserName,
+  signup,
   login,
-  signup
+  logout,
+  getUser
 }
