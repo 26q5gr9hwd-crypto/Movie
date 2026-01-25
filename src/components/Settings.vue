@@ -35,45 +35,6 @@
       </div>
 
       <div class="settings-group">
-        <h2>Плеер</h2>
-        <SliderRound v-model="isCentered">Автоцентрирование плеера</SliderRound>
-        <SliderRound v-model="isCardBorder">Окантовка вокруг карточек</SliderRound>
-        <SliderRound v-model="isCardHoverDisabled"
-          >Отключить подъем карточек при наведении</SliderRound
-        >
-        <SliderRound v-model="showFavoriteTooltip"
-          >Стиль отображения кнопок избранного:
-          {{ showFavoriteTooltip ? 'Тултип' : 'Все кнопки' }}</SliderRound
-        >
-      </div>
-
-      <div class="settings-group">
-        <h2>Карточки</h2>
-        <div class="card-size-group">
-          <label>Размер карточек:</label>
-          <div class="radio-group">
-            <label class="radio">
-              <input v-model="cardSize" type="radio" value="small" />
-              <span class="radio-label">Маленький</span>
-            </label>
-            <label class="radio">
-              <input v-model="cardSize" type="radio" value="medium" />
-              <span class="radio-label">Средний</span>
-            </label>
-            <label class="radio">
-              <input v-model="cardSize" type="radio" value="large" />
-              <span class="radio-label">Большой</span>
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <div class="settings-group">
-        <h2>Трейлеры</h2>
-        <SliderRound v-model="areTrailersActive">Активировать трейлеры</SliderRound>
-      </div>
-
-      <div class="settings-group">
         <h2>История</h2>
         <SliderRound v-model="isHistoryAllowed"> Сохранять историю просмотра</SliderRound>
         <div class="settings-actions">
@@ -89,34 +50,6 @@
           />
         </div>
       </div>
-
-      <div class="settings-group">
-        <h2>Горячие клавиши</h2>
-        <SliderRound v-model="isCtrlFEnabled">Перехватывать Ctrl+F для поиска</SliderRound>
-      </div>
-
-      <div class="settings-group">
-        <h2>Навигация</h2>
-        <SliderRound v-model="rememberScrollPosition">Запоминать позицию скролла</SliderRound>
-      </div>
-
-      <div class="settings-group">
-        <h2>Комментарии</h2>
-        <SliderRound v-model="isCommentsEnabled">Показывать блок комментариев</SliderRound>
-        <SliderRound v-model="isAutoShowComments">Автоматически показывать комментарии</SliderRound>
-      </div>
-
-      <div class="settings-group">
-        <h2>Режим стримера</h2>
-        <SliderRound v-model="isStreamerMode"
-          >Мигание кнопки таймингов для привлечения внимания</SliderRound
-        >
-      </div>
-
-      <div class="settings-group">
-        <h2>Версия сайта</h2>
-        {{ appVersion }}
-      </div>
     </div>
   </div>
 </template>
@@ -126,17 +59,12 @@ import SliderRound from '@/components/slider/SliderRound.vue'
 import ThemeSelector from '@/components/ThemeSelector.vue'
 import { useBackgroundStore } from '@/store/background'
 import { useMainStore } from '@/store/main'
-import { usePlayerStore } from '@/store/player'
-import { useTrailerStore } from '@/store/trailer'
 import { computed, ref, watch } from 'vue'
 import BaseModal from './BaseModal.vue'
 
 const mainStore = useMainStore()
 const backgroundStore = useBackgroundStore()
-const playerStore = usePlayerStore()
-const trailerStore = useTrailerStore()
 const showModal = ref(false)
-const appVersion = ref(import.meta.env.VITE_APP_VERSION_FULL_VERSION)
 
 const clearAllHistory = () => {
   mainStore.clearAllHistory()
@@ -155,77 +83,13 @@ const isBlurDisabled = computed(
 )
 watch(isBlurDisabled, (newValue) => {
   if (newValue) {
-    // Отключаем размытие, если выбран звездный фон
     backgroundStore.toggleBlur(false)
   }
-})
-
-// Автоцентрирование плеера (из модуля player)
-const isCentered = computed({
-  get: () => playerStore.isCentered,
-  set: (value) => playerStore.updateCentering(value)
-})
-
-const isCardBorder = computed({
-  get: () => backgroundStore.isCardBorder,
-  set: (value) => backgroundStore.toggleCardBorder(value)
-})
-
-const isCardHoverDisabled = computed({
-  get: () => backgroundStore.isCardHoverDisabled,
-  set: (value) => backgroundStore.toggleCardHover(value)
 })
 
 const isHistoryAllowed = computed({
   get: () => mainStore.isHistoryAllowed,
   set: (value) => mainStore.setHistoryAllowed(value)
-})
-
-// Управление трейлерами (из модуля trailer)
-const areTrailersActive = computed({
-  get: () => trailerStore.areTrailersActive, // Получаем состояние из Pinia
-  set: (value) => {
-    if (value) {
-      trailerStore.activateTrailers() // Включаем трейлеры
-    } else {
-      trailerStore.deactivateTrailers() // Выключаем трейлеры
-    }
-  }
-})
-
-const isCtrlFEnabled = computed({
-  get: () => mainStore.isCtrlFEnabled,
-  set: () => mainStore.toggleCtrlF()
-})
-
-const showFavoriteTooltip = computed({
-  get: () => playerStore.showFavoriteTooltip,
-  set: (value) => playerStore.setFavoriteTooltip(value)
-})
-
-const isCommentsEnabled = computed({
-  get: () => mainStore.isCommentsEnabled,
-  set: (value) => mainStore.setCommentsEnabled(value)
-})
-
-const isAutoShowComments = computed({
-  get: () => mainStore.isAutoShowComments,
-  set: (value) => mainStore.setAutoShowComments(value)
-})
-
-const cardSize = computed({
-  get: () => mainStore.cardSize,
-  set: (value) => mainStore.updateCardSize(value)
-})
-
-const isStreamerMode = computed({
-  get: () => mainStore.isStreamerMode,
-  set: (value) => mainStore.setStreamerMode(value)
-})
-
-const rememberScrollPosition = computed({
-  get: () => mainStore.rememberScrollPosition,
-  set: (value) => mainStore.setRememberScrollPosition(value)
 })
 
 const resetBackground = () => {
@@ -261,14 +125,6 @@ h1 {
   background: rgba(255, 255, 255, 0.02);
 }
 
-.back-button {
-  background: none;
-  border: none;
-  color: #fff;
-  font-size: 18px;
-  cursor: pointer;
-}
-
 .settings-container {
   background: #2a2a2a;
   padding: 20px;
@@ -283,15 +139,8 @@ h1 {
   margin-bottom: 40px;
 }
 
-.setting-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
 h2 {
   font-size: 16px;
-  margin-bottom: 10px;
   margin: 0;
 }
 
@@ -334,16 +183,5 @@ h2 {
 
 .radio input:checked {
   accent-color: var(--accent-color);
-}
-
-.card-size-group {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.card-size-group label:first-child {
-  font-weight: 500;
-  margin-bottom: 5px;
 }
 </style>
