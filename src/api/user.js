@@ -1,40 +1,5 @@
-import { supabase } from '@/lib/supabase'
 import { getApi } from '@/api/axios'
 
-// ============ SUPABASE AUTH ============
-// Convert username to fake email (Supabase requires email, but users only see username)
-const usernameToEmail = (username) => `${username.toLowerCase()}@movies.local`
-
-const signup = async ({ username, password }) => {
-  const email = usernameToEmail(username)
-  const { data, error } = await supabase.auth.signUp({ 
-    email, 
-    password,
-    options: {
-      data: { username } // Store original username in user metadata
-    }
-  })
-  if (error) throw error
-  return data
-}
-
-const login = async ({ username, password }) => {
-  const email = usernameToEmail(username)
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-  if (error) throw error
-  return data
-}
-
-const logout = async () => {
-  await supabase.auth.signOut()
-}
-
-const getUser = async () => {
-  const { data: { user } } = await supabase.auth.getUser()
-  return user
-}
-
-// ============ ORIGINAL LIST API (uses old backend) ============
 const apiCall = async (callFn) => {
   const api = await getApi()
   return await callFn(api)
@@ -70,23 +35,45 @@ const getListCounters = async (userId) => {
   return data
 }
 
+const getUser = async () => {
+  const { data } = await apiCall((api) => api.get('/user'))
+  return data
+}
+
+const generateToken = async () => {
+  const { data } = await apiCall((api) => api.get('/auth/telegram-login-token'))
+  return data
+}
+
+const getTGAuthResult = async (token) => {
+  const { data } = await apiCall((api) => api.get(`/auth/check-telegram-auth?token=${token}`))
+  return data
+}
+
 const updateUserName = async (name) => {
   const { data } = await apiCall((api) => api.put('/user/name', { name }))
   return data
 }
 
+const login = async ({ username, password }) => {
+  const { data } = await apiCall((api) => api.post('/auth/login', { username, password }))
+  return data
+}
+const signup = async ({ username, password }) => {
+  const { data } = await apiCall((api) => api.post('/auth/signup', { username, password }))
+  return data
+}
 export {
-  // Auth (Supabase)
-  signup,
-  login,
-  logout,
-  getUser,
-  // Lists (original backend)
   addToList,
-  delFromList,
-  delAllFromList,
   getMyLists,
+  getUser,
+  delAllFromList,
+  delFromList,
+  generateToken,
+  getTGAuthResult,
   getUserLists,
   getListCounters,
-  updateUserName
+  updateUserName,
+  login,
+  signup
 }
