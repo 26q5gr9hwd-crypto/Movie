@@ -1552,6 +1552,10 @@ const fetchMovieInfo = async (updateHistory = true) => {
       type: movieInfo.value?.type
     }
 
+    // Автоматически переключаемся на dynamic фон при открытии фильма
+    if (backgroundStore.backgroundType === 'cinematic') {
+      backgroundStore.updateBackgroundType('dynamic')
+    }
     // Устанавливаем фон фильма через новый метод
     if (kp_id.value.startsWith('shiki')) {
       if (movieInfo.value.screenshots && movieInfo.value.screenshots.length > 0) {
