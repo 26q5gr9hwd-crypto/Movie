@@ -1,51 +1,119 @@
 <template>
   <div class="wrapper">
     <div class="mainpage">
-      <!-- Search Type Buttons -->
-      <div class="search-type-buttons">
-        <button :class="{ active: searchType === 'title' }" @click="setSearchType('title')">
-          Название
-        </button>
-      </div>
-
-      <!-- Search Input -->
-      <div class="search-container">
-        <div class="input-wrapper">
-          <input
-            ref="searchInput"
-            v-model="searchTerm"
-            :placeholder="getPlaceholder()"
-            class="search-input"
-            :class="{ 'wrong-layout': showLayoutWarning }"
-            inputmode="text"
-            @keydown.enter.prevent="search"
-            @keydown.tab.prevent="handleTabKey"
-            @keydown.down.prevent="focusFirstMovieCard"
-            @input="handleInput"
-          />
-          <div class="icons">
-            <button v-if="searchTerm" class="reset-button" @click="resetSearch">
-              <i class="fas fa-times"></i>
-            </button>
-            <button class="search-button" @click="search">
-              <i class="fas fa-search"></i>
-            </button>
+      <!-- Hero Section with Featured Movie -->
+      <section v-if="!searchTerm && !searchPerformed && featuredMovie" class="hero-section">
+        <img 
+          v-if="featuredMovie.backdrop || featuredMovie.cover" 
+          :src="featuredMovie.backdrop || featuredMovie.cover" 
+          :alt="featuredMovie.title || featuredMovie.name"
+          class="hero-backdrop"
+        />
+        <div class="hero-gradient"></div>
+        <div class="hero-content">
+          <h1 class="hero-title"> featuredMovie.title || featuredMovie.name </h1>
+          <div class="hero-meta">
+            <span v-if="featuredMovie.rating_kp" class="hero-rating">★  featuredMovie.rating_kp.toFixed(1) </span>
+            <span v-if="featuredMovie.year" class="hero-year"> featuredMovie.year </span>
+            <span v-if="featuredMovie.type" class="hero-type"> getTypeLabel(featuredMovie.type) </span>
           </div>
-          <div v-if="showLayoutWarning" class="layout-warning" :class="{ show: showLayoutWarning }">
-            <i class="fas fa-keyboard"></i>
-            Возможно, вы используете неправильную раскладку. Нажмите Tab для переключения на
-             suggestedLayout  раскладку
+          <p v-if="featuredMovie.raw_data?.description" class="hero-description">
+             featuredMovie.raw_data.description 
+          </p>
+          <div class="hero-buttons">
+            <router-link 
+              :to="{ name: 'movie-info', params: { kp_id: featuredMovie.kp_id } }" 
+              class="hero-btn hero-btn-primary"
+            >
+              <i class="fas fa-play"></i> Смотреть
+            </router-link>
+            <router-link 
+              :to="{ name: 'movie-info', params: { kp_id: featuredMovie.kp_id } }" 
+              class="hero-btn hero-btn-secondary"
+            >
+              <i class="fas fa-info-circle"></i> Подробнее
+            </router-link>
+          </div>
+        </div>
+      </section>
+
+      <!-- Search Section (visible when searching or no hero) -->
+      <div v-if="searchTerm || searchPerformed || !featuredMovie" class="search-section">
+        <div class="search-type-buttons">
+          <button :class="{ active: searchType === 'title' }" @click="setSearchType('title')">
+            Название
+          </button>
+        </div>
+
+        <div class="search-container">
+          <div class="input-wrapper">
+            <div class="search-pill">
+              <i class="fas fa-search search-icon"></i>
+              <input
+                ref="searchInput"
+                v-model="searchTerm"
+                :placeholder="getPlaceholder()"
+                class="search-input"
+                :class="{ 'wrong-layout': showLayoutWarning }"
+                inputmode="text"
+                @keydown.enter.prevent="search"
+                @keydown.tab.prevent="handleTabKey"
+                @keydown.down.prevent="focusFirstMovieCard"
+                @input="handleInput"
+              />
+              <button v-if="searchTerm" class="reset-button" @click="resetSearch">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <div v-if="showLayoutWarning" class="layout-warning" :class="{ show: showLayoutWarning }">
+              <i class="fas fa-keyboard"></i>
+              Возможно, вы используете неправильную раскладку. Нажмите Tab для переключения на
+               suggestedLayout  раскладку
+            </div>
           </div>
         </div>
       </div>
 
+      <!-- Floating Search Button (when hero is visible) -->
+      <button 
+        v-if="!searchTerm && !searchPerformed && featuredMovie" 
+        class="floating-search-btn"
+        @click="focusSearch"
+      >
+        <i class="fas fa-search"></i>
+      </button>
+
       <!-- Content Container -->
       <div class="content-container">
-        <!-- History Section (when not searching) -->
-        <div v-if="!searchTerm && !searchPerformed">
-          <h2>
-            История просмотра
-            <span v-if="history.length > 0">
+        <!-- Popular Movies Section (horizontal carousel on home) -->
+        <div v-if="!searchTerm && !searchPerformed" class="movie-row">
+          <div class="row-header">
+            <h2 class="row-title">🔥 Популярные сейчас</h2>
+            <router-link to="/top" class="row-see-all">
+              Смотреть все <i class="fas fa-chevron-right"></i>
+            </router-link>
+          </div>
+          <div v-if="popularLoading" class="loading-container">
+            <SpinnerLoading />
+          </div>
+          <MovieList
+            v-else-if="popularMovies.length > 0"
+            :movies-list="popularMovies"
+            :is-history="false"
+            :loading="false"
+            :is-carousel="true"
+            :carousel-limit="15"
+          />
+          <ErrorMessage v-if="popularError" :message="popularError" />
+        </div>
+
+        <!-- History Section (horizontal carousel) -->
+        <div v-if="!searchTerm && !searchPerformed && history.length > 0" class="movie-row">
+          <div class="row-header">
+            <h2 class="row-title">
+              📺 Продолжить просмотр
+            </h2>
+            <span class="row-actions">
               <DeleteButton @click="showModal = true" />
               <BaseModal
                 :is-open="showModal"
@@ -54,51 +122,37 @@
                 @close="showModal = false"
               />
             </span>
-          </h2>
+          </div>
           <div v-if="historyLoading" class="loading-container">
             <SpinnerLoading />
-          </div>
-          <div v-else-if="history.length === 0" class="empty-history">
-            <span class="material-icons">movie</span>
-            <p>Здесь пока пусто</p>
           </div>
           <MovieList
             v-else
             :movies-list="history"
             :is-history="true"
             :loading="false"
+            :is-carousel="true"
+            :carousel-limit="10"
             @item-deleted="handleItemDeleted"
           />
         </div>
 
-        <!-- Popular Movies Section (when not searching) -->
-        <div v-if="!searchTerm && !searchPerformed" class="popular-section">
-          <h2>Популярные фильмы</h2>
-          <div v-if="popularLoading" class="loading-container">
-            <SpinnerLoading />
+        <!-- Empty History State -->
+        <div v-if="!searchTerm && !searchPerformed && history.length === 0 && !historyLoading" class="empty-history-notice">
+          <div class="empty-history-content">
+            <span class="material-icons">history</span>
+            <p>История просмотров пуста</p>
+            <span class="empty-history-hint">Начните смотреть, чтобы видеть историю здесь</span>
           </div>
-          <div v-else-if="popularMovies.length === 0 && !popularError" class="empty-history">
-            <span class="material-icons">movie</span>
-            <p>Нет данных</p>
-          </div>
-          <MovieList
-            v-else
-            :movies-list="popularMovies"
-            :is-history="false"
-            :loading="false"
-          />
-          <ErrorMessage
-            v-if="popularError"
-            :message="popularError"
-          />
         </div>
 
         <!-- Search Results -->
-        <div v-if="searchPerformed">
-          <h2>Результаты поиска</h2>
+        <div v-if="searchPerformed" class="search-results-section">
+          <h2 class="section-title">Результаты поиска</h2>
           <MovieList :movies-list="movies" :is-history="false" :loading="searchLoading" />
           <div v-if="movies.length === 0 && !searchLoading && !errorMessage" class="no-results">
-            Ничего не найдено
+            <span class="material-icons">search_off</span>
+            <p>Ничего не найдено</p>
           </div>
           <ErrorMessage v-if="errorMessage" :message="errorMessage" :code="errorCode" />
         </div>
@@ -108,7 +162,8 @@
           v-if="searchTerm && !searchPerformed && !searchLoading && !errorMessage"
           class="search-prompt"
         >
-          Нажмите кнопку "Поиск" или Enter для поиска
+          <i class="fas fa-arrow-up"></i>
+          Нажмите Enter для поиска
         </div>
 
         <ErrorMessage
@@ -123,7 +178,7 @@
 
 <script setup>
 import { apiSearch, getMovies } from '@/api/movies'
-import { handleApiError } from '@/constants'
+import { handleApiError, TYPES_ENUM } from '@/constants'
 import { getMyLists, delAllFromList } from '@/api/user'
 import BaseModal from '@/components/BaseModal.vue'
 import DeleteButton from '@/components/buttons/DeleteButton.vue'
@@ -154,15 +209,34 @@ const isMobile = computed(() => mainStore.isMobile)
 const history = ref([])
 const historyLoading = ref(false)
 
-// Popular movies state
+// Popular movies for carousel
 const popularMovies = ref([])
 const popularLoading = ref(false)
 const popularError = ref('')
+
+// Featured movie for hero section
+const featuredMovie = computed(() => {
+  if (popularMovies.value.length > 0) {
+    // Pick a random high-rated movie from top 5
+    const topMovies = popularMovies.value
+      .filter(m => m.rating_kp >= 7 && (m.backdrop || m.cover))
+      .slice(0, 5)
+    if (topMovies.length > 0) {
+      return topMovies[Math.floor(Math.random() * topMovies.length)]
+    }
+    return popularMovies.value[0]
+  }
+  return null
+})
 
 const showLayoutWarning = ref(false)
 const suggestedLayout = ref('')
 
 const searchInput = ref(null)
+
+const getTypeLabel = (type) => {
+  return TYPES_ENUM[type] || type
+}
 
 // Fetch popular movies on mount
 const fetchPopularMovies = async () => {
@@ -175,7 +249,8 @@ const fetchPopularMovies = async () => {
       ...movie,
       kp_id: movie.kp_id?.toString() || movie.id?.toString(),
       rating_kp: movie.rating_kp || movie.raw_data?.rating,
-      type: movie.type || movie.raw_data?.type
+      type: movie.type || movie.raw_data?.type,
+      backdrop: movie.raw_data?.backdrop?.url || movie.raw_data?.poster?.url
     }))
   } catch (error) {
     const { message } = handleApiError(error)
@@ -237,7 +312,7 @@ const handleTabKey = () => {
 }
 
 const getPlaceholder = () => {
-  return 'Введите название фильма'
+  return 'Поиск фильмов и сериалов...'
 }
 
 const resetSearch = () => {
@@ -247,6 +322,9 @@ const resetSearch = () => {
   showLayoutWarning.value = false
   errorMessage.value = ''
   errorCode.value = null
+}
+
+const focusSearch = () => {
   searchInput.value?.focus()
 }
 
@@ -326,7 +404,6 @@ onMounted(() => {
     searchTerm.value = searchQuery
     performSearch()
   }
-  searchInput.value?.focus()
 })
 
 watch(searchTerm, () => {
@@ -352,29 +429,191 @@ const focusFirstMovieCard = () => {
 
 .mainpage {
   flex: 1;
-  padding-top: 20px;
   padding-bottom: 40px;
 }
 
-/* Search Type Buttons */
+/* Hero Section */
+.hero-section {
+  position: relative;
+  width: 100%;
+  height: 70vh;
+  min-height: 500px;
+  max-height: 800px;
+  margin-bottom: 30px;
+  overflow: hidden;
+}
+
+.hero-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.hero-gradient {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    rgba(20, 20, 20, 0) 0%,
+    rgba(20, 20, 20, 0.4) 50%,
+    rgba(20, 20, 20, 0.9) 80%,
+    var(--bg-primary) 100%
+  ),
+  linear-gradient(
+    to right,
+    rgba(20, 20, 20, 0.9) 0%,
+    rgba(20, 20, 20, 0.4) 30%,
+    rgba(20, 20, 20, 0) 60%
+  );
+}
+
+.hero-content {
+  position: absolute;
+  bottom: 15%;
+  left: 5%;
+  max-width: 550px;
+  z-index: 2;
+  animation: fadeInUp 0.8s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-title {
+  font-size: 3rem;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+  line-height: 1.1;
+}
+
+.hero-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+.hero-rating {
+  color: var(--success-color);
+  font-weight: 600;
+}
+
+.hero-description {
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.hero-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  border-radius: 4px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  text-decoration: none;
+}
+
+.hero-btn-primary {
+  background: #fff;
+  color: #141414;
+}
+
+.hero-btn-primary:hover {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.hero-btn-secondary {
+  background: rgba(109, 109, 110, 0.7);
+  color: #fff;
+}
+
+.hero-btn-secondary:hover {
+  background: rgba(109, 109, 110, 0.5);
+}
+
+/* Floating Search */
+.floating-search-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(30, 30, 30, 0.9);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  font-size: 1.2rem;
+  cursor: pointer;
+  z-index: 100;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.floating-search-btn:hover {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  transform: scale(1.1);
+}
+
+/* Search Section */
+.search-section {
+  padding: 20px 4%;
+}
+
 .search-type-buttons {
   display: flex;
   justify-content: center;
   gap: 20px;
-  padding-top: 10px;
-  margin-bottom: 5px;
-  flex-wrap: wrap;
+  margin-bottom: 15px;
 }
 
 .search-type-buttons button {
-  padding: 5px 10px;
-  font-size: 16px;
+  padding: 8px 16px;
+  font-size: 14px;
   border: none;
   background: none;
-  color: #fff;
+  color: var(--text-muted);
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
+  font-weight: 500;
 }
 
 .search-type-buttons button::after {
@@ -388,151 +627,138 @@ const focusFirstMovieCard = () => {
   transition: background-color 0.3s ease;
 }
 
+.search-type-buttons button.active {
+  color: var(--text-color);
+}
+
 .search-type-buttons button.active::after {
   background-color: var(--accent-color);
 }
 
-.search-type-buttons button:hover {
-  color: #ffffff;
-}
-
-/* Search Container */
+/* Enhanced Search Pill */
 .search-container {
   display: flex;
   justify-content: center;
-  padding: 20px;
 }
 
 .input-wrapper {
   position: relative;
   width: 100%;
-  max-width: 800px;
+  max-width: 700px;
+}
+
+.search-pill {
+  background: rgba(30, 30, 30, 0.9);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-color);
+  border-radius: 30px;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.search-pill:focus-within {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px var(--accent-transparent);
+}
+
+.search-icon {
+  color: var(--text-muted);
+  font-size: 1.1rem;
 }
 
 .search-input {
-  box-sizing: border-box;
-  width: 100%;
-  padding: 10px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  background: rgba(30, 30, 30, 0.8);
-  color: #fff;
-  transition: border-color 0.3s ease;
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-color);
+  font-size: 1rem;
+  outline: none;
 }
 
-.search-input:focus {
-  outline: none;
-  border-color: var(--accent-color);
-  box-shadow: 0 0 0 2px var(--accent-transparent);
+.search-input::placeholder {
+  color: var(--text-muted);
 }
 
 .search-input.wrong-layout {
-  border-color: #ff8c00;
-  box-shadow: 0 0 5px rgba(255, 140, 0, 0.2);
+  color: var(--warning-color);
 }
 
-.icons {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
+.reset-button {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  transition: color 0.2s ease;
   display: flex;
-  gap: 8px;
   align-items: center;
 }
 
-.reset-button,
-.search-button {
-  background: none;
-  border: none;
-  color: #fff;
-  cursor: pointer;
-  padding: 2px;
-  opacity: 0.7;
-  transition: opacity 0.2s ease;
+.reset-button:hover {
+  color: var(--text-color);
 }
 
-.reset-button:hover,
-.search-button:hover {
-  opacity: 1;
+/* Movie Row Styles */
+.movie-row {
+  margin-bottom: 40px;
 }
 
-.reset-button i,
-.search-button i {
-  font-size: 18px;
-  display: block;
-  width: 20px;
-  height: 20px;
-}
-
-/* Section Headers */
-h2 {
+.row-header {
   display: flex;
-  font-size: 20px;
-  margin-bottom: 20px;
-  justify-content: center;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4%;
+  margin-bottom: 16px;
+}
+
+.row-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.row-actions {
+  display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.popular-section {
-  margin-top: 40px;
-}
-
-/* No Results */
-.no-results {
-  width: 100%;
-  text-align: center;
-  color: #fff;
-  font-size: 18px;
-  margin-top: 20px;
-}
-
-/* Search Prompt */
-.search-prompt {
-  text-align: center;
-  color: #fff;
-  font-size: 18px;
-  margin-top: 20px;
-}
-
-/* Layout Warning */
-.layout-warning {
-  position: absolute;
-  bottom: -40px;
-  left: 0;
-  right: 0;
-  text-align: center;
-  color: #ff8c00;
-  font-size: 14px;
-  background: rgba(255, 140, 0, 0.15);
-  padding: 8px 12px;
-  border-radius: 5px;
-  pointer-events: none;
-  border: 1px solid rgba(255, 140, 0, 0.5);
+.row-see-all {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  opacity: 0;
-  transform: translateY(-10px);
-  transition: all 0.3s ease;
-  z-index: 1;
-  backdrop-filter: blur(5px);
+  gap: 6px;
+  transition: color 0.2s ease;
 }
 
-.layout-warning.show {
-  opacity: 1;
-  transform: translateY(0);
+.row-see-all:hover {
+  color: var(--accent-color);
 }
 
-.layout-warning i {
-  font-size: 16px;
-  color: #ff8c00;
+/* Section Styles */
+.section-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+  padding: 0 4%;
 }
 
-/* Loading & Empty States */
+.search-results-section {
+  padding-top: 20px;
+}
+
+/* Empty & Loading States */
 .loading-container {
   display: flex;
   justify-content: center;
@@ -541,38 +767,155 @@ h2 {
   width: 100%;
 }
 
-.empty-history {
+.empty-history-notice {
+  display: flex;
+  justify-content: center;
+  padding: 20px 4%;
+}
+
+.empty-history-content {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 200px;
-  color: #888;
-  gap: 15px;
+  padding: 40px;
+  background: rgba(30, 30, 30, 0.4);
+  border-radius: 16px;
+  color: var(--text-muted);
+  gap: 10px;
+  max-width: 300px;
 }
 
-.empty-history .material-icons {
-  font-size: 64px;
-  color: #888;
+.empty-history-content .material-icons {
+  font-size: 48px;
+  opacity: 0.5;
+}
+
+.empty-history-content p {
+  font-size: 1rem;
+  margin: 0;
+  font-weight: 500;
+}
+
+.empty-history-hint {
+  font-size: 0.85rem;
+  text-align: center;
   opacity: 0.7;
 }
 
-.empty-history p {
-  font-size: 18px;
+/* No Results */
+.no-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+  gap: 15px;
+}
+
+.no-results .material-icons {
+  font-size: 64px;
+  opacity: 0.5;
+}
+
+.no-results p {
+  font-size: 1.1rem;
   margin: 0;
-  color: #888;
+}
+
+/* Search Prompt */
+.search-prompt {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 1rem;
+  padding: 40px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* Layout Warning */
+.layout-warning {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: var(--warning-color);
+  font-size: 13px;
+  background: rgba(230, 185, 30, 0.1);
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(230, 185, 30, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  opacity: 0;
+  transform: translateY(-5px);
+  transition: all 0.3s ease;
+  z-index: 1;
+}
+
+.layout-warning.show {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* Mobile Responsive */
-@media (max-width: 600px) {
-  .mainpage {
-    padding-top: 0;
-    height: calc(100vh - 30px - 63px);
+@media (max-width: 768px) {
+  .hero-section {
+    height: 60vh;
+    min-height: 400px;
   }
+  
+  .hero-content {
+    left: 4%;
+    right: 4%;
+    max-width: none;
+    bottom: 12%;
+  }
+  
+  .hero-title {
+    font-size: 1.8rem;
+  }
+  
+  .hero-description {
+    font-size: 0.9rem;
+    -webkit-line-clamp: 2;
+  }
+  
+  .hero-btn {
+    padding: 10px 20px;
+    font-size: 0.95rem;
+  }
+  
+  .row-title {
+    font-size: 1.2rem;
+  }
+  
+  .floating-search-btn {
+    top: 15px;
+    right: 15px;
+    width: 44px;
+    height: 44px;
+  }
+}
 
-  .search-container,
-  .search-type-buttons {
-    padding: 0;
+@media (max-width: 600px) {
+  .hero-buttons {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .hero-btn {
+    justify-content: center;
+  }
+  
+  .search-pill {
+    padding: 12px 18px;
   }
 }
 </style>
