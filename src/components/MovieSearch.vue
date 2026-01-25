@@ -3,7 +3,7 @@
     <div class="mainpage">
       <!-- Hero Section with Featured Movie -->
       <section
-        v-if="!searchTerm && !searchPerformed && featuredMovie"
+        v-if="!searchPerformed && featuredMovie"
         class="hero-section"
       >
         <img
@@ -15,27 +15,27 @@
         <div class="hero-gradient"></div>
         <div class="hero-content">
           <h1 class="hero-title">
-            {{ featuredMovie.title || featuredMovie.name }}
+             featuredMovie.title || featuredMovie.name 
           </h1>
           <div class="hero-meta">
             <span
               v-if="featuredMovie.rating_kp"
               class="hero-rating"
             >
-              ★ {{ featuredMovie.rating_kp.toFixed(1) }}
+              ★  featuredMovie.rating_kp?.toFixed?.(1) || featuredMovie.rating_kp 
             </span>
             <span v-if="featuredMovie.year" class="hero-year">
-              {{ featuredMovie.year }}
+               featuredMovie.year 
             </span>
             <span v-if="featuredMovie.type" class="hero-type">
-              {{ getTypeLabel(featuredMovie.type) }}
+               getTypeLabel(featuredMovie.type) 
             </span>
           </div>
           <p
             v-if="featuredMovie.raw_data?.description"
             class="hero-description"
           >
-            {{ featuredMovie.raw_data.description }}
+             featuredMovie.raw_data.description.slice(0, 200) ...
           </p>
           <div class="hero-buttons">
             <router-link
@@ -60,55 +60,54 @@
         </div>
       </section>
 
-      <!-- Search Section (visible when searching or no hero) -->
-      <div v-if="searchTerm || searchPerformed || !featuredMovie || showSearchSectionFlag" class="search-section">
-        <div class="search-type-buttons">
-          <button
-            :class="{ active: searchType === 'title' }"
-            @click="setSearchType('title')"
-          >
-            Название
-          </button>
-        </div>
-
-        <div class="search-container">
-          <div class="input-wrapper">
-            <div class="search-pill">
-              <i class="fas fa-search search-icon"></i>
-              <input
-                ref="searchInput"
-                v-model="searchTerm"
-                :placeholder="getPlaceholder()"
-                class="search-input"
-                
-                inputmode="text"
-                @keydown.enter.prevent="search"
-                @keydown.tab.prevent="handleTabKey"
-                @keydown.down.prevent="focusFirstMovieCard"
-                @input="handleInput"
-              />
-              <button v-if="searchTerm" class="reset-button" @click="resetSearch">
-                <i class="fas fa-times"></i>
-              </button>
-            </div>
-            
-          </div>
-        </div>
-      </div>
-
-      <!-- Floating Search Button (when hero is visible) -->
+      <!-- Floating Search Button -->
       <button
-        v-if="!searchTerm && !searchPerformed && featuredMovie"
+        v-if="!searchPerformed && featuredMovie"
         class="floating-search-btn"
-        @click="showSearchSection"
+        @click="openSearchModal"
       >
         <i class="fas fa-search"></i>
       </button>
 
+      <!-- Search Modal Overlay -->
+      <Teleport to="body">
+        <Transition name="modal-fade">
+          <div v-if="isSearchModalOpen" class="search-modal-overlay" @click.self="closeSearchModal">
+            <div class="search-modal">
+              <div class="search-modal-header">
+                <div class="search-pill-modal">
+                  <i class="fas fa-search search-icon"></i>
+                  <input
+                    ref="modalSearchInput"
+                    v-model="searchTerm"
+                    placeholder="Поиск фильмов и сериалов..."
+                    class="search-input-modal"
+                    inputmode="text"
+                    @keydown.enter.prevent="executeSearch"
+                    @keydown.esc="closeSearchModal"
+                  />
+                  <button v-if="searchTerm" class="reset-button" @click="clearSearch">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+                <button class="close-modal-btn" @click="closeSearchModal">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              
+              <!-- Quick suggestions or recent searches could go here -->
+              <div class="search-modal-hint">
+                <span><i class="fas fa-keyboard"></i> Enter для поиска • Esc для закрытия</span>
+              </div>
+            </div>
+          </div>
+        </Transition>
+      </Teleport>
+
       <!-- Content Container -->
       <div class="content-container">
         <!-- Popular Movies Section (horizontal carousel on home) -->
-        <div v-if="!searchTerm && !searchPerformed" class="movie-row">
+        <div v-if="!searchPerformed" class="movie-row">
           <div class="row-header">
             <h2 class="row-title"><i class="fas fa-fire-alt"></i> Популярные сейчас</h2>
             <router-link to="/top" class="row-see-all">
@@ -131,7 +130,7 @@
 
         <!-- History Section (horizontal carousel) -->
         <div
-          v-if="!searchTerm && !searchPerformed && history.length > 0"
+          v-if="!searchPerformed && history.length > 0"
           class="movie-row"
         >
           <div class="row-header">
@@ -163,7 +162,6 @@
         <!-- Empty History State -->
         <div
           v-if="
-            !searchTerm &&
             !searchPerformed &&
             history.length === 0 &&
             !historyLoading
@@ -181,7 +179,12 @@
 
         <!-- Search Results -->
         <div v-if="searchPerformed" class="search-results-section">
-          <h2 class="section-title">Результаты поиска</h2>
+          <div class="search-results-header">
+            <h2 class="section-title">Результаты поиска: " lastSearchTerm "</h2>
+            <button class="back-to-home-btn" @click="resetSearch">
+              <i class="fas fa-arrow-left"></i> На главную
+            </button>
+          </div>
           <MovieList :movies-list="movies" :is-history="false" :loading="searchLoading" />
           <div
             v-if="movies.length === 0 && !searchLoading && !errorMessage"
@@ -197,19 +200,8 @@
           />
         </div>
 
-        <!-- Search Prompt -->
-        <div
-          v-if="
-            searchTerm && !searchPerformed && !searchLoading && !errorMessage
-          "
-          class="search-prompt"
-        >
-          <i class="fas fa-arrow-up"></i>
-          Нажмите Enter для поиска
-        </div>
-
         <ErrorMessage
-          v-if="!searchTerm && errorMessage"
+          v-if="!searchPerformed && errorMessage"
           :message="errorMessage"
           :code="errorCode"
         />
@@ -239,16 +231,18 @@ const mainStore = useMainStore()
 const authStore = useAuthStore()
 const router = useRouter()
 
-const showSearchSectionFlag = ref(false)
-const searchType = ref('title')
+// Search modal state
+const isSearchModalOpen = ref(false)
+const modalSearchInput = ref(null)
+
 const searchTerm = ref('')
+const lastSearchTerm = ref('')
 const movies = ref([])
 const searchLoading = ref(false)
 const searchPerformed = ref(false)
 const showModal = ref(false)
 const errorMessage = ref('')
 const errorCode = ref(null)
-// isMobile removed - was unused
 const history = ref([])
 const historyLoading = ref(false)
 
@@ -260,7 +254,6 @@ const popularError = ref('')
 // Featured movie for hero section
 const featuredMovie = computed(() => {
   if (popularMovies.value.length > 0) {
-    // Pick a random high-rated movie from top 5
     const topMovies = popularMovies.value
       .filter(m => m.rating_kp >= 7 && (m.backdrop || m.cover))
       .slice(0, 5)
@@ -272,9 +265,30 @@ const featuredMovie = computed(() => {
   return null
 })
 
+// Search modal functions
+const openSearchModal = () => {
+  isSearchModalOpen.value = true
+  nextTick(() => {
+    modalSearchInput.value?.focus()
+  })
+}
 
+const closeSearchModal = () => {
+  isSearchModalOpen.value = false
+}
 
-const searchInput = ref(null)
+const clearSearch = () => {
+  searchTerm.value = ''
+  modalSearchInput.value?.focus()
+}
+
+const executeSearch = () => {
+  if (searchTerm.value.trim()) {
+    lastSearchTerm.value = searchTerm.value
+    closeSearchModal()
+    performSearch()
+  }
+}
 
 // Fetch popular movies on mount
 const fetchPopularMovies = async () => {
@@ -326,25 +340,6 @@ function handleItemDeleted(deletedItemId) {
   history.value = history.value.filter((item) => item.kp_id !== deletedItemId)
 }
 
-const setSearchType = (type) => {
-  searchType.value = type
-  resetSearch()
-}
-
-const handleInput = (event) => {
-  errorMessage.value = ''
-  errorCode.value = null
-  searchTerm.value = event.target.value
-}
-
-const handleTabKey = () => {
-  // Tab key handling - can be extended if needed
-}
-
-const getPlaceholder = () => {
-  return 'Поиск фильмов и сериалов...'
-}
-
 const getTypeLabel = (type) => {
   const labels = {
     movie: 'Фильм',
@@ -357,22 +352,11 @@ const getTypeLabel = (type) => {
 
 const resetSearch = () => {
   searchTerm.value = ''
+  lastSearchTerm.value = ''
   movies.value = []
   searchPerformed.value = false
-  showSearchSectionFlag.value = false
   errorMessage.value = ''
   errorCode.value = null
-}
-
-// focusSearch removed - was unused
-
-const search = () => {
-  debouncedPerformSearch.cancel()
-  if (searchTerm.value) {
-    errorMessage.value = ''
-    errorCode.value = null
-    performSearch()
-  }
 }
 
 const performSearch = async () => {
@@ -426,15 +410,6 @@ const clearAllHistory = async () => {
   }
 }
 
-const debouncedPerformSearch = debounce(() => {
-  if (searchTerm.value.length >= 2) {
-    performSearch()
-  } else if (searchTerm.value.length < 2) {
-    movies.value = []
-    searchPerformed.value = false
-  }
-}, 700)
-
 onMounted(() => {
   fetchPopularMovies()
 
@@ -442,29 +417,10 @@ onMounted(() => {
   if (hash.startsWith('#search=')) {
     const searchQuery = decodeURIComponent(hash.replace('#search=', ''))
     searchTerm.value = searchQuery
+    lastSearchTerm.value = searchQuery
     performSearch()
   }
 })
-
-watch(searchTerm, () => {
-  debouncedPerformSearch()
-})
-
-const focusFirstMovieCard = () => {
-  if (movies.value.length > 0) {
-    const firstMovieCard = document.querySelector('.movie-card')
-    if (firstMovieCard) {
-      firstMovieCard.focus()
-    }
-  }
-}
-const showSearchSection = () => {
-  // Force showing the search section
-  showSearchSectionFlag.value = true
-  nextTick(() => {
-    searchInput.value?.focus()
-  })
-}
 </script>
 
 <style scoped>
@@ -612,7 +568,7 @@ const showSearchSection = () => {
   background: rgba(109, 109, 110, 0.5);
 }
 
-/* Floating Search */
+/* Floating Search Button */
 .floating-search-btn {
   position: fixed;
   top: 20px;
@@ -639,100 +595,77 @@ const showSearchSection = () => {
   transform: scale(1.1);
 }
 
-/* Search Section */
-.search-section {
-  padding: 20px 4%;
-}
-
-.search-type-buttons {
+/* ===== SEARCH MODAL ===== */
+.search-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(20px);
+  z-index: 9999;
   display: flex;
+  align-items: flex-start;
   justify-content: center;
-  gap: 20px;
-  margin-bottom: 15px;
+  padding-top: 15vh;
 }
 
-.search-type-buttons button {
-  padding: 8px 16px;
-  font-size: 14px;
-  border: none;
-  background: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  font-weight: 500;
-}
-
-.search-type-buttons button::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: -2px;
+.search-modal {
   width: 100%;
-  height: 2px;
-  background-color: transparent;
-  transition: background-color 0.3s ease;
+  max-width: 650px;
+  padding: 0 20px;
+  animation: modalSlideDown 0.3s ease-out;
 }
 
-.search-type-buttons button.active {
-  color: var(--text-color);
+@keyframes modalSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.search-type-buttons button.active::after {
-  background-color: var(--accent-color);
-}
-
-/* Enhanced Search Pill */
-.search-container {
+.search-modal-header {
   display: flex;
-  justify-content: center;
+  align-items: center;
+  gap: 16px;
 }
 
-.input-wrapper {
-  position: relative;
-  width: 100%;
-  max-width: 700px;
-}
-
-.search-pill {
-  background: rgba(30, 30, 30, 0.9);
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--border-color);
-  border-radius: 30px;
-  padding: 14px 24px;
+.search-pill-modal {
+  flex: 1;
+  background: rgba(40, 40, 40, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 18px 24px;
   display: flex;
   align-items: center;
   gap: 14px;
-  width: 100%;
   transition: all 0.3s ease;
-  box-sizing: border-box;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
-.search-pill:focus-within {
+.search-pill-modal:focus-within {
   border-color: var(--accent-color);
-  box-shadow: 0 0 0 3px var(--accent-transparent);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 3px var(--accent-transparent);
 }
 
 .search-icon {
   color: var(--text-muted);
-  font-size: 1.1rem;
+  font-size: 1.3rem;
 }
 
-.search-input {
+.search-input-modal {
   flex: 1;
   background: transparent;
   border: none;
   color: var(--text-color);
-  font-size: 1rem;
+  font-size: 1.2rem;
   outline: none;
 }
 
-.search-input::placeholder {
+.search-input-modal::placeholder {
   color: var(--text-muted);
-}
-
-.search-input.wrong-layout {
-  color: var(--warning-color);
 }
 
 .reset-button {
@@ -748,6 +681,49 @@ const showSearchSection = () => {
 
 .reset-button:hover {
   color: var(--text-color);
+}
+
+.close-modal-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(60, 60, 60, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-color);
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.close-modal-btn:hover {
+  background: rgba(80, 80, 80, 0.9);
+  transform: scale(1.05);
+}
+
+.search-modal-hint {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-top: 20px;
+  opacity: 0.7;
+}
+
+.search-modal-hint i {
+  margin-right: 6px;
+}
+
+/* Modal transitions */
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition: opacity 0.25s ease;
+}
+
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+  opacity: 0;
 }
 
 /* Movie Row Styles */
@@ -797,12 +773,40 @@ const showSearchSection = () => {
 .section-title {
   font-size: 1.4rem;
   font-weight: 600;
-  margin: 0 0 20px 0;
-  padding: 0 4%;
+  margin: 0;
 }
 
 .search-results-section {
   padding-top: 20px;
+}
+
+.search-results-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4%;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.back-to-home-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: rgba(60, 60, 60, 0.8);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-color);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.back-to-home-btn:hover {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
 }
 
 /* Empty & Loading States */
@@ -871,46 +875,6 @@ const showSearchSection = () => {
   margin: 0;
 }
 
-/* Search Prompt */
-.search-prompt {
-  text-align: center;
-  color: var(--text-muted);
-  font-size: 1rem;
-  padding: 40px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
-
-/* Layout Warning */
-.layout-warning {
-  position: absolute;
-  top: calc(100% + 10px);
-  left: 0;
-  right: 0;
-  text-align: center;
-  color: var(--warning-color);
-  font-size: 13px;
-  background: rgba(230, 185, 30, 0.1);
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: 1px solid rgba(230, 185, 30, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  opacity: 0;
-  transform: translateY(-5px);
-  transition: all 0.3s ease;
-  z-index: 1;
-}
-
-.layout-warning.show {
-  opacity: 1;
-  transform: translateY(0);
-}
-
 /* Skeleton Loading */
 .skeleton-row {
   display: flex;
@@ -935,6 +899,7 @@ const showSearchSection = () => {
   animation: shimmer 1.5s infinite linear;
   border-radius: 8px;
 }
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .hero-section {
@@ -973,6 +938,18 @@ const showSearchSection = () => {
     width: 44px;
     height: 44px;
   }
+  
+  .search-modal-overlay {
+    padding-top: 10vh;
+  }
+  
+  .search-pill-modal {
+    padding: 14px 18px;
+  }
+  
+  .search-input-modal {
+    font-size: 1rem;
+  }
 }
 
 @media (max-width: 600px) {
@@ -984,9 +961,10 @@ const showSearchSection = () => {
   .hero-btn {
     justify-content: center;
   }
-
-  .search-pill {
-    padding: 12px 18px;
+  
+  .search-results-header {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 </style>
