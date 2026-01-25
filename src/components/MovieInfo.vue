@@ -1791,6 +1791,8 @@ onUnmounted(async () => {
   document.removeEventListener('click', handleNudityTimingsPopupOutsideClick, true)
   delete window.selectedNudityTimings
   delete window.overlayNudityTimings
+  // Reset background to cinematic when leaving movie page
+  backgroundStore.updateBackgroundType('cinematic')
 })
 
 watch(
