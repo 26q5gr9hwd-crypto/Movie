@@ -80,7 +80,7 @@
                 v-model="searchTerm"
                 :placeholder="getPlaceholder()"
                 class="search-input"
-                :class="{ 'wrong-layout': showLayoutWarning }"
+                
                 inputmode="text"
                 @keydown.enter.prevent="search"
                 @keydown.tab.prevent="handleTabKey"
@@ -91,27 +91,19 @@
                 <i class="fas fa-times"></i>
               </button>
             </div>
-            <div
-              v-if="showLayoutWarning"
-              class="layout-warning"
-              :class="{ show: showLayoutWarning }"
-            >
-              <i class="fas fa-keyboard"></i>
-              Возможно, вы используете неправильную раскладку. Нажмите Tab для
-              переключения на {{ suggestedLayout }} раскладку
-            </div>
+            
           </div>
         </div>
       </div>
 
       <!-- Floating Search Button (when hero is visible) -->
-      <button
+      <router-link
         v-if="!searchTerm && !searchPerformed && featuredMovie"
         class="floating-search-btn"
-        @click="focusSearch"
+        to="/search"
       >
         <i class="fas fa-search"></i>
-      </button>
+      </router-link>
 
       <!-- Content Container -->
       <div class="content-container">
@@ -237,11 +229,7 @@ import { MovieList } from '@/components/MovieList/'
 import { useMainStore } from '@/store/main'
 import { useAuthStore } from '@/store/auth'
 import { USER_LIST_TYPES_ENUM } from '@/constants'
-import {
-  hasConsecutiveConsonants,
-  suggestLayout,
-  convertLayout
-} from '@/utils/keyboardLayout'
+
 import debounce from 'lodash/debounce'
 import { watchEffect, onMounted, ref, watch, computed, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
@@ -283,8 +271,7 @@ const featuredMovie = computed(() => {
   return null
 })
 
-const showLayoutWarning = ref(false)
-const suggestedLayout = ref('')
+
 
 const searchInput = ref(null)
 
@@ -341,25 +328,16 @@ function handleItemDeleted(deletedItemId) {
 const setSearchType = (type) => {
   searchType.value = type
   resetSearch()
-  showLayoutWarning.value = false
 }
 
 const handleInput = (event) => {
   errorMessage.value = ''
   errorCode.value = null
   searchTerm.value = event.target.value
-  if (isMobile.value) return
-  showLayoutWarning.value = hasConsecutiveConsonants(searchTerm.value)
-  if (showLayoutWarning.value) {
-    suggestedLayout.value = suggestLayout(searchTerm.value)
-  }
 }
 
 const handleTabKey = () => {
-  if (showLayoutWarning.value) {
-    searchTerm.value = convertLayout(searchTerm.value)
-    showLayoutWarning.value = false
-  }
+  // Tab key handling - can be extended if needed
 }
 
 const getPlaceholder = () => {
@@ -380,7 +358,6 @@ const resetSearch = () => {
   searchTerm.value = ''
   movies.value = []
   searchPerformed.value = false
-  showLayoutWarning.value = false
   errorMessage.value = ''
   errorCode.value = null
 }
