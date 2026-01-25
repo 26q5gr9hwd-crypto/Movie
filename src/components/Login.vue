@@ -1,6 +1,7 @@
 <template>
   <div class="login-page">
-    <h1> isSignup ? 'Регистрация' : 'Вход в систему' </h1>
+    <h1>{{ isSignup ? 'Регистрация' : 'Вход в систему' }}</h1>
+
     <div class="login-container dark-theme">
       <div v-if="loading" class="loading-container">
         <div class="loader"></div>
@@ -9,14 +10,14 @@
 
       <form v-else @submit.prevent="handleSubmit" class="auth-form">
         <div class="form-group">
-          <label for="email">Email</label>
+          <label for="username">Имя пользователя</label>
           <input
-            id="email"
-            v-model="email"
-            type="email"
-            placeholder="Введите email"
+            id="username"
+            v-model="username"
+            type="text"
+            placeholder="Введите имя пользователя"
             required
-            autocomplete="email"
+            autocomplete="username"
           />
         </div>
 
@@ -45,11 +46,11 @@
         </div>
 
         <div v-if="error" class="error-message">
-           error 
+          {{ error }}
         </div>
 
         <button type="submit" class="submit-btn" :disabled="loading">
-           isSignup ? 'Зарегистрироваться' : 'Войти' 
+          {{ isSignup ? 'Зарегистрироваться' : 'Войти' }}
         </button>
 
         <div class="toggle-mode">
@@ -76,7 +77,7 @@ import { login, signup } from '@/api/user'
 const router = useRouter()
 const authStore = useAuthStore()
 
-const email = ref('')
+const username = ref('')
 const password = ref('')
 const confirmPassword = ref('')
 const isSignup = ref(false)
@@ -93,7 +94,7 @@ const handleSubmit = async () => {
   error.value = null
 
   // Validation
-  if (!email.value.trim() || !password.value) {
+  if (!username.value.trim() || !password.value) {
     error.value = 'Заполните все поля'
     return
   }
@@ -115,12 +116,12 @@ const handleSubmit = async () => {
     let response
     if (isSignup.value) {
       response = await signup({
-        email: email.value.trim(),
+        username: username.value.trim(),
         password: password.value
       })
     } else {
       response = await login({
-        email: email.value.trim(),
+        username: username.value.trim(),
         password: password.value
       })
     }
@@ -136,9 +137,9 @@ const handleSubmit = async () => {
     }
   } catch (err) {
     if (err.message?.includes('Invalid login credentials')) {
-      error.value = 'Неверный email или пароль'
+      error.value = 'Неверное имя пользователя или пароль'
     } else if (err.message?.includes('User already registered')) {
-      error.value = 'Пользователь с таким email уже существует'
+      error.value = 'Пользователь с таким именем уже существует'
     } else {
       error.value = err.message || 'Произошла ошибка. Попробуйте позже.'
     }
