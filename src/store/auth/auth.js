@@ -43,9 +43,8 @@ export const useAuthStore = defineStore(AUTH_STORE_NAME, {
           // Verify token is still valid by fetching user
           const userData = await getUser()
           this.user = userData.user || userData
-        } catch (error) {
+        } catch {
           // Token invalid, clear it
-          console.warn('Token invalid, logging out')
           this.logout()
         }
       }
