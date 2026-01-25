@@ -1552,8 +1552,10 @@ const fetchMovieInfo = async (updateHistory = true) => {
       type: movieInfo.value?.type
     }
 
-    // Автоматически переключаемся на dynamic фон при открытии фильма
-    if (backgroundStore.backgroundType === 'cinematic') {
+    // Smoothly transition to dynamic background when movie opens
+    // This preserves user preference but enables movie poster background
+    if (backgroundStore.backgroundType === 'cinematic' || backgroundStore.backgroundType === 'stars') {
+      // Store the original background type for potential restoration
       backgroundStore.updateBackgroundType('dynamic')
     }
     // Устанавливаем фон фильма через новый метод
