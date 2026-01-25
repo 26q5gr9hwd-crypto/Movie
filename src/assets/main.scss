@@ -1,5 +1,5 @@
 @use './controls.scss';
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
   // Netflix red accent
@@ -34,6 +34,9 @@
 
   // Nav dimensions
   --nav-width: 64px;
+  
+  // Branding
+  --brand-font: 'Bebas Neue', sans-serif;
 }
 
 html {
@@ -86,6 +89,28 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 img.loading {
   position: relative;
   background: linear-gradient(
@@ -135,4 +160,383 @@ img.loaded {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.3);
+}
+
+// =====================
+// HERO SECTION STYLES
+// =====================
+.hero-section {
+  position: relative;
+  width: 100%;
+  height: 70vh;
+  min-height: 500px;
+  max-height: 800px;
+  margin-bottom: 30px;
+  overflow: hidden;
+}
+
+.hero-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.hero-gradient {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    rgba(20, 20, 20, 0) 0%,
+    rgba(20, 20, 20, 0.4) 50%,
+    rgba(20, 20, 20, 0.9) 80%,
+    var(--bg-primary) 100%
+  ),
+  linear-gradient(
+    to right,
+    rgba(20, 20, 20, 0.9) 0%,
+    rgba(20, 20, 20, 0.4) 30%,
+    rgba(20, 20, 20, 0) 60%
+  );
+}
+
+.hero-content {
+  position: absolute;
+  bottom: 15%;
+  left: 5%;
+  max-width: 550px;
+  z-index: 2;
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.hero-title {
+  font-size: 3.5rem;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+  line-height: 1.1;
+}
+
+.hero-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+.hero-rating {
+  color: var(--success-color);
+  font-weight: 600;
+}
+
+.hero-year,
+.hero-type {
+  color: var(--text-secondary);
+}
+
+.hero-description {
+  font-size: 1.1rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.hero-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  border-radius: 4px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  text-decoration: none;
+}
+
+.hero-btn-primary {
+  background: #fff;
+  color: #141414;
+}
+
+.hero-btn-primary:hover {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.hero-btn-secondary {
+  background: rgba(109, 109, 110, 0.7);
+  color: #fff;
+}
+
+.hero-btn-secondary:hover {
+  background: rgba(109, 109, 110, 0.5);
+}
+
+@media (max-width: 768px) {
+  .hero-section {
+    height: 60vh;
+    min-height: 400px;
+  }
+  
+  .hero-content {
+    left: 4%;
+    right: 4%;
+    max-width: none;
+  }
+  
+  .hero-title {
+    font-size: 2rem;
+  }
+  
+  .hero-description {
+    font-size: 0.95rem;
+    -webkit-line-clamp: 2;
+  }
+  
+  .hero-btn {
+    padding: 10px 20px;
+    font-size: 0.95rem;
+  }
+}
+
+// =====================
+// HORIZONTAL CAROUSEL STYLES
+// =====================
+.movie-row {
+  margin-bottom: 40px;
+  position: relative;
+}
+
+.row-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4%;
+  margin-bottom: 16px;
+}
+
+.row-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin: 0;
+  transition: color 0.2s ease;
+}
+
+.row-title:hover {
+  color: var(--text-secondary);
+}
+
+.row-see-all {
+  color: var(--accent-color);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.movie-row:hover .row-see-all {
+  opacity: 1;
+}
+
+.carousel-container {
+  position: relative;
+  padding: 0 4%;
+}
+
+.carousel-wrapper {
+  overflow-x: auto;
+  overflow-y: visible;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 10px 0 20px 0;
+  margin: -10px 0 -20px 0;
+}
+
+.carousel-wrapper::-webkit-scrollbar {
+  display: none;
+}
+
+.carousel-track {
+  display: flex;
+  gap: 8px;
+}
+
+.carousel-card {
+  flex: 0 0 auto;
+  width: 200px;
+  transition: transform 0.3s ease, z-index 0s 0.3s;
+}
+
+.carousel-card:hover {
+  transform: scale(1.08);
+  z-index: 10;
+  transition: transform 0.3s ease, z-index 0s;
+}
+
+.carousel-card:first-child:hover {
+  transform-origin: left center;
+}
+
+.carousel-card:last-child:hover {
+  transform-origin: right center;
+}
+
+// Carousel navigation arrows
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 50px;
+  height: 100%;
+  background: rgba(20, 20, 20, 0.7);
+  border: none;
+  color: white;
+  font-size: 2rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carousel-container:hover .carousel-arrow {
+  opacity: 1;
+}
+
+.carousel-arrow:hover {
+  background: rgba(20, 20, 20, 0.9);
+}
+
+.carousel-arrow-left {
+  left: 0;
+  border-radius: 0 4px 4px 0;
+}
+
+.carousel-arrow-right {
+  right: 0;
+  border-radius: 4px 0 0 4px;
+}
+
+@media (max-width: 768px) {
+  .carousel-card {
+    width: 140px;
+  }
+  
+  .carousel-arrow {
+    display: none;
+  }
+  
+  .row-see-all {
+    opacity: 1;
+  }
+}
+
+// =====================
+// BRANDING
+// =====================
+.brand-logo {
+  font-family: var(--brand-font);
+  font-size: 1.8rem;
+  color: var(--accent-color);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: text-shadow 0.2s ease;
+}
+
+.brand-logo:hover {
+  text-shadow: 0 0 20px var(--accent-semi-transparent);
+}
+
+// =====================
+// ENHANCED SEARCH
+// =====================
+.search-pill {
+  background: rgba(30, 30, 30, 0.9);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-color);
+  border-radius: 30px;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 600px;
+  width: 100%;
+  transition: all 0.3s ease;
+}
+
+.search-pill:focus-within {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px var(--accent-transparent);
+}
+
+.search-pill input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-color);
+  font-size: 1rem;
+  outline: none;
+}
+
+.search-pill input::placeholder {
+  color: var(--text-muted);
+}
+
+// =====================
+// SECTION HEADERS
+// =====================
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding: 0 15px;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.section-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.2s ease;
+}
+
+.section-link:hover {
+  color: var(--text-color);
 }
