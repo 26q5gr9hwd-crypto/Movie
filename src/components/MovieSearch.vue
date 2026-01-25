@@ -61,7 +61,7 @@
       </section>
 
       <!-- Search Section (visible when searching or no hero) -->
-      <div v-if="searchTerm || searchPerformed || !featuredMovie" class="search-section">
+      <div v-if="searchTerm || searchPerformed || !featuredMovie || showSearchSectionFlag" class="search-section">
         <div class="search-type-buttons">
           <button
             :class="{ active: searchType === 'title' }"
@@ -239,6 +239,7 @@ const mainStore = useMainStore()
 const authStore = useAuthStore()
 const router = useRouter()
 
+const showSearchSectionFlag = ref(false)
 const searchType = ref('title')
 const searchTerm = ref('')
 const movies = ref([])
@@ -358,6 +359,7 @@ const resetSearch = () => {
   searchTerm.value = ''
   movies.value = []
   searchPerformed.value = false
+  showSearchSectionFlag.value = false
   errorMessage.value = ''
   errorCode.value = null
 }
@@ -457,11 +459,9 @@ const focusFirstMovieCard = () => {
   }
 }
 const showSearchSection = () => {
-  // Force showing the search section by setting a flag
-  searchPerformed.value = false
-  searchTerm.value = ' '
+  // Force showing the search section
+  showSearchSectionFlag.value = true
   nextTick(() => {
-    searchTerm.value = ''
     searchInput.value?.focus()
   })
 }
