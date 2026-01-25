@@ -17,7 +17,7 @@
             :placeholder="getPlaceholder()"
             class="search-input"
             :class="{ 'wrong-layout': showLayoutWarning }"
-            :inputmode="searchType === 'title' ? 'text' : 'numeric'"
+            inputmode="text"
             @keydown.enter.prevent="search"
             @keydown.tab.prevent="handleTabKey"
             @keydown.down.prevent="focusFirstMovieCard"
@@ -118,16 +118,11 @@
         />
       </div>
     </div>
-
-
   </div>
 </template>
 
 <script setup>
-import {
-  apiSearch,
-  getMovies
-} from '@/api/movies'
+import { apiSearch, getMovies } from '@/api/movies'
 import { handleApiError } from '@/constants'
 import { getMyLists, delAllFromList } from '@/api/user'
 import BaseModal from '@/components/BaseModal.vue'
@@ -142,7 +137,6 @@ import debounce from 'lodash/debounce'
 import { watchEffect, onMounted, ref, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import SpinnerLoading from '@/components/SpinnerLoading.vue'
-
 
 const mainStore = useMainStore()
 const authStore = useAuthStore()
@@ -168,8 +162,6 @@ const popularError = ref('')
 const showLayoutWarning = ref(false)
 const suggestedLayout = ref('')
 
-
-
 const searchInput = ref(null)
 
 // Fetch popular movies on mount
@@ -188,7 +180,6 @@ const fetchPopularMovies = async () => {
   } catch (error) {
     const { message } = handleApiError(error)
     popularError.value = message
-    console.error('Error loading popular movies:', error)
   } finally {
     popularLoading.value = false
   }
@@ -204,7 +195,6 @@ watchEffect(async () => {
       const { message, code } = handleApiError(error)
       errorMessage.value = message
       errorCode.value = code
-      console.error('Error loading history:', error)
       if (code === 401) {
         authStore.logout()
         await router.push('/login')
@@ -231,16 +221,11 @@ const setSearchType = (type) => {
 const handleInput = (event) => {
   errorMessage.value = ''
   errorCode.value = null
-
-  if (searchType.value === 'title') {
-    searchTerm.value = event.target.value
-    if (isMobile.value) return
-    showLayoutWarning.value = hasConsecutiveConsonants(searchTerm.value)
-    if (showLayoutWarning.value) {
-      suggestedLayout.value = suggestLayout(searchTerm.value)
-    }
-  } else {
-    searchTerm.value = event.target.value.replace(/\D+/g, '')
+  searchTerm.value = event.target.value
+  if (isMobile.value) return
+  showLayoutWarning.value = hasConsecutiveConsonants(searchTerm.value)
+  if (showLayoutWarning.value) {
+    suggestedLayout.value = suggestLayout(searchTerm.value)
   }
 }
 
@@ -252,14 +237,7 @@ const handleTabKey = () => {
 }
 
 const getPlaceholder = () => {
-  return (
-    {
-      title: 'Введите название фильма',
-      kinopoisk: 'Пример: 301 (Матрица)',
-      shikimori: 'Пример: 28171 (Повар-боец Сома)',
-      imdb: 'Пример: 0198781 (Корпорация монстров)'
-    }[searchType.value] || 'Введите название фильма'
-  )
+  return 'Введите название фильма'
 }
 
 const resetSearch = () => {
@@ -287,60 +265,17 @@ const performSearch = async () => {
   movies.value = []
 
   try {
-    if (searchType.value === 'kinopoisk') {
-      if (!/^\d+$/.test(searchTerm.value)) {
-        searchTerm.value = searchTerm.value.replace(/\D/g, '')
-      }
-      router.push({ name: 'movie-info', params: { kp_id: searchTerm.value } })
-      return
-    }
-
-    if (searchType.value === 'imdb') {
-      if (!/^\d+$/.test(searchTerm.value)) {
-        searchTerm.value = searchTerm.value.replace(/\D/g, '')
-      }
-      const response = await getKpIDfromIMDB(searchTerm.value)
-      if (response.id_kp) {
-        router.push({ name: 'movie-info', params: { kp_id: `${response.id_kp}` } })
-      } else {
-        throw new Error('Не найдено')
-      }
-      return
-    }
-
-    if (searchType.value === 'shikimori') {
-      if (!/^\d+$/.test(searchTerm.value)) {
-        searchTerm.value = searchTerm.value.replace(/\D/g, '')
-      }
-
-      try {
-        const response = await getKpIDfromSHIKI(searchTerm.value)
-        if (response.id_kp) {
-          router.push({ name: 'movie-info', params: { kp_id: `${response.id_kp}` } })
-          return
-        }
-      } catch (e) {
-        console.log('Switch to kodik', e)
-      }
-
-      router.push({ name: 'movie-info-shiki', params: { shiki_id: `shiki${searchTerm.value}` } })
-      return
-    }
-
-    if (searchType.value === 'title') {
-      const response = await apiSearch(searchTerm.value)
-      movies.value = response.map((movie) => ({
-        ...movie,
-        kp_id: movie.kp_id?.toString() || movie.id?.toString(),
-        rating_kp: movie.rating_kp || (movie.raw_data?.rating !== 'null' ? movie.raw_data?.rating : null),
-        type: movie.type || movie.raw_data?.type
-      }))
-    }
+    const response = await apiSearch(searchTerm.value)
+    movies.value = response.map((movie) => ({
+      ...movie,
+      kp_id: movie.kp_id?.toString() || movie.id?.toString(),
+      rating_kp: movie.rating_kp || (movie.raw_data?.rating !== 'null' ? movie.raw_data?.rating : null),
+      type: movie.type || movie.raw_data?.type
+    }))
   } catch (error) {
     const { message, code } = handleApiError(error)
     errorMessage.value = message
     errorCode.value = code
-    console.error('Search error:', error)
   } finally {
     searchLoading.value = false
   }
@@ -358,7 +293,6 @@ const clearAllHistory = async () => {
       const { message, code } = handleApiError(error)
       errorMessage.value = message
       errorCode.value = code
-      console.error('Error clearing history:', error)
       if (code === 401) {
         authStore.logout()
         await router.push('/login')
@@ -384,7 +318,6 @@ const debouncedPerformSearch = debounce(() => {
 }, 700)
 
 onMounted(() => {
-  // Load popular movies
   fetchPopularMovies()
   
   const hash = window.location.hash
@@ -392,24 +325,11 @@ onMounted(() => {
     const searchQuery = decodeURIComponent(hash.replace('#search=', ''))
     searchTerm.value = searchQuery
     performSearch()
-  } else if (hash.startsWith('#imdb=')) {
-    const imdbId = decodeURIComponent(hash.replace('#imdb=', ''))
-    setSearchType('imdb')
-    searchTerm.value = imdbId
-    performSearch()
-  } else if (hash.startsWith('#shiki')) {
-    const shikiId = decodeURIComponent(hash.replace('#shiki', ''))
-    setSearchType('shikimori')
-    searchTerm.value = shikiId
-    performSearch()
   }
   searchInput.value?.focus()
 })
 
 watch(searchTerm, () => {
-  if (searchType.value !== 'title') {
-    return
-  }
   debouncedPerformSearch()
 })
 
@@ -419,54 +339,6 @@ const focusFirstMovieCard = () => {
     if (firstMovieCard) {
       firstMovieCard.focus()
     }
-  }
-}
-
-const openRandomMovie = () => {
-  showRandomModal.value = true
-  fetchRandomMovie()
-}
-
-const closeRandomModal = () => {
-  showRandomModal.value = false
-  randomMovie.value = null
-  randomError.value = ''
-}
-
-const fetchRandomMovie = async () => {
-  randomLoading.value = true
-  randomError.value = ''
-
-  try {
-    const response = await getRandomMovie()
-
-    if (response.kp_id) {
-      try {
-        const kpInfo = await getKpInfo(response.kp_id)
-        randomMovie.value = {
-          ...response,
-          description: kpInfo.description,
-          budget: kpInfo.budget,
-          fees_world: kpInfo.fees_world,
-          fees_russia: kpInfo.fees_russia,
-          premiere_ru: kpInfo.premiere_ru,
-          premiere_world: kpInfo.premiere_world,
-          age_rating: kpInfo.age_rating,
-          duration: kpInfo.duration,
-          total_rating: kpInfo.total_rating
-        }
-      } catch {
-        randomMovie.value = response
-      }
-    } else {
-      randomMovie.value = response
-    }
-  } catch (error) {
-    const { message } = handleApiError(error)
-    randomError.value = message
-    console.error('Random movie error:', error)
-  } finally {
-    randomLoading.value = false
   }
 }
 </script>
@@ -522,33 +394,6 @@ const fetchRandomMovie = async () => {
 
 .search-type-buttons button:hover {
   color: #ffffff;
-}
-
-.random-button {
-  background: var(--accent-color) !important;
-  color: white !important;
-  border-radius: 8px;
-  padding: 8px 16px !important;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.random-button:hover:not(:disabled) {
-  background: var(--accent-hover-color) !important;
-  transform: translateY(-1px);
-}
-
-.random-button:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.random-button::after {
-  display: none;
 }
 
 /* Search Container */
