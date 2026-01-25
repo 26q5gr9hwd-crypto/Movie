@@ -103,8 +103,7 @@ import ErrorMessage from '@/components/ErrorMessage.vue'
 import { handleApiError, TYPES_ENUM } from '@/constants'
 import { useNavbarStore } from '@/store/navbar'
 import debounce from 'lodash/debounce'
-import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
-import { useMainStore } from '@/store/main'
+import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { getRatingColor } from '@/utils/ratingUtils'
 import { getMovieName } from '@/utils/textUtils'
 
@@ -119,9 +118,6 @@ const errorCode = ref(null)
 
 const searchInput = ref(null)
 const activeMovieIndex = ref(null)
-
-const store = useMainStore()
-const isMobile = computed(() => store.isMobile)
 
 onMounted(async () => {
   await nextTick()
@@ -169,6 +165,7 @@ const performSearch = async () => {
     const { message, code } = handleApiError(error)
     errorMessage.value = message
     errorCode.value = code
+    // eslint-disable-next-line no-console
     console.error('Search error:', error)
     movies.value = []
   } finally {
