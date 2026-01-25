@@ -2605,37 +2605,39 @@ const handleFilterSelect = () => {
 </script>
 
 <style scoped>
+/* Back button - positioned in content area, not on nav */
 .back-button {
-  position: fixed;
-  top: 80px;
+  position: absolute;
+  top: 20px;
   left: 20px;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: #fff;
-  font-size: 18px;
+  font-size: 16px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 100;
+  z-index: 50;
   transition: all 0.2s ease;
 }
 .back-button:hover {
   background: var(--accent-color);
   border-color: var(--accent-color);
-  transform: scale(1.05);
+  transform: scale(1.08);
   box-shadow: 0 4px 12px var(--accent-semi-transparent);
 }
 @media (max-width: 600px) {
   .back-button {
-    top: 70px;
-    left: 10px;
-    width: 40px;
-    height: 40px;
-    font-size: 16px;
+    top: 15px;
+    left: 15px;
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
   }
 }
 .content {
@@ -2784,14 +2786,15 @@ const handleFilterSelect = () => {
 
 .additional-info {
   border-radius: 8px;
-  margin-bottom: 20px;
-  font-size: 16px;
+  margin-bottom: 15px;
+  font-size: 15px;
 }
 
 .additional-info-title {
-  margin: 15px 0 15px;
+  margin: 10px 0 10px;
   text-align: left;
   color: #fff;
+  font-size: 18px;
 }
 
 .info-content {
@@ -2832,7 +2835,7 @@ const handleFilterSelect = () => {
 }
 
 .info-list li {
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .content-info {
