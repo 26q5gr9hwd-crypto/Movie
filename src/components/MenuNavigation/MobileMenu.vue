@@ -1,6 +1,13 @@
 <template>
   <transition name="slide">
     <nav v-if="isNavbarVisible" class="mobile-navbar" @click.stop>
+      <div class="mobile-header">
+        <router-link to="/" class="mobile-logo" @click="closeNavbar">
+          <img src="@/assets/basedge.png" alt="ReYohoho" class="logo-image" />
+          <span class="logo-text">ReYohoho</span>
+        </router-link>
+      </div>
+
       <div class="nav-links-wrapper">
         <ul class="nav-links">
           <li v-for="link in props.links" :key="link.text">
@@ -8,11 +15,13 @@
               <router-link
                 :to="link.to"
                 :exact="link.exact"
-                class="notification-link"
+                class="nav-link"
                 @click="closeNavbar"
               >
-                <NotificationBadge />
-                <span class="menu-text">{{ link.text }}</span>
+                <div class="nav-icon">
+                  <NotificationBadge />
+                </div>
+                <span class="nav-text"> link.text </span>
               </router-link>
             </template>
 
@@ -22,20 +31,21 @@
               v-bind="
                 link.to ? { to: link.to, exact: link.exact } : { href: link.href, target: '_blank' }
               "
+              class="nav-link"
               @click="closeNavbar"
             >
-              <template v-if="typeof link.icon === 'string' && link.icon.startsWith('fa')">
-                <i :class="link.icon"></i>
-              </template>
-              <template
-                v-else-if="typeof link.icon === 'string' && link.icon.startsWith('https://')"
-              >
-                <img :src="link.icon" alt="icon" class="icon-user" />
-              </template>
-              <template v-else>
-                <img src="@/assets/icon-donut.png" alt="icon" class="icon-donut" />
-              </template>
-              <span class="menu-text">{{ link.text }}</span>
+              <div class="nav-icon">
+                <template v-if="typeof link.icon === 'string' && link.icon.startsWith('fa')">
+                  <i :class="link.icon"></i>
+                </template>
+                <template v-else-if="typeof link.icon === 'string' && link.icon.startsWith('http')">
+                  <img :src="link.icon" alt="icon" class="icon-user" />
+                </template>
+                <template v-else>
+                  <img src="@/assets/icon-donut.png" alt="icon" class="icon-donut" />
+                </template>
+              </div>
+              <span class="nav-text"> link.text </span>
             </component>
           </li>
         </ul>
@@ -61,22 +71,49 @@ const { closeNavbar } = navbarStore
 </script>
 
 <style scoped>
-/* Стили для мобильного меню и оверлея */
 .mobile-navbar {
   position: fixed;
+  top: 0;
   left: 0;
-  width: 250px;
+  width: 280px;
   height: 100vh;
-  background: rgba(30, 30, 30, 0.97);
-  padding-top: 60px;
-  z-index: 5;
+  background: var(--bg-secondary);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border-color);
+}
+
+.mobile-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.mobile-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+
+.logo-image {
+  height: 40px;
+  width: 40px;
+  object-fit: contain;
+  border-radius: 10px;
+}
+
+.logo-text {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-color);
+  letter-spacing: -0.02em;
 }
 
 .nav-links-wrapper {
   flex: 1;
   overflow-y: auto;
-  padding-bottom: 1rem;
-  height: calc(100vh - 60px);
+  padding: 16px 12px;
 }
 
 .nav-links {
@@ -85,78 +122,63 @@ const { closeNavbar } = navbarStore
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 4px;
 }
 
-.nav-links li {
-  width: 100%;
-  position: relative;
-}
-
-.nav-links a,
-.nav-links button {
+.nav-link {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  color: rgba(255, 255, 255, 0.8);
+  gap: 14px;
+  color: var(--text-secondary);
   text-decoration: none;
-  padding: 10px 20px;
-  transition: all 0.3s ease;
-  min-width: 250px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
 }
 
-.nav-links a i,
-.nav-links a img {
-  width: 25px;
+.nav-icon {
+  width: 24px;
+  height: 24px;
   display: flex;
+  align-items: center;
   justify-content: center;
-  align-items: center;
+  flex-shrink: 0;
 }
 
-.menu-text {
-  width: 130px;
-  display: inline-block;
+.nav-icon i {
+  font-size: 18px;
 }
 
-.nav-links a:hover {
-  background: var(--accent-transparent, rgba(108, 92, 231, 0.15));
-  color: var(--accent-color, #6c5ce7);
-  border-left: 3px solid var(--accent-color, #6c5ce7);
-  transform: translateX(3px);
+.nav-text {
+  font-size: 15px;
+  font-weight: 500;
 }
 
-.nav-links a:active,
-.nav-links a.router-link-active {
-  background: var(--accent-transparent, rgba(108, 92, 231, 0.2));
-  color: var(--accent-color, #6c5ce7);
-  border-left: 3px solid var(--accent-color, #6c5ce7);
+.nav-link:hover {
+  background: var(--accent-transparent);
+  color: var(--accent-color);
 }
 
-.notification-link {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  color: rgba(255, 255, 255, 0.8);
-  text-decoration: none;
-  padding: 10px 20px;
-  transition: all 0.3s ease;
-  min-width: 250px;
+.nav-link:active,
+.nav-link.router-link-active {
+  background: var(--accent-transparent);
+  color: var(--accent-color);
 }
 
-.notification-link:hover {
-  background: var(--accent-transparent, rgba(108, 92, 231, 0.15));
-  color: var(--accent-color, #6c5ce7);
-  border-left: 3px solid var(--accent-color, #6c5ce7);
-  transform: translateX(3px);
+.icon-user {
+  height: 24px;
+  width: 24px;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
-.notification-link:active,
-.notification-link.router-link-active {
-  background: var(--accent-transparent, rgba(108, 92, 231, 0.2));
-  color: var(--accent-color, #6c5ce7);
-  border-left: 3px solid var(--accent-color, #6c5ce7);
+.icon-donut {
+  height: 24px;
+  width: 24px;
+  object-fit: contain;
 }
 
+/* Transitions */
 .slide-enter-active,
 .slide-leave-active {
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -169,23 +191,12 @@ const { closeNavbar } = navbarStore
 
 .overlay {
   position: fixed;
+  top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 4;
-}
-
-.icon-donut {
-  height: 25px;
-  object-fit: contain;
-  width: 25px;
-}
-
-.icon-user {
-  height: 25px;
-  width: 25px;
-  object-fit: contain;
-  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 99;
 }
 </style>
