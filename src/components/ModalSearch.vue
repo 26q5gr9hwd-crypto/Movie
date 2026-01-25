@@ -10,13 +10,10 @@
             v-model="searchTerm"
             placeholder="Поиск фильмов и сериалов..."
             class="search-input-modal"
-            :class="{ 'wrong-layout': showLayoutWarning }"
             inputmode="text"
             @keydown.enter="search"
-            @keydown.tab.prevent="handleTabKey"
             @keydown.down.prevent="focusFirstMovieCard"
             @keydown.esc="closeModal"
-            @input="handleInput"
           />
           <button v-if="searchTerm" class="reset-button" @click="clearSearch">
             <i class="fas fa-times"></i>
@@ -25,13 +22,6 @@
         <button class="close-modal-btn" @click="closeModal">
           <i class="fas fa-times"></i>
         </button>
-      </div>
-
-      <!-- Layout Warning -->
-      <div v-if="showLayoutWarning" class="layout-warning">
-        <i class="fas fa-keyboard"></i>
-        Возможно, неправильная раскладка. Нажмите Tab для переключения на
-        {{ suggestedLayout }} раскладку
       </div>
 
       <!-- Search Hint (when no search) -->
@@ -92,10 +82,9 @@
                   ★ {{ movie.raw_data?.rating || '—' }}
                 </span>
                 <span class="result-type">
-                  {{ TYPES_ENUM[movie.raw_data?.type] || movie.raw_data?.type
-                  }}
+                  {{ TYPES_ENUM[movie.type] || movie.type }}
                 </span>
-                <span class="result-year">{{ movie.raw_data?.year }}</span>
+                <span class="result-year">{{ movie.year }}</span>
               </div>
             </div>
           </router-link>
@@ -113,11 +102,6 @@ import { apiSearch } from '@/api/movies'
 import ErrorMessage from '@/components/ErrorMessage.vue'
 import { handleApiError, TYPES_ENUM } from '@/constants'
 import { useNavbarStore } from '@/store/navbar'
-import {
-  hasConsecutiveConsonants,
-  suggestLayout,
-  convertLayout
-} from '@/utils/keyboardLayout'
 import debounce from 'lodash/debounce'
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
 import { useMainStore } from '@/store/main'
@@ -136,8 +120,6 @@ const errorCode = ref(null)
 const searchInput = ref(null)
 const activeMovieIndex = ref(null)
 
-const showLayoutWarning = ref(false)
-const suggestedLayout = ref('')
 const store = useMainStore()
 const isMobile = computed(() => store.isMobile)
 
@@ -156,7 +138,6 @@ const resetSearch = () => {
   movies.value = []
   errorMessage.value = ''
   errorCode.value = null
-  showLayoutWarning.value = false
 }
 
 const clearSearch = () => {
@@ -188,7 +169,6 @@ const performSearch = async () => {
     const { message, code } = handleApiError(error)
     errorMessage.value = message
     errorCode.value = code
-    // eslint-disable-next-line no-console
     console.error('Search error:', error)
     movies.value = []
   } finally {
@@ -212,22 +192,6 @@ const closeModal = (event) => {
   }
   navbarStore.closeSearchModal()
   resetSearch()
-}
-
-const handleInput = (event) => {
-  searchTerm.value = event.target.value
-  if (isMobile.value) return
-  showLayoutWarning.value = hasConsecutiveConsonants(searchTerm.value)
-  if (showLayoutWarning.value) {
-    suggestedLayout.value = suggestLayout(searchTerm.value)
-  }
-}
-
-const handleTabKey = () => {
-  if (showLayoutWarning.value) {
-    searchTerm.value = convertLayout(searchTerm.value)
-    showLayoutWarning.value = false
-  }
 }
 
 const focusFirstMovieCard = () => {
@@ -269,6 +233,7 @@ watch(activeMovieIndex, (newIndex) => {
   }
 })
 
+// Debounced search while typing
 watch(searchTerm, () => {
   debouncedPerformSearch()
 })
@@ -333,10 +298,6 @@ watch(searchTerm, () => {
     0 0 0 3px var(--accent-transparent);
 }
 
-.search-pill-modal.wrong-layout {
-  border-color: #ff8c00;
-}
-
 .search-icon {
   color: var(--text-muted);
   font-size: 1.2rem;
@@ -388,25 +349,6 @@ watch(searchTerm, () => {
   &:hover {
     background: rgba(80, 80, 80, 0.9);
     transform: scale(1.05);
-  }
-}
-
-.layout-warning {
-  text-align: center;
-  color: #ff8c00;
-  font-size: 0.85rem;
-  background: rgba(255, 140, 0, 0.15);
-  padding: 10px 16px;
-  border-radius: 10px;
-  margin-top: 12px;
-  border: 1px solid rgba(255, 140, 0, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-
-  i {
-    font-size: 14px;
   }
 }
 
