@@ -97,13 +97,13 @@
       </div>
 
       <!-- Floating Search Button (when hero is visible) -->
-      <router-link
+      <button
         v-if="!searchTerm && !searchPerformed && featuredMovie"
         class="floating-search-btn"
-        to="/search"
+        @click="showSearchSection"
       >
         <i class="fas fa-search"></i>
-      </router-link>
+      </button>
 
       <!-- Content Container -->
       <div class="content-container">
@@ -231,7 +231,7 @@ import { useAuthStore } from '@/store/auth'
 import { USER_LIST_TYPES_ENUM } from '@/constants'
 
 import debounce from 'lodash/debounce'
-import { watchEffect, onMounted, ref, watch, computed } from 'vue'
+import { watchEffect, onMounted, ref, watch, computed, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 
 
@@ -455,6 +455,15 @@ const focusFirstMovieCard = () => {
       firstMovieCard.focus()
     }
   }
+}
+const showSearchSection = () => {
+  // Force showing the search section by setting a flag
+  searchPerformed.value = false
+  searchTerm.value = ' '
+  nextTick(() => {
+    searchTerm.value = ''
+    searchInput.value?.focus()
+  })
 }
 </script>
 
