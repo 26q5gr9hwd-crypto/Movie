@@ -182,7 +182,7 @@ const performSearch = async () => {
     const results = await apiSearch(searchTerm.value)
     movies.value = (results || []).map((movie) => ({
       ...movie,
-      kp_id: movie.id.toString(),
+      kp_id: movie.id.toString()
     }))
   } catch (error) {
     const { message, code } = handleApiError(error)
