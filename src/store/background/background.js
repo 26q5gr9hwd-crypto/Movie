@@ -5,46 +5,36 @@ import { beforeHydrateLegacyVuex } from '../utils'
 
 export const useBackgroundStore = defineStore(BACKGROUND_STORE_NAME, {
   state: () => ({
-    backgroundUrl: starsBackground,
-    topMoviePoster: '',
+    backgroundUrl: '',
     moviePoster: '',
-    isBlurActive: false,
-    backgroundType: 'cinematic', // Changed default to cinematic
+    isBlurActive: true,
+    backgroundType: 'dynamic', // Dynamic is now the default and only "smart" mode
     defaultBackground: starsBackground,
     isCardBorder: false,
     isCardHoverDisabled: false
   }),
 
   actions: {
+    // Called when entering a movie page - updates the background to show the movie's backdrop
     updateMoviePoster(poster) {
-      if (this.backgroundType !== 'disabled') {
-        const url = poster || this.defaultBackground
-
-        if (this.backgroundType !== 'stars' && this.backgroundType !== 'disabled' && this.backgroundType !== 'cinematic') {
-          this.moviePoster = url
-          if (this.backgroundUrl !== url) {
-            this.backgroundUrl = url
-          }
+      if (this.backgroundType === 'dynamic') {
+        const url = poster || ''
+        this.moviePoster = url
+        if (url && this.backgroundUrl !== url) {
+          this.backgroundUrl = url
         }
       }
     },
 
-    updateTopMoviePoster(poster) {
-      if (this.backgroundType !== 'disabled') {
-        const url = poster || this.defaultBackground
-
-        if (this.backgroundType !== 'stars' && this.backgroundType !== 'disabled' && this.backgroundType !== 'cinematic') {
-          this.topMoviePoster = url
-          if (this.backgroundUrl !== url) {
-            this.backgroundUrl = url
-          }
-        }
-      }
+    // Called when leaving a movie page - clears the movie poster so cinematic glow shows
+    clearMoviePoster() {
+      this.moviePoster = ''
+      this.backgroundUrl = ''
     },
 
     toggleBlur(isActive) {
-      if (this.backgroundType !== 'stars' && this.backgroundType !== 'disabled' && this.backgroundType !== 'cinematic') {
-        this.SET_BLUR(isActive)
+      if (this.backgroundType === 'dynamic') {
+        this.isBlurActive = isActive
       }
     },
 
@@ -61,16 +51,8 @@ export const useBackgroundStore = defineStore(BACKGROUND_STORE_NAME, {
     },
 
     resetBackground() {
-      this.SET_BLUR(false)
-      this.SET_BACKGROUND_TYPE('cinematic')
-    },
-
-    SET_BLUR(isActive) {
-      if (this.backgroundType !== 'stars' && this.backgroundType !== 'disabled' && this.backgroundType !== 'cinematic') {
-        this.isBlurActive = isActive
-      } else {
-        this.isBlurActive = false
-      }
+      this.isBlurActive = true
+      this.SET_BACKGROUND_TYPE('dynamic')
     },
 
     SET_BACKGROUND_TYPE(type) {
@@ -78,16 +60,16 @@ export const useBackgroundStore = defineStore(BACKGROUND_STORE_NAME, {
 
       if (type === 'dynamic') {
         this.isBlurActive = true
-        this.backgroundUrl = this.topMoviePoster
-      } else if (type === 'disabled' || type === 'stars' || type === 'lava-lamp' || type === 'cinematic') {
+        // Don't set backgroundUrl here - let the component handle it based on route
+      } else if (type === 'disabled') {
         this.isBlurActive = false
-        if (type === 'disabled') {
-          this.backgroundUrl = ''
-        } else if (type === 'stars') {
-          this.backgroundUrl = starsBackground
-        } else if (type === 'lava-lamp' || type === 'cinematic') {
-          this.backgroundUrl = ''
-        }
+        this.backgroundUrl = ''
+      } else if (type === 'stars') {
+        this.isBlurActive = false
+        this.backgroundUrl = this.defaultBackground
+      } else if (type === 'lava-lamp') {
+        this.isBlurActive = false
+        this.backgroundUrl = ''
       }
     }
   },
