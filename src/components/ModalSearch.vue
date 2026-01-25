@@ -1,82 +1,96 @@
 <template>
-  <div class="search" @click="closeModal">
-    <div class="search__content" @click.stop>
-      <!-- Поиск -->
-      <div class="input-wrapper">
-        <input
-          ref="searchInput"
-          v-model="searchTerm"
-          placeholder="Введите название фильма"
-          class="search-input"
-          :class="{ 'wrong-layout': showLayoutWarning }"
-          @keydown.enter="search"
-          @keydown.tab.prevent="handleTabKey"
-          @keydown.down.prevent="focusFirstMovieCard"
-          @input="handleInput"
-        />
-        <div v-if="showLayoutWarning" class="layout-warning" :class="{ show: showLayoutWarning }">
-          <i class="fas fa-keyboard"></i>
-          Возможно, вы используете неправильную раскладку. Нажмите Tab для переключения на
-          {{ suggestedLayout }} раскладку
+  <div class="search-modal-overlay" @click.self="closeModal">
+    <div class="search-modal">
+      <!-- Search Header -->
+      <div class="search-modal-header">
+        <div class="search-pill-modal">
+          <i class="fas fa-search search-icon"></i>
+          <input
+            ref="searchInput"
+            v-model="searchTerm"
+            placeholder="Поиск фильмов и сериалов..."
+            class="search-input-modal"
+            :class="{ 'wrong-layout': showLayoutWarning }"
+            inputmode="text"
+            @keydown.enter="search"
+            @keydown.tab.prevent="handleTabKey"
+            @keydown.down.prevent="focusFirstMovieCard"
+            @keydown.esc="closeModal"
+            @input="handleInput"
+          />
+          <button v-if="searchTerm" class="reset-button" @click="clearSearch">
+            <i class="fas fa-times"></i>
+          </button>
         </div>
+        <button class="close-modal-btn" @click="closeModal">
+          <i class="fas fa-times"></i>
+        </button>
       </div>
 
-      <!-- Результаты поиска -->
-      <div v-if="!errorMessage" class="search__results-wrapper">
-        <div class="search__results">
-          <div v-if="searchTerm?.length < 3" class="no-results">
-            Здесь появятся результаты поиска
-          </div>
+      <!-- Layout Warning -->
+      <div v-if="showLayoutWarning" class="layout-warning">
+        <i class="fas fa-keyboard"></i>
+        Возможно, неправильная раскладка. Нажмите Tab для переключения на \{\{ suggestedLayout \}\} раскладку
+      </div>
 
-          <template v-else-if="loading">
-            <div v-for="idx in [0, 1, 2, 3]" :key="idx" class="movie-skeleton">
-              <div class="movie-skeleton__poster"></div>
-              <div class="movie-skeleton__content">
-                <div class="movie-skeleton__title"></div>
-                <div class="movie-skeleton__meta">
-                  <div class="movie-skeleton__rating"></div>
-                </div>
+      <!-- Search Hint (when no search) -->
+      <div v-if="searchTerm?.length < 2 && !loading" class="search-modal-hint">
+        <span><i class="fas fa-keyboard"></i> Enter для поиска • Esc для закрытия</span>
+      </div>
+
+      <!-- Search Results -->
+      <div v-if="searchTerm?.length >= 2" class="search-results-container">
+        <!-- Loading Skeletons -->
+        <template v-if="loading">
+          <div v-for="idx in 4" :key="idx" class="movie-skeleton">
+            <div class="movie-skeleton__poster"></div>
+            <div class="movie-skeleton__content">
+              <div class="movie-skeleton__title"></div>
+              <div class="movie-skeleton__meta">
+                <div class="movie-skeleton__rating"></div>
               </div>
             </div>
-          </template>
-
-          <div v-else-if="movies.length === 0 && !loading" class="no-results">
-            Для просмотра ничего не найдено
           </div>
+        </template>
 
-          <div v-else>
-            <router-link
-              v-for="movie in movies"
-              :key="movie.id"
-              class="search__movie movie"
-              :to="{ name: 'movie-info', params: { kp_id: movie.kp_id } }"
-              @click="closeModal"
-            >
-              <img :src="movie.poster" alt="poster" class="movie__poster" />
-              <div class="movie__info">
-                <div class="movie__title">
-                  {{ getMovieName(movie.raw_data) }}
-                </div>
-                <div class="movie__meta">
-                  <span class="movie__rating" :class="getRatingColor(movie.raw_data?.rating)">
-                    {{ movie.raw_data?.rating !== 'null' ? (movie.raw_data?.rating ?? '-') : '-' }}
-                  </span>
-                  <span class="movie__type"> {{ TYPES_ENUM[movie.raw_data?.type] ?? '-' }}, </span>
-                  <span class="movie__year">
-                    {{ movie.year }}
-                  </span>
-                </div>
-              </div>
-            </router-link>
-          </div>
+        <!-- No Results -->
+        <div v-else-if="movies.length === 0 && !loading && !errorMessage" class="no-results">
+          <span class="material-icons">search_off</span>
+          <p>Ничего не найдено</p>
         </div>
+
+        <!-- Results List -->
+        <div v-else-if="movies.length > 0" class="results-list">
+          <router-link
+            v-for="(movie, index) in movies"
+            :key="movie.id"
+            class="search-result-item"
+            :class="{ focused: activeMovieIndex === index }"
+            :to="{ name: 'movie-info', params: { kp_id: movie.kp_id } }"
+            @click="closeModal"
+          >
+            <img 
+              :src="movie.poster" 
+              :alt="getMovieName(movie)" 
+              class="result-poster"
+              loading="lazy"
+            />
+            <div class="result-info">
+              <div class="result-title">\{\{ getMovieName(movie) \}\}</div>
+              <div class="result-meta">
+                <span class="result-rating" :class="getRatingColor(movie.raw_data?.rating)">
+                  ★ \{\{ movie.raw_data?.rating || '—' \}\}
+                </span>
+                <span class="result-type">\{\{ TYPES_ENUM[movie.raw_data?.type] || movie.raw_data?.type \}\}</span>
+                <span class="result-year">\{\{ movie.raw_data?.year \}\}</span>
+              </div>
+            </div>
+          </router-link>
+        </div>
+
+        <!-- Error -->
+        <ErrorMessage v-if="errorMessage" :message="errorMessage" :code="errorCode" />
       </div>
-
-      <ErrorMessage v-if="errorMessage" :message="errorMessage" :code="errorCode" />
-
-      <button class="btn btn--close" @click="closeModal">
-        <i class="fas fa-close"></i>
-      </button>
     </div>
   </div>
 </template>
@@ -100,7 +114,6 @@ const searchTerm = ref('')
 const movies = ref([])
 const loading = ref(false)
 
-// Глобальные переменные для ошибок
 const errorMessage = ref('')
 const errorCode = ref(null)
 
@@ -122,13 +135,18 @@ onUnmounted(() => {
   document.removeEventListener('keydown', handleKeyDown)
 })
 
-// Очистка поиска
 const resetSearch = () => {
   searchTerm.value = ''
   movies.value = []
   errorMessage.value = ''
   errorCode.value = null
   showLayoutWarning.value = false
+}
+
+const clearSearch = () => {
+  searchTerm.value = ''
+  movies.value = []
+  searchInput.value?.focus()
 }
 
 const search = () => {
@@ -141,21 +159,17 @@ const search = () => {
 const performSearch = async () => {
   loading.value = true
   movies.value = []
-
-  // Сброс предыдущих ошибок
   errorMessage.value = ''
   errorCode.value = null
 
   try {
-    // Поиск по названию
     const results = await apiSearch(searchTerm.value)
     movies.value = (results || []).map((movie) => ({ ...movie, kp_id: movie.id.toString() }))
   } catch (error) {
-    // Используем универсальный обработчик ошибок
     const { message, code } = handleApiError(error)
     errorMessage.value = message
     errorCode.value = code
-    console.error('Ошибка при выполнении поиска:', error)
+    console.error('Search error:', error)
     movies.value = []
   } finally {
     loading.value = false
@@ -168,19 +182,16 @@ const debouncedPerformSearch = debounce(() => {
   } else if (searchTerm.value.length < 2) {
     movies.value = []
   }
-}, 700)
+}, 500)
 
 const closeModal = (event) => {
-  const isLeftClick = event.button === 0
-
-  // Проверяем, что не зажаты Ctrl или Cmd
-  const isNotModified = !event.ctrlKey && !event.metaKey
-
-  // Если это обычный клик, скрываем попап
-  if ((isLeftClick && isNotModified) || !event) {
-    navbarStore.closeSearchModal() // Используем метод из хранилища для закрытия модалки
-    resetSearch()
+  if (event?.button !== undefined) {
+    const isLeftClick = event.button === 0
+    const isNotModified = !event.ctrlKey && !event.metaKey
+    if (!isLeftClick || !isNotModified) return
   }
+  navbarStore.closeSearchModal()
+  resetSearch()
 }
 
 const handleInput = (event) => {
@@ -201,260 +212,319 @@ const handleTabKey = () => {
 
 const focusFirstMovieCard = () => {
   if (movies.value.length > 0) {
-    const firstMovieCard = document.querySelector('.search__movie')
-    if (firstMovieCard) {
-      firstMovieCard.focus()
-      activeMovieIndex.value = 0
-    }
+    activeMovieIndex.value = 0
+    const firstCard = document.querySelector('.search-result-item')
+    firstCard?.focus()
   }
 }
 
 const handleKeyDown = (event) => {
   if (!movies.value?.length) return
-
-  if (!event.target?.classList?.contains('search__movie')) {
-    return
-  }
+  if (!event.target?.classList?.contains('search-result-item')) return
 
   switch (event.key) {
-    case 'ArrowRight':
-      activeMovieIndex.value = (activeMovieIndex.value + 1) % movies.value.length
-      break
-    case 'ArrowLeft':
-      activeMovieIndex.value =
-        (activeMovieIndex.value - 1 + movies.value.length) % movies.value.length
-      break
-    case 'ArrowUp':
-      event.preventDefault()
-      if (activeMovieIndex.value <= 0) {
-        const searchInput = document.querySelector('.search-input')
-        if (searchInput) {
-          searchInput.focus()
-        }
-      } else {
-        activeMovieIndex.value = Math.max(activeMovieIndex.value - 1, 0)
-      }
-      break
     case 'ArrowDown':
       event.preventDefault()
       activeMovieIndex.value = Math.min(activeMovieIndex.value + 1, movies.value.length - 1)
       break
-    case 'Home':
-      activeMovieIndex.value = 0
-      break
-    case 'End':
-      activeMovieIndex.value = movies.value.length - 1
+    case 'ArrowUp':
+      event.preventDefault()
+      if (activeMovieIndex.value <= 0) {
+        searchInput.value?.focus()
+        activeMovieIndex.value = null
+      } else {
+        activeMovieIndex.value = Math.max(activeMovieIndex.value - 1, 0)
+      }
       break
   }
 }
 
 watch(activeMovieIndex, (newIndex) => {
   if (newIndex !== null) {
-    const movieCards = document.querySelectorAll('.search__movie')
-    if (movieCards[newIndex]) {
-      movieCards[newIndex].focus()
-    }
+    const cards = document.querySelectorAll('.search-result-item')
+    cards[newIndex]?.focus()
   }
 })
 
-// Автопоиск с задержкой
 watch(searchTerm, () => {
   debouncedPerformSearch()
 })
 </script>
 
 <style lang="scss" scoped>
-.search {
+.search-modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(20px);
+  z-index: 9999;
   display: flex;
+  align-items: flex-start;
   justify-content: center;
+  padding-top: 12vh;
+}
+
+.search-modal {
+  width: 100%;
+  max-width: 650px;
+  padding: 0 20px;
+  animation: modalSlideDown 0.3s ease-out;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes modalSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.search-modal-header {
+  display: flex;
   align-items: center;
-  z-index: 5;
-
-  &__content {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    background: rgba(30, 30, 30, 0.96);
-    padding: 20px;
-    border-radius: 8px;
-    max-width: 80%;
-    width: 100%;
-    max-height: 90vh;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-
-    @media screen and (max-width: 600px) {
-      max-width: 400px;
-    }
-
-    @media (min-width: 768px) {
-      max-width: 600px;
-    }
-
-    @media (min-width: 1200px) {
-      max-width: 800px;
-    }
-  }
-
-  &__results-wrapper {
-    flex: 1;
-    overflow-y: auto; // Прокрутка только для результатов
-    margin-top: 20px;
-    max-height: calc(90vh - 120px); // Ограничение высоты (учитывая высоту инпута и отступы)
-  }
-
-  &__results {
-    color: #fff;
-    width: 100%;
-    box-sizing: border-box;
-
-    /* Сообщение "Ничего не найдено" */
-    .no-results {
-      width: 100%;
-      text-align: center;
-      font-size: 18px;
-      margin: 20px auto;
-    }
-  }
-
-  .movie {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 10px 16px;
-    gap: 12px;
-    cursor: pointer;
-    text-decoration: none;
-    color: #fff;
-    border-radius: 10px;
-    outline: none;
-    margin: 2px;
-
-    &:hover {
-      background: rgba(34, 34, 34, 0.98);
-    }
-
-    &:focus {
-      background: rgba(34, 34, 34, 0.98);
-      box-shadow: 0 0 0 2px var(--accent-color);
-    }
-
-    &__poster {
-      width: 32px;
-    }
-
-    &__title {
-      font-size: 15px;
-      line-height: 18px;
-      font-weight: 500;
-      padding: 0;
-      margin: 0;
-    }
-
-    &__meta {
-      display: flex;
-      gap: 7px;
-      margin-top: 3px;
-    }
-
-    &__rating {
-      &.low {
-        color: #ff6b6b;
-      }
-
-      &.medium {
-        color: #ffd93d;
-      }
-
-      &.high {
-        color: #51cf66;
-      }
-    }
-  }
+  gap: 16px;
 }
 
-.input-wrapper {
-  position: relative;
-  width: 100%;
-  margin-top: 20px;
-}
-
-.search-input {
-  box-sizing: border-box;
-  width: 100%;
-  padding: 10px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  background: rgba(30, 30, 30, 0.8);
-  color: #fff;
+.search-pill-modal {
+  flex: 1;
+  background: rgba(40, 40, 40, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 16px 22px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
   transition: all 0.3s ease;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
 
-  &:focus {
-    outline: none;
-    border-color: var(--accent-color);
-    box-shadow: 0 0 0 2px var(--accent-transparent);
+.search-pill-modal:focus-within {
+  border-color: var(--accent-color);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 3px var(--accent-transparent);
+}
+
+.search-pill-modal.wrong-layout {
+  border-color: #ff8c00;
+}
+
+.search-icon {
+  color: var(--text-muted);
+  font-size: 1.2rem;
+}
+
+.search-input-modal {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-color);
+  font-size: 1.1rem;
+  outline: none;
+
+  &::placeholder {
+    color: var(--text-muted);
   }
+}
 
-  &.wrong-layout {
-    border-color: #ff8c00;
-    box-shadow: 0 0 5px rgba(255, 140, 0, 0.2);
+.reset-button {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+
+  &:hover {
+    color: var(--text-color);
+  }
+}
+
+.close-modal-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(60, 60, 60, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-color);
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+
+  &:hover {
+    background: rgba(80, 80, 80, 0.9);
+    transform: scale(1.05);
   }
 }
 
 .layout-warning {
-  position: absolute;
-  bottom: -40px;
-  left: 0;
-  right: 0;
   text-align: center;
   color: #ff8c00;
-  font-size: 14px;
+  font-size: 0.85rem;
   background: rgba(255, 140, 0, 0.15);
-  padding: 8px 12px;
-  border-radius: 5px;
-  pointer-events: none;
-  border: 1px solid rgba(255, 140, 0, 0.5);
+  padding: 10px 16px;
+  border-radius: 10px;
+  margin-top: 12px;
+  border: 1px solid rgba(255, 140, 0, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  opacity: 0;
-  transform: translateY(-10px);
-  transition: all 0.3s ease;
-  z-index: 1;
-  backdrop-filter: blur(5px);
+
+  i {
+    font-size: 14px;
+  }
 }
 
-.layout-warning.show {
-  opacity: 1;
-  transform: translateY(0);
+.search-modal-hint {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-top: 20px;
+  opacity: 0.7;
+
+  i {
+    margin-right: 6px;
+  }
 }
 
-.layout-warning i {
-  font-size: 16px;
-  color: #ff8c00;
+.search-results-container {
+  margin-top: 16px;
+  overflow-y: auto;
+  max-height: calc(80vh - 140px);
+  padding-right: 4px;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+  }
 }
 
+.results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.search-result-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: var(--text-color);
+  transition: all 0.2s ease;
+  outline: none;
+
+  &:hover,
+  &:focus,
+  &.focused {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  &:focus {
+    box-shadow: 0 0 0 2px var(--accent-color);
+  }
+}
+
+.result-poster {
+  width: 40px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.result-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.result-title {
+  font-size: 1rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.result-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.result-rating {
+  font-weight: 600;
+
+  &.low {
+    color: #ff6b6b;
+  }
+
+  &.medium {
+    color: #ffd93d;
+  }
+
+  &.high {
+    color: #51cf66;
+  }
+}
+
+.no-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+  gap: 12px;
+
+  .material-icons {
+    font-size: 48px;
+    opacity: 0.5;
+  }
+
+  p {
+    font-size: 1rem;
+    margin: 0;
+  }
+}
+
+/* Skeleton Loading */
 .movie-skeleton {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  padding: 10px 16px;
-  gap: 12px;
-  border-radius: 10px;
-  background: rgba(34, 34, 34, 0.5); // Цвет фона, похожий на реальный элемент
+  gap: 14px;
+  padding: 12px 16px;
+  border-radius: 12px;
 
   &__poster {
-    width: 32px;
-    height: 48px; // Высота постерa
+    width: 40px;
+    height: 60px;
     background: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
+    border-radius: 6px;
     animation: shimmer 1.5s infinite linear;
   }
 
@@ -466,8 +536,8 @@ watch(searchTerm, () => {
   }
 
   &__title {
-    width: 70%;
-    height: 18px; // Высота заголовка
+    width: 60%;
+    height: 16px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 4px;
     animation: shimmer 1.5s infinite linear;
@@ -475,12 +545,12 @@ watch(searchTerm, () => {
 
   &__meta {
     display: flex;
-    gap: 7px;
+    gap: 8px;
   }
 
   &__rating {
-    width: 40px;
-    height: 14px; // Высота рейтинга
+    width: 50px;
+    height: 12px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 4px;
     animation: shimmer 1.5s infinite linear;
@@ -506,14 +576,25 @@ watch(searchTerm, () => {
     rgba(255, 255, 255, 0.1) 75%
   );
   background-size: 200% 100%;
-  animation: shimmer 1.5s infinite linear;
 }
 
-.filter-select:focus {
-  border-color: var(--accent-color);
-}
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .search-modal-overlay {
+    padding-top: 8vh;
+  }
 
-.status.completed {
-  color: var(--accent-color);
+  .search-pill-modal {
+    padding: 14px 18px;
+  }
+
+  .search-input-modal {
+    font-size: 1rem;
+  }
+
+  .close-modal-btn {
+    width: 44px;
+    height: 44px;
+  }
 }
 </style>
