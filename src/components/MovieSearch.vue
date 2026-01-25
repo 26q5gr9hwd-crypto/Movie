@@ -222,8 +222,7 @@ import { useMainStore } from '@/store/main'
 import { useAuthStore } from '@/store/auth'
 import { USER_LIST_TYPES_ENUM } from '@/constants'
 
-import debounce from 'lodash/debounce'
-import { watchEffect, onMounted, ref, watch, computed, nextTick } from 'vue'
+import { watchEffect, onMounted, ref, computed, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 
 
@@ -340,15 +339,7 @@ function handleItemDeleted(deletedItemId) {
   history.value = history.value.filter((item) => item.kp_id !== deletedItemId)
 }
 
-const getTypeLabel = (type) => {
-  const labels = {
-    movie: 'Фильм',
-    series: 'Сериал',
-    cartoon: 'Мультфильм',
-    anime: 'Аниме'
-  }
-  return labels[type] || type
-}
+
 
 const resetSearch = () => {
   searchTerm.value = ''
