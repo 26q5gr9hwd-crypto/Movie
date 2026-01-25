@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 
 export const useThemeStore = defineStore('theme', {
   state: () => ({
-    accentColor: '#e50914',
+    accentColor: '#2196f3',
     customColors: [],
     accentColors: [
       { name: 'Netflix Red', value: '#e50914', hover: '#b20710' },
