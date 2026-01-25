@@ -1351,7 +1351,7 @@ import Notification from '@/components/notification/ToastMessage.vue'
 import TrailerCarousel from '@/components/TrailerCarousel.vue'
 import { useTrailerStore } from '@/store/trailer'
 import MovieRating from '@/components/MovieRating.vue'
-import Comments from '@/components/Comments.vue'
+
 import { getRatingColor } from '@/utils/ratingUtils'
 
 const infoLoading = ref(true)
@@ -1441,7 +1441,7 @@ const isInAnyList = computed(() => {
   )
 })
 
-const isCommentsEnabled = computed(() => mainStore.isCommentsEnabled)
+
 
 const setDocumentTitle = () => {
   if (movieInfo.value) {
