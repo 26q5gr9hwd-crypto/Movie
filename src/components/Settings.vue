@@ -109,9 +109,7 @@ const isHistoryAllowed = computed({
   set: (value) => mainStore.setHistoryAllowed(value)
 })
 
-const resetBackground = () => {
-  backgroundStore.resetBackground()
-}
+
 </script>
 
 <style scoped>
