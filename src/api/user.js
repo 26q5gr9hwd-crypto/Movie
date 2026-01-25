@@ -2,13 +2,24 @@ import { supabase } from '@/lib/supabase'
 import { getApi } from '@/api/axios'
 
 // ============ SUPABASE AUTH ============
-const signup = async ({ email, password }) => {
-  const { data, error } = await supabase.auth.signUp({ email, password })
+// Convert username to fake email (Supabase requires email, but users only see username)
+const usernameToEmail = (username) => `${username.toLowerCase()}@movies.local`
+
+const signup = async ({ username, password }) => {
+  const email = usernameToEmail(username)
+  const { data, error } = await supabase.auth.signUp({ 
+    email, 
+    password,
+    options: {
+      data: { username } // Store original username in user metadata
+    }
+  })
   if (error) throw error
   return data
 }
 
-const login = async ({ email, password }) => {
+const login = async ({ username, password }) => {
+  const email = usernameToEmail(username)
   const { data, error } = await supabase.auth.signInWithPassword({ email, password })
   if (error) throw error
   return data
