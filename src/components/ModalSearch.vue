@@ -30,12 +30,16 @@
       <!-- Layout Warning -->
       <div v-if="showLayoutWarning" class="layout-warning">
         <i class="fas fa-keyboard"></i>
-        Возможно, неправильная раскладка. Нажмите Tab для переключения на \{\{ suggestedLayout \}\} раскладку
+        Возможно, неправильная раскладка. Нажмите Tab для переключения на
+        {{ suggestedLayout }} раскладку
       </div>
 
       <!-- Search Hint (when no search) -->
       <div v-if="searchTerm?.length < 2 && !loading" class="search-modal-hint">
-        <span><i class="fas fa-keyboard"></i> Enter для поиска • Esc для закрытия</span>
+        <span
+          ><i class="fas fa-keyboard"></i> Enter для поиска • Esc для
+          закрытия</span
+        >
       </div>
 
       <!-- Search Results -->
@@ -54,7 +58,10 @@
         </template>
 
         <!-- No Results -->
-        <div v-else-if="movies.length === 0 && !loading && !errorMessage" class="no-results">
+        <div
+          v-else-if="movies.length === 0 && !loading && !errorMessage"
+          class="no-results"
+        >
           <span class="material-icons">search_off</span>
           <p>Ничего не найдено</p>
         </div>
@@ -69,20 +76,26 @@
             :to="{ name: 'movie-info', params: { kp_id: movie.kp_id } }"
             @click="closeModal"
           >
-            <img 
-              :src="movie.poster" 
-              :alt="getMovieName(movie)" 
+            <img
+              :src="movie.poster"
+              :alt="getMovieName(movie)"
               class="result-poster"
               loading="lazy"
             />
             <div class="result-info">
-              <div class="result-title">\{\{ getMovieName(movie) \}\}</div>
+              <div class="result-title">{{ getMovieName(movie) }}</div>
               <div class="result-meta">
-                <span class="result-rating" :class="getRatingColor(movie.raw_data?.rating)">
-                  ★ \{\{ movie.raw_data?.rating || '—' \}\}
+                <span
+                  class="result-rating"
+                  :class="getRatingColor(movie.raw_data?.rating)"
+                >
+                  ★ {{ movie.raw_data?.rating || '—' }}
                 </span>
-                <span class="result-type">\{\{ TYPES_ENUM[movie.raw_data?.type] || movie.raw_data?.type \}\}</span>
-                <span class="result-year">\{\{ movie.raw_data?.year \}\}</span>
+                <span class="result-type">
+                  {{ TYPES_ENUM[movie.raw_data?.type] || movie.raw_data?.type
+                  }}
+                </span>
+                <span class="result-year">{{ movie.raw_data?.year }}</span>
               </div>
             </div>
           </router-link>
@@ -98,10 +111,13 @@
 <script setup>
 import { apiSearch } from '@/api/movies'
 import ErrorMessage from '@/components/ErrorMessage.vue'
-import { TYPES_ENUM } from '@/constants'
-import { handleApiError } from '@/constants'
+import { handleApiError, TYPES_ENUM } from '@/constants'
 import { useNavbarStore } from '@/store/navbar'
-import { hasConsecutiveConsonants, suggestLayout, convertLayout } from '@/utils/keyboardLayout'
+import {
+  hasConsecutiveConsonants,
+  suggestLayout,
+  convertLayout,
+} from '@/utils/keyboardLayout'
 import debounce from 'lodash/debounce'
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
 import { useMainStore } from '@/store/main'
@@ -164,11 +180,15 @@ const performSearch = async () => {
 
   try {
     const results = await apiSearch(searchTerm.value)
-    movies.value = (results || []).map((movie) => ({ ...movie, kp_id: movie.id.toString() }))
+    movies.value = (results || []).map((movie) => ({
+      ...movie,
+      kp_id: movie.id.toString(),
+    }))
   } catch (error) {
     const { message, code } = handleApiError(error)
     errorMessage.value = message
     errorCode.value = code
+    // eslint-disable-next-line no-console
     console.error('Search error:', error)
     movies.value = []
   } finally {
@@ -225,7 +245,10 @@ const handleKeyDown = (event) => {
   switch (event.key) {
     case 'ArrowDown':
       event.preventDefault()
-      activeMovieIndex.value = Math.min(activeMovieIndex.value + 1, movies.value.length - 1)
+      activeMovieIndex.value = Math.min(
+        activeMovieIndex.value + 1,
+        movies.value.length - 1
+      )
       break
     case 'ArrowUp':
       event.preventDefault()
@@ -306,7 +329,8 @@ watch(searchTerm, () => {
 
 .search-pill-modal:focus-within {
   border-color: var(--accent-color);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 3px var(--accent-transparent);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 0 3px var(--accent-transparent);
 }
 
 .search-pill-modal.wrong-layout {
