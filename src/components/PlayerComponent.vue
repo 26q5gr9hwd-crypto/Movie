@@ -55,11 +55,14 @@
           }"
           @load="onIframeLoad"
         ></iframe>
-        <SpinnerLoading
-          v-if="iframeLoading"
-          :text="`Загружается плеер: ${selectedPlayerInternal ? cleanName(selectedPlayerInternal.translate) : 'Загружается список плееров'}\nЕсли плеер не грузится, то смените плеер выше или включите VPN`"
-          style="white-space: pre-line"
-        />
+        <div v-if="iframeLoading" class="player-loader">
+          <div class="loader-ring">
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+          </div>
+        </div>
       </div>
 
       <!-- Кнопка закрытия в театральном режиме -->
@@ -106,7 +109,6 @@ import { getPlayers, getShikiPlayers } from '@/api/movies'
 import { handleApiError } from '@/constants'
 import { addToList, delFromList } from '@/api/user'
 import ErrorMessage from '@/components/ErrorMessage.vue'
-import SpinnerLoading from '@/components/SpinnerLoading.vue'
 import Notification from '@/components/notification/ToastMessage.vue'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
