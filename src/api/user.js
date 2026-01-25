@@ -55,6 +55,14 @@ const updateUserName = async (name) => {
   return data
 }
 
+const login = async ({ username, password }) => {
+  const { data } = await apiCall((api) => api.post('/auth/login', { username, password }))
+  return data
+}
+const signup = async ({ username, password }) => {
+  const { data } = await apiCall((api) => api.post('/auth/signup', { username, password }))
+  return data
+}
 export {
   addToList,
   getMyLists,
@@ -65,5 +73,7 @@ export {
   getTGAuthResult,
   getUserLists,
   getListCounters,
-  updateUserName
+  updateUserName,
+  login,
+  signup
 }
