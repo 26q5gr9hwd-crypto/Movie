@@ -211,7 +211,6 @@ const { closeNavbar } = navbarStore
   object-fit: contain;
 }
 
-/* Transitions */
 .slide-enter-active,
 .slide-leave-active {
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -233,4 +232,3 @@ const { closeNavbar } = navbarStore
   z-index: 99;
 }
 </style>
-</tr>
