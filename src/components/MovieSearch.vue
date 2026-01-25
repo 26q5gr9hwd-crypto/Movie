@@ -1,209 +1,190 @@
 <template>
-  <div class="wrapper">
-    <div class="mainpage">
-      <!-- Hero Section -->
-      <section v-if="featuredMovie" class="hero-section">
-        <div
-          class="hero-backdrop"
-          :style="{ backgroundImage: `url(${featuredMovie.poster})` }"
-        ></div>
-        <div class="hero-gradient"></div>
-
-        <div class="hero-content">
-          <h1 class="hero-title">{{ featuredMovie.title }}</h1>
-
-          <div class="hero-meta">
-            <span v-if="featuredMovie.rating_kp" class="hero-rating">
-              <i class="fas fa-star"></i>
-              {{ featuredMovie.rating_kp }}
-            </span>
-            <span v-if="featuredMovie.year" class="hero-year">
-              {{ featuredMovie.year }}
-            </span>
-            <span v-if="featuredMovie.type" class="hero-type">
-              {{ featuredMovie.type }}
-            </span>
-          </div>
-
-          <p v-if="featuredMovie.description" class="hero-description">
-            {{ truncateText(featuredMovie.description, 200) }}
-          </p>
-
-          <div class="hero-actions">
-            <button class="btn-primary" @click="goToMovie(featuredMovie.kp_id)">
-              <i class="fas fa-play"></i> Смотреть
-            </button>
-            <button class="btn-secondary" @click="openRandomMovie">
-              <i class="fas fa-dice"></i> Случайный фильм
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <!-- Search -->
-      <div class="search-section">
-        <div class="search-container">
-          <div class="input-wrapper">
-            <i class="fas fa-search search-icon"></i>
-            <input
-              ref="searchInput"
-              v-model="searchTerm"
-              class="search-input"
-              :class="{ 'wrong-layout': showLayoutWarning }"
-              placeholder="Поиск фильмов и сериалов..."
-              @keydown.enter.prevent="search"
-              @keydown.tab.prevent="handleTabKey"
-              @input="handleInput"
-            />
-
-            <div
-              v-if="showLayoutWarning"
-              class="layout-warning show"
-            >
-              Tab — переключить на {{ suggestedLayout }}
-            </div>
-          </div>
-        </div>
+  <div class="featured-movie-container">
+    <div class="featured-movie">
+      <div class="poster-section">
+        <img
+          v-if="featuredMovie?.poster?.url"
+          :src="featuredMovie.poster.url"
+          :alt="featuredMovie.title"
+          class="poster-image"
+        />
       </div>
 
-      <!-- Results -->
-      <div class="content-container">
-        <MovieList
-          :movies-list="movies"
-          :loading="loading"
-        />
+      <div class="content-section">
+        <h1 class="movie-title">{{ featuredMovie.title }}</h1>
 
-        <ErrorMessage
-          v-if="errorMessage"
-          :message="errorMessage"
-        />
+        <div class="movie-meta">
+          <span class="rating">⭐ {{ featuredMovie.rating_kp }}</span>
+          <span class="year">{{ featuredMovie.year }}</span>
+          <span class="type">{{ featuredMovie.type }}</span>
+        </div>
+
+        <p class="description">
+          {{ truncateText(featuredMovie.description, 200) }}
+        </p>
+
+        <button
+          :class="['action-button', `layout-${suggestedLayout}`]"
+          @click="selectMovie(featuredMovie)"
+        >
+          Select This Movie
+        </button>
       </div>
     </div>
 
-    <RandomMovieModal
-      :is-open="showRandomModal"
-      :movie="randomMovie"
-      :loading="randomLoading"
-      :error="randomError"
-      @close="closeRandomModal"
-      @get-new-movie="fetchRandomMovie"
-    />
+    <div class="layout-selector">
+      <button
+        v-for="type in layoutTypes"
+        :key="type.value"
+        :class="['layout-button', { active: suggestedLayout === type.value }]"
+        @click="suggestedLayout = type.value"
+      >
+        {{ type.label }}
+      </button>
+    </div>
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
-import { useRouter } from "vue-router";
+<script setup>
+import { ref, computed } from 'vue'
 
-/* Components */
-import MovieList from "@/components/MovieList.vue";
-import ErrorMessage from "@/components/ErrorMessage.vue";
-import RandomMovieModal from "@/components/RandomMovieModal.vue";
+const props = defineProps({
+  movie: {
+    type: Object,
+    required: true,
+  },
+})
 
-/* Router */
-const router = useRouter();
+const emit = defineEmits(['movie-selected'])
 
-/* Search */
-const searchInput = ref<HTMLInputElement | null>(null);
-const searchTerm = ref("");
-const loading = ref(false);
-const errorMessage = ref("");
-const movies = ref<any[]>([]);
-const searchPerformed = ref(false);
+const suggestedLayout = ref('grid')
 
-/* Hero */
-const featuredMovie = computed(() => movies.value[0] || null);
+const layoutTypes = [
+  { value: 'grid', label: 'Grid View' },
+  { value: 'list', label: 'List View' },
+  { value: 'carousel', label: 'Carousel View' },
+]
 
-/* Layout detection */
-const showLayoutWarning = ref(false);
-const suggestedLayout = ref("EN");
+const featuredMovie = computed(() => props.movie)
 
-/* Random movie modal */
-const showRandomModal = ref(false);
-const randomMovie = ref<any | null>(null);
-const randomLoading = ref(false);
-const randomError = ref("");
-
-/* Helpers */
-function truncateText(text: string, maxLength: number): string {
-  if (!text) return "";
-  return text.length > maxLength
-    ? text.slice(0, maxLength) + "..."
-    : text;
+const truncateText = (text, maxLength) => {
+  if (!text) return ''
+  return text.length > maxLength ? text.slice(0, maxLength) + '...' : text
 }
 
-/* Search logic */
-async function search() {
-  if (!searchTerm.value.trim()) return;
-
-  loading.value = true;
-  errorMessage.value = "";
-  searchPerformed.value = true;
-
-  try {
-    // ⛔ Replace with real API
-    movies.value = [
-      {
-        kp_id: 1,
-        title: "Example Movie",
-        description: "Movie description goes here",
-        poster: "https://via.placeholder.com/800x450",
-        rating_kp: 8.5,
-        year: 2024,
-        type: "Movie",
-      },
-    ];
-  } catch (err) {
-    errorMessage.value = "Ошибка поиска";
-  } finally {
-    loading.value = false;
-  }
+const selectMovie = (movie) => {
+  // eslint-disable-next-line no-console
+  console.log('Selected movie:', movie)
+  emit('movie-selected', movie)
 }
-
-function handleInput() {
-  showLayoutWarning.value =
-    /[а-яА-Я]/.test(searchTerm.value);
-}
-
-function handleTabKey() {
-  suggestedLayout.value =
-    suggestedLayout.value === "EN" ? "RU" : "EN";
-  showLayoutWarning.value = false;
-}
-
-/* Navigation */
-function goToMovie(id: number) {
-  router.push({ name: "movie", params: { id } });
-}
-
-/* Random movie */
-function openRandomMovie() {
-  showRandomModal.value = true;
-  fetchRandomMovie();
-}
-
-async function fetchRandomMovie() {
-  randomLoading.value = true;
-  randomError.value = "";
-
-  try {
-    randomMovie.value = {
-      title: "Random Movie",
-      poster: "https://via.placeholder.com/300x450",
-    };
-  } catch (err) {
-    randomError.value = "Ошибка загрузки случайного фильма";
-  } finally {
-    randomLoading.value = false;
-  }
-}
-
-function closeRandomModal() {
-  showRandomModal.value = false;
-}
-
-/* Autofocus */
-onMounted(() => {
-  searchInput.value?.focus();
-});
 </script>
+
+<style scoped>
+.featured-movie-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.featured-movie {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 30px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 30px;
+  color: white;
+}
+
+.poster-section {
+  flex-shrink: 0;
+}
+
+.poster-image {
+  width: 200px;
+  height: 300px;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.content-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.movie-title {
+  font-size: 2.5rem;
+  margin: 0 0 15px 0;
+  font-weight: bold;
+}
+
+.movie-meta {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+  font-size: 1.1rem;
+}
+
+.rating,
+.year,
+.type {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 8px 15px;
+  border-radius: 20px;
+}
+
+.description {
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  opacity: 0.95;
+}
+
+.action-button {
+  padding: 12px 30px;
+  font-size: 1rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  background: white;
+  color: #667eea;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  align-self: flex-start;
+}
+
+.action-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+}
+
+.layout-selector {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.layout-button {
+  padding: 10px 20px;
+  border: 2px solid #667eea;
+  background: white;
+  color: #667eea;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.layout-button.active {
+  background: #667eea;
+  color: white;
+}
+
+.layout-button:hover {
+  background: #667eea;
+  color: white;
+}
+</style>
