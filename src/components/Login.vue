@@ -1,6 +1,6 @@
 <template>
   <div class="login-page">
-    <h1> isSignup ? 'Регистрация' : 'Вход' </h1>
+    <h1>{{ isSignup ? 'Регистрация' : 'Вход' }}</h1>
 
     <div class="login-container dark-theme">
       <div v-if="loading" class="loading-container">
@@ -46,11 +46,11 @@
         </div>
 
         <div v-if="error" class="error-message">
-           error 
+          {{ error }}
         </div>
 
         <button type="submit" class="submit-btn" :disabled="loading">
-           isSignup ? 'Зарегистрироваться' : 'Войти' 
+          {{ isSignup ? 'Зарегистрироваться' : 'Войти' }}
         </button>
 
         <div class="toggle-mode">
@@ -136,9 +136,15 @@ const handleSubmit = async () => {
   } catch (err) {
     if (err.response?.data?.error) {
       error.value = err.response.data.error
-    } else if (err.message?.includes('Invalid login credentials') || err.message?.includes('Invalid credentials')) {
+    } else if (
+      err.message?.includes('Invalid login credentials') ||
+      err.message?.includes('Invalid credentials')
+    ) {
       error.value = 'Неверное имя пользователя или пароль'
-    } else if (err.message?.includes('User already registered') || err.message?.includes('already exists')) {
+    } else if (
+      err.message?.includes('User already registered') ||
+      err.message?.includes('already exists')
+    ) {
       error.value = 'Пользователь с таким именем уже существует'
     } else {
       error.value = err.message || 'Произошла ошибка. Попробуйте позже.'
