@@ -116,7 +116,7 @@ import { useNavbarStore } from '@/store/navbar'
 import {
   hasConsecutiveConsonants,
   suggestLayout,
-  convertLayout,
+  convertLayout
 } from '@/utils/keyboardLayout'
 import debounce from 'lodash/debounce'
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
