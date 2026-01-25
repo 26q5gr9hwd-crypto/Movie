@@ -64,9 +64,7 @@
       </div>
     </nav>
 
-    <div v-if="activeTooltip !== null" class="tooltip" :style="tooltipStyle">
-       tooltipText 
-    </div>
+    <div v-if="activeTooltip !== null" class="tooltip" :style="tooltipStyle" v-text="getTooltipText()"></div>
   </aside>
 </template>
 
@@ -91,11 +89,11 @@ const isNavigatingBack = ref(false)
 // Tooltip state
 const tooltipPosition = ref({ x: 0, y: 0 })
 const activeTooltip = ref(null)
-const tooltipText = computed(() => {
+const getTooltipText = () => {
   if (activeTooltip.value === null) return ''
   if (activeTooltip.value === props.links.length) return 'Поиск'
   return props.links[activeTooltip.value]?.text || ''
-})
+}
 let tooltipTimeout = null
 let tooltipEvent = null
 
