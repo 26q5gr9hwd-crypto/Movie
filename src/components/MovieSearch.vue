@@ -40,25 +40,6 @@
         </div>
       </section>
 
-      <!-- Fallback hero -->
-      <section v-else class="hero-section hero-minimal">
-        <div class="hero-gradient"></div>
-        <div class="hero-content">
-          <h1 class="hero-title">Откройте мир кино</h1>
-          <p class="hero-description">
-            Тысячи фильмов и сериалов в одном месте
-          </p>
-          <div class="hero-actions">
-            <button class="btn-primary" @click="focusSearch">
-              <i class="fas fa-search"></i> Найти фильм
-            </button>
-            <button class="btn-secondary" @click="openRandomMovie">
-              <i class="fas fa-dice"></i> Мне повезёт
-            </button>
-          </div>
-        </div>
-      </section>
-
       <!-- Search -->
       <div class="search-section">
         <div class="search-container">
@@ -72,121 +53,32 @@
               placeholder="Поиск фильмов и сериалов..."
               @keydown.enter.prevent="search"
               @keydown.tab.prevent="handleTabKey"
-              @keydown.down.prevent="focusFirstMovieCard"
               @input="handleInput"
             />
-            <button
-              v-if="searchTerm"
-              class="clear-button"
-              @click="resetSearch"
-            >
-              <i class="fas fa-times"></i>
-            </button>
 
             <div
               v-if="showLayoutWarning"
               class="layout-warning show"
             >
-              <i class="fas fa-keyboard"></i>
-              Возможно, неправильная раскладка. Tab — переключить на
-              {{ suggestedLayout }}
+              Tab — переключить на {{ suggestedLayout }}
             </div>
           </div>
-
-          <button
-            class="advanced-toggle"
-            :class="{ active: showAdvanced }"
-            @click="showAdvanced = !showAdvanced"
-          >
-            <i class="fas fa-sliders-h"></i>
-          </button>
         </div>
-
-        <transition name="slide">
-          <div v-if="showAdvanced" class="advanced-search">
-            <button
-              v-for="type in searchTypes"
-              :key="type.value"
-              class="search-type-btn"
-              :class="{ active: searchType === type.value }"
-              @click="setSearchType(type.value)"
-            >
-              {{ type.label }}
-            </button>
-          </div>
-        </transition>
       </div>
 
       <!-- Results -->
       <div class="content-container">
-        <section v-if="searchPerformed" class="content-section">
-          <h2 class="section-title">Результаты поиска</h2>
+        <MovieList
+          :movies-list="movies"
+          :loading="loading"
+        />
 
-          <MovieList
-            :movies-list="movies"
-            :is-history="false"
-            :loading="loading"
-          />
-
-          <div
-            v-if="movies.length === 0 && !loading && !errorMessage"
-            class="empty-state"
-          >
-            <i class="fas fa-film"></i>
-            <p>Ничего не найдено</p>
-          </div>
-
-          <ErrorMessage
-            v-if="errorMessage"
-            :message="errorMessage"
-            :code="errorCode"
-          />
-        </section>
-
-        <!-- History -->
-        <section v-if="!searchTerm" class="content-section">
-          <div class="section-header">
-            <h2 class="section-title">
-              <i class="fas fa-history"></i> Продолжить просмотр
-            </h2>
-
-            <button
-              v-if="history.length"
-              class="clear-history-btn"
-              @click="showModal = true"
-            >
-              <i class="fas fa-trash-alt"></i> Очистить
-            </button>
-          </div>
-
-          <SpinnerLoading v-if="loading" />
-
-          <div v-else-if="!history.length" class="empty-state">
-            <i class="fas fa-film"></i>
-            <p>История пуста</p>
-            <span class="empty-hint">
-              Ваши просмотренные фильмы появятся здесь
-            </span>
-          </div>
-
-          <MovieList
-            v-else
-            :movies-list="history"
-            :is-history="true"
-            @item-deleted="handleItemDeleted"
-          />
-
-          <BaseModal
-            :is-open="showModal"
-            message="Очистить историю просмотра?"
-            @confirm="clearAllHistory"
-            @close="showModal = false"
-          />
-        </section>
+        <ErrorMessage
+          v-if="errorMessage"
+          :message="errorMessage"
+        />
       </div>
     </div>
-
-    <FooterDonaters />
 
     <RandomMovieModal
       :is-open="showRandomModal"
@@ -198,3 +90,120 @@
     />
   </div>
 </template>
+
+<script setup lang="ts">
+import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
+
+/* Components */
+import MovieList from "@/components/MovieList.vue";
+import ErrorMessage from "@/components/ErrorMessage.vue";
+import RandomMovieModal from "@/components/RandomMovieModal.vue";
+
+/* Router */
+const router = useRouter();
+
+/* Search */
+const searchInput = ref<HTMLInputElement | null>(null);
+const searchTerm = ref("");
+const loading = ref(false);
+const errorMessage = ref("");
+const movies = ref<any[]>([]);
+const searchPerformed = ref(false);
+
+/* Hero */
+const featuredMovie = computed(() => movies.value[0] || null);
+
+/* Layout detection */
+const showLayoutWarning = ref(false);
+const suggestedLayout = ref("EN");
+
+/* Random movie modal */
+const showRandomModal = ref(false);
+const randomMovie = ref<any | null>(null);
+const randomLoading = ref(false);
+const randomError = ref("");
+
+/* Helpers */
+function truncateText(text: string, maxLength: number): string {
+  if (!text) return "";
+  return text.length > maxLength
+    ? text.slice(0, maxLength) + "..."
+    : text;
+}
+
+/* Search logic */
+async function search() {
+  if (!searchTerm.value.trim()) return;
+
+  loading.value = true;
+  errorMessage.value = "";
+  searchPerformed.value = true;
+
+  try {
+    // ⛔ Replace with real API
+    movies.value = [
+      {
+        kp_id: 1,
+        title: "Example Movie",
+        description: "Movie description goes here",
+        poster: "https://via.placeholder.com/800x450",
+        rating_kp: 8.5,
+        year: 2024,
+        type: "Movie",
+      },
+    ];
+  } catch (err) {
+    errorMessage.value = "Ошибка поиска";
+  } finally {
+    loading.value = false;
+  }
+}
+
+function handleInput() {
+  showLayoutWarning.value =
+    /[а-яА-Я]/.test(searchTerm.value);
+}
+
+function handleTabKey() {
+  suggestedLayout.value =
+    suggestedLayout.value === "EN" ? "RU" : "EN";
+  showLayoutWarning.value = false;
+}
+
+/* Navigation */
+function goToMovie(id: number) {
+  router.push({ name: "movie", params: { id } });
+}
+
+/* Random movie */
+function openRandomMovie() {
+  showRandomModal.value = true;
+  fetchRandomMovie();
+}
+
+async function fetchRandomMovie() {
+  randomLoading.value = true;
+  randomError.value = "";
+
+  try {
+    randomMovie.value = {
+      title: "Random Movie",
+      poster: "https://via.placeholder.com/300x450",
+    };
+  } catch (err) {
+    randomError.value = "Ошибка загрузки случайного фильма";
+  } finally {
+    randomLoading.value = false;
+  }
+}
+
+function closeRandomModal() {
+  showRandomModal.value = false;
+}
+
+/* Autofocus */
+onMounted(() => {
+  searchInput.value?.focus();
+});
+</script>
