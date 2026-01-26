@@ -34,8 +34,8 @@
         class="search-modal-hint"
       >
         <span
-          ><i class="fas fa-keyboard"></i> Enter для поиска • Esc для
-          закрытия</span
+          ><i class="fas fa-keyboard"></i> Enter для поиска •
+          Esc для закрытия</span
         >
       </div>
 
@@ -56,7 +56,9 @@
 
         <!-- No Results -->
         <div
-          v-else-if="movies.length === 0 && !loading && !errorMessage"
+          v-else-if="
+            movies.length === 0 && !loading && !errorMessage
+          "
           class="no-results"
         >
           <span class="material-icons">search_off</span>
@@ -67,18 +69,28 @@
         <div v-else-if="movies.length > 0" class="results-list">
           <router-link
             v-for="(movie, index) in movies"
-            :key="movie.id"
+            :key="movie.kp_id"
             class="search-result-item"
             :class="{ focused: activeMovieIndex === index }"
-            :to="{ name: 'movie-info', params: { kp_id: movie.kp_id } }"
+            :to="{
+              name: 'movie-info',
+              params: { kp_id: movie.kp_id }
+            }"
             @click="closeModal"
           >
             <img
+              v-if="movie.poster"
               :src="movie.poster"
               :alt="getMovieName(movie)"
               class="result-poster"
               loading="lazy"
             />
+            <div
+              v-else
+              class="result-poster result-poster--placeholder"
+            >
+              <i class="fas fa-image"></i>
+            </div>
             <div class="result-info">
               <div class="result-title">
                 {{ getMovieName(movie) }}
@@ -86,12 +98,16 @@
               <div class="result-meta">
                 <span
                   class="result-rating"
-                  :class="getRatingColor(movie.raw_data?.rating)"
+                  :class="
+                    getRatingColor(movie.raw_data?.rating)
+                  "
                 >
                   ★ {{ movie.raw_data?.rating || '—' }}
                 </span>
                 <span class="result-type">
-                  {{ TYPES_ENUM[movie.type] || movie.type }}
+                  {{
+                    TYPES_ENUM[movie.type] || movie.type
+                  }}
                 </span>
                 <span class="result-year">
                   {{ movie.year }}
@@ -119,11 +135,42 @@ import ErrorMessage from '@/components/ErrorMessage.vue'
 import { handleApiError, TYPES_ENUM } from '@/constants'
 import { useNavbarStore } from '@/store/navbar'
 import debounce from 'lodash/debounce'
-import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
+import {
+  ref,
+  watch,
+  nextTick,
+  onMounted,
+  onUnmounted
+} from 'vue'
 import { getRatingColor } from '@/utils/ratingUtils'
 import { getMovieName } from '@/utils/textUtils'
 
 const navbarStore = useNavbarStore()
+
+// Helper function to normalize movie data
+const normalizeMovie = (movie) => ({
+  ...movie,
+  kp_id: (movie.kp_id ?? movie.id)?.toString(),
+  title:
+    movie.title ||
+    movie.name ||
+    movie.raw_data?.name_ru ||
+    movie.raw_data?.name_en ||
+    movie.raw_data?.name_original ||
+    '',
+  year: movie.year || movie.raw_data?.year || null,
+  poster:
+    movie.poster ||
+    movie.cover ||
+    movie.raw_data?.poster?.url ||
+    movie.raw_data?.poster_url ||
+    null,
+  rating_kp: movie.rating_kp ||
+    (movie.raw_data?.rating !== 'null'
+      ? movie.raw_data?.rating
+      : null),
+  type: movie.type || movie.raw_data?.type || null
+})
 
 const searchTerm = ref('')
 const movies = ref([])
@@ -173,10 +220,7 @@ const performSearch = async () => {
 
   try {
     const results = await apiSearch(searchTerm.value)
-    movies.value = (results || []).map((movie) => ({
-      ...movie,
-      kp_id: movie.id.toString()
-    }))
+    movies.value = (results || []).map(normalizeMovie)
   } catch (error) {
     const { message, code } = handleApiError(error)
     errorMessage.value = message
@@ -209,14 +253,18 @@ const closeModal = (event) => {
 const focusFirstMovieCard = () => {
   if (movies.value.length > 0) {
     activeMovieIndex.value = 0
-    const firstCard = document.querySelector('.search-result-item')
+    const firstCard = document.querySelector(
+      '.search-result-item'
+    )
     firstCard?.focus()
   }
 }
 
 const handleKeyDown = (event) => {
   if (!movies.value?.length) return
-  if (!event.target?.classList?.contains('search-result-item'))
+  if (
+    !event.target?.classList?.contains('search-result-item')
+  )
     return
 
   switch (event.key) {
@@ -244,7 +292,9 @@ const handleKeyDown = (event) => {
 
 watch(activeMovieIndex, (newIndex) => {
   if (newIndex !== null) {
-    const cards = document.querySelectorAll('.search-result-item')
+    const cards = document.querySelectorAll(
+      '.search-result-item'
+    )
     cards[newIndex]?.focus()
   }
 })
@@ -433,6 +483,15 @@ watch(searchTerm, () => {
   object-fit: cover;
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+
+  &--placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    font-size: 1.4rem;
+  }
 }
 
 .result-info {
