@@ -154,13 +154,15 @@ const showPlayerModal = ref(false)
 const errorMessage = ref('')
 const errorCode = ref(null)
 
-const maxPlayerHeightValue = ref(window.innerHeight * 0.9)
+// Capped to ~65vh for cinematic frame feel (was 0.9)
+const maxPlayerHeightValue = ref(window.innerHeight * 0.65)
 const maxPlayerHeight = computed(
   () => `${maxPlayerHeightValue.value}px`
 )
 const isMobile = computed(() => mainStore.isMobile)
 
 const notificationRef = ref(null)
+const theaterModeCloseButtonTimeout = ref(null)
 
 const aspectRatio = computed({
   get: () => playerStore.aspectRatio,
@@ -292,10 +294,11 @@ const toggleTheaterMode = () => {
   })
 }
 
-const theaterModeCloseButtonTimeout = ref(null)
 const showCloseButton = () => {
-  theaterModeCloseButtonTimeout.value = setTimeout(() => {
+  if (theaterModeCloseButtonTimeout.value) {
     clearTimeout(theaterModeCloseButtonTimeout.value)
+  }
+  theaterModeCloseButtonTimeout.value = setTimeout(() => {
     closeButtonVisible.value = false
   }, 4000)
   closeButtonVisible.value = true
@@ -337,15 +340,15 @@ const handlePlayerSelect = (player) => {
   emit('update:selectedPlayer', player)
 }
 
-watch(selectedPlayerInternal, (newVal) => {
-  if (newVal) {
-    iframeLoading.value = true
-    if (!newVal.key.toLowerCase().includes('torrents')) {
-      playerStore.updatePreferredPlayer(normalizeKey(newVal.key))
+watch(
+  () => props.kpId,
+  async (newKpId) => {
+    if (newKpId && newKpId !== kp_id.value) {
+      kp_id.value = newKpId
+      await fetchPlayers()
     }
-    emit('update:selectedPlayer', newVal)
   }
-})
+)
 
 watch(
   () => route.params.kp_id,
@@ -406,6 +409,7 @@ const toggleList = async (type) => {
   } catch (error) {
     const { message, code } = handleApiError(error)
     notificationRef.value.showNotification(`${message} ${code}`)
+    hasError = true
   }
   if (!hasError) {
     emit('update:movieInfo')
@@ -426,6 +430,9 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  if (theaterModeCloseButtonTimeout.value) {
+    clearTimeout(theaterModeCloseButtonTimeout.value)
+  }
   window.removeEventListener('resize', updateScaleFactor)
   window.removeEventListener('mousemove', showCloseButton)
   document.removeEventListener('keydown', onKeyDown)
