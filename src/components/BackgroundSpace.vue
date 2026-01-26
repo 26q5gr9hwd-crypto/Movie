@@ -48,7 +48,8 @@ const route = useRoute()
 const backgrounds = ref(['', ''])
 const activeIndex = ref(0)
 
-const backgroundUrl = computed(() => backgroundStore.backgroundUrl)
+// Use currentBackground getter for unified source of truth
+const currentBackground = computed(() => backgroundStore.currentBackground)
 const backgroundType = computed(() => backgroundStore.backgroundType)
 const isBlurActive = computed(() => backgroundStore.isBlurActive)
 const moviePoster = computed(() => backgroundStore.moviePoster)
@@ -77,8 +78,8 @@ const getBackdropStyle = (index) => {
 }
 
 onMounted(() => {
-  if (backgroundUrl.value) {
-    backgrounds.value = [backgroundUrl.value, backgroundUrl.value]
+  if (currentBackground.value) {
+    backgrounds.value = [currentBackground.value, currentBackground.value]
   }
 })
 
@@ -98,7 +99,7 @@ watch(
 )
 
 // Smooth crossfade when background URL changes (on movie pages)
-watch(backgroundUrl, (newUrl) => {
+watch(currentBackground, (newUrl) => {
   if (!newUrl) return
 
   const img = new Image()
