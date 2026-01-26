@@ -1,11 +1,24 @@
 <template>
   <div class="wrapper">
     <div class="mainpage">
-      <!-- Hero Section with Featured Movie -->
+      <!-- Hero Section with Featured Movie (always mounted to prevent CLS) -->
       <section
-        v-if="!searchPerformed && featuredMovie"
+        v-show="!searchPerformed"
         class="hero-section"
       >
+        <!-- Skeleton while loading -->
+        <template v-if="!featuredMovie">
+          <div class="hero-skeleton">
+            <div class="hero-skeleton-content">
+              <div class="skeleton-title"></div>
+              <div class="skeleton-meta"></div>
+              <div class="skeleton-description"></div>
+              <div class="skeleton-buttons"></div>
+            </div>
+          </div>
+        </template>
+        <!-- Actual content -->
+        <template v-else>
         <img
           v-if="featuredMovie.backdrop || featuredMovie.cover"
           :src="featuredMovie.backdrop || featuredMovie.cover"
@@ -61,6 +74,7 @@
             </router-link>
           </div>
         </div>
+        </template>
       </section>
 
       <!-- Floating Search Button -->
@@ -304,7 +318,9 @@ const fetchPopularMovies = async () => {
       type: movie.type || movie.raw_data?.type,
       backdrop:
         movie.raw_data?.backdrop?.url ||
-        movie.raw_data?.poster?.url
+        movie.raw_data?.cover?.url ||
+        movie.raw_data?.screenshots?.[0] ||
+        null  // Don't fallback to poster (vertical) for hero
     }))
   } catch (error) {
     const { message } = handleApiError(error)
@@ -425,6 +441,70 @@ onMounted(() => {
   padding-bottom: 40px;
 }
 
+/* Hero Skeleton (CLS fix) */
+.hero-skeleton {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    var(--bg-secondary) 0%,
+    var(--bg-tertiary) 100%
+  );
+}
+.hero-skeleton-content {
+  position: absolute;
+  bottom: 15%;
+  left: 5%;
+  max-width: 550px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.skeleton-title {
+  width: 350px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  animation: shimmer 1.5s infinite linear;
+  background-position: -200% 0;
+}
+.skeleton-meta {
+  width: 200px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  animation: shimmer 1.5s infinite linear;
+  background-position: -200% 0;
+}
+.skeleton-description {
+  width: 450px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  animation: shimmer 1.5s infinite linear;
+  background-position: -200% 0;
+}
+.skeleton-buttons {
+  display: flex;
+  gap: 12px;
+}
+.skeleton-buttons::before,
+.skeleton-buttons::after {
+  content: '';
+  width: 140px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  animation: shimmer 1.5s infinite linear;
+  background-position: -200% 0;
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
 /* Hero Section */
 .hero-section {
   position: relative;
@@ -736,19 +816,6 @@ onMounted(() => {
 
 /* Skeleton Loading */
 .skeleton-row {
-  display: flex;
-  gap: 10px;
-  padding: 0 4%;
-  overflow: hidden;
-}
-
-.skeleton-row::before {
-  content: '';
-  display: flex;
-  gap: 10px;
-}
-
-.skeleton-row {
   height: 270px;
   background: linear-gradient(
     90deg,
@@ -759,10 +826,24 @@ onMounted(() => {
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite linear;
   border-radius: 8px;
+  padding: 0 4%;
 }
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
+  .skeleton-title {
+    width: 250px;
+    height: 36px;
+  }
+  .skeleton-description {
+    width: 280px;
+    height: 40px;
+  }
+  .hero-skeleton-content {
+    left: 4%;
+    right: 4%;
+    bottom: 12%;
+  }
   .hero-section {
     height: 60vh;
     min-height: 400px;
