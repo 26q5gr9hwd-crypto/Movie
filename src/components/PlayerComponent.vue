@@ -120,7 +120,7 @@ import {
   onBeforeUnmount,
   onMounted,
   ref,
-  watch
+  watch,
 } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import PlayerModal from '@/components/PlayerModal.vue'
@@ -136,8 +136,8 @@ const props = defineProps({
   kpId: String,
   movieInfo: {
     type: Object,
-    default: () => ({})
-  }
+    default: () => ({}),
+  },
 })
 const emit = defineEmits(['update:selectedPlayer', 'update:movieInfo'])
 
@@ -154,8 +154,8 @@ const showPlayerModal = ref(false)
 const errorMessage = ref('')
 const errorCode = ref(null)
 
-// Capped to ~65vh for cinematic frame feel (was 0.9)
-const maxPlayerHeightValue = ref(window.innerHeight * 0.65)
+// Capped to ~50vh for smaller player
+const maxPlayerHeightValue = ref(window.innerHeight * 0.5)
 const maxPlayerHeight = computed(
   () => `${maxPlayerHeightValue.value}px`
 )
@@ -166,15 +166,17 @@ const theaterModeCloseButtonTimeout = ref(null)
 
 const aspectRatio = computed({
   get: () => playerStore.aspectRatio,
-  set: (value) => playerStore.updateAspectRatio(value)
+  set: (value) => playerStore.updateAspectRatio(value),
 })
 
 const isCentered = computed({
   get: () => playerStore.isCentered,
-  set: (value) => playerStore.updateCentering(value)
+  set: (value) => playerStore.updateCentering(value),
 })
 
-const preferredPlayer = computed(() => playerStore.preferredPlayer)
+const preferredPlayer = computed(
+  () => playerStore.preferredPlayer
+)
 const naturalHeight = ref(0)
 
 const normalizeKey = (key) => key.toUpperCase()
@@ -198,7 +200,7 @@ const containerStyle = computed(() => {
     maxWidth: `${maxWidth}px`,
     maxHeight: maxPlayerHeight.value,
     margin: '0 auto',
-    overflow: 'hidden'
+    overflow: 'hidden',
   }
 })
 
@@ -207,7 +209,7 @@ const iframeWrapperStyle = computed(() => {
   return {
     position: 'relative',
     width: '100%',
-    paddingTop: `${(h / w) * 100}%`
+    paddingTop: `${(h / w) * 100}%`,
   }
 })
 
@@ -218,7 +220,7 @@ const centerPlayer = () => {
         containerRef.value.scrollIntoView({
           behavior: 'smooth',
           block: 'center',
-          inline: 'center'
+          inline: 'center',
         })
       })
     }, 500)
@@ -238,10 +240,12 @@ const fetchPlayers = async () => {
       players = await getPlayers(props.kpId)
     }
 
-    playersInternal.value = Object.entries(players).map(([key, value]) => ({
-      key: key.toUpperCase(),
-      ...value
-    }))
+    playersInternal.value = Object.entries(players).map(
+      ([key, value]) => ({
+        key: key.toUpperCase(),
+        ...value,
+      })
+    )
     if (playersInternal.value.length > 0) {
       if (preferredPlayer.value) {
         const normalizedPreferred = normalizeKey(
@@ -374,7 +378,7 @@ const getListStatus = (listType) => {
     [USER_LIST_TYPES_ENUM.ABANDONED]:
       props.movieInfo?.lists?.isAbandoned || false,
     [USER_LIST_TYPES_ENUM.WATCHING]:
-      props.movieInfo?.lists?.isWatching || false
+      props.movieInfo?.lists?.isWatching || false,
   }
 
   return statusMap[listType] ?? false
@@ -392,7 +396,7 @@ const toggleList = async (type) => {
   let hasError = false
   try {
     const listNames = {
-      [USER_LIST_TYPES_ENUM.FAVORITE]: 'избранное'
+      [USER_LIST_TYPES_ENUM.FAVORITE]: 'избранное',
     }
 
     if (getListStatus(type)) {
