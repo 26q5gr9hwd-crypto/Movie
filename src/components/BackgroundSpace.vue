@@ -1,890 +1,343 @@
 <template>
-  <div class="wrapper">
-    <div class="mainpage">
-      <!-- Hero Section with Featured Movie (always mounted to prevent CLS) -->
-      <section
-        v-show="!searchPerformed"
-        class="hero-section"
-      >
-        <!-- Skeleton while loading -->
-        <template v-if="!featuredMovie">
-          <div class="hero-skeleton">
-            <div class="hero-skeleton-content">
-              <div class="skeleton-title"></div>
-              <div class="skeleton-meta"></div>
-              <div class="skeleton-description"></div>
-              <div class="skeleton-buttons"></div>
-            </div>
-          </div>
-        </template>
-        <!-- Actual content -->
-        <template v-else>
-        <div class="hero-gradient"></div>
-        <div class="hero-content">
-          <h1 class="hero-title">
-            {{ featuredMovie.title || featuredMovie.name }}
-          </h1>
-          <div class="hero-meta">
-            <span
-              v-if="featuredMovie.rating_kp"
-              class="hero-rating"
-            >
-              ★ {{ featuredMovie.rating_kp?.toFixed?.(1) ||
-              featuredMovie.rating_kp }}
-            </span>
-            <span v-if="featuredMovie.year" class="hero-year">
-              {{ featuredMovie.year }}
-            </span>
-            <span v-if="featuredMovie.type" class="hero-type">
-              {{ TYPES_ENUM[featuredMovie.type] ||
-              featuredMovie.type }}
-            </span>
-          </div>
-          <p
-            v-if="featuredMovie.raw_data?.description"
-            class="hero-description"
-          >
-            {{ featuredMovie.raw_data.description.slice(0, 200)
-            }}...
-          </p>
-          <div class="hero-buttons">
-            <router-link
-              :to="{
-                name: 'movie-info',
-                params: { kp_id: featuredMovie.kp_id }
-              }"
-              class="hero-btn hero-btn-primary"
-            >
-              <i class="fas fa-play"></i> Смотреть
-            </router-link>
-            <router-link
-              :to="{
-                name: 'movie-info',
-                params: { kp_id: featuredMovie.kp_id }
-              }"
-              class="hero-btn hero-btn-secondary"
-            >
-              <i class="fas fa-info-circle"></i> Подробнее
-            </router-link>
-          </div>
-        </div>
-        </template>
-      </section>
+  <LavaLampBackground v-if="backgroundType === 'lava-lamp'" />
 
-      <!-- Floating Search Button -->
-      <button
-        v-if="!searchPerformed && featuredMovie"
-        class="floating-search-btn"
-        @click="navbarStore.openSearchModal()"
-      >
-        <i class="fas fa-search"></i>
-      </button>
-
-      <!-- Content Container -->
-      <div class="content-container">
-        <!-- Popular Movies Section (horizontal carousel on home) -->
-        <div v-if="!searchPerformed" class="movie-row">
-          <div class="row-header">
-            <h2 class="row-title">
-              <i class="fas fa-fire-alt"></i> Популярные сейчас
-            </h2>
-            <router-link to="/top" class="row-see-all">
-              Смотреть все <i class="fas fa-chevron-right"></i>
-            </router-link>
-          </div>
-          <div v-if="popularLoading" class="loading-container">
-            <div class="skeleton-row"></div>
-          </div>
-          <MovieList
-            v-else-if="popularMovies.length > 0"
-            :movies-list="popularMovies"
-            :is-history="false"
-            :loading="false"
-            :is-carousel="true"
-            :carousel-limit="15"
-          />
-          <ErrorMessage v-if="popularError" :message="popularError" />
-        </div>
-
-        <!-- History Section (horizontal carousel) -->
-        <div
-          v-if="!searchPerformed && history.length > 0"
-          class="movie-row"
-        >
-          <div class="row-header">
-            <h2 class="row-title">
-              <i class="fas fa-play-circle"></i> Продолжить
-              просмотр
-            </h2>
-            <span class="row-actions">
-              <DeleteButton @click="showModal = true" />
-              <BaseModal
-                :is-open="showModal"
-                message="Вы уверены, что хотите очистить
-                историю?"
-                @confirm="clearAllHistory"
-                @close="showModal = false"
-              />
-            </span>
-          </div>
-          <div v-if="historyLoading" class="loading-container">
-            <div class="skeleton-row"></div>
-          </div>
-          <MovieList
-            v-else
-            :movies-list="history"
-            :is-history="true"
-            :loading="false"
-            :is-carousel="true"
-            :carousel-limit="10"
-            @item-deleted="handleItemDeleted"
-          />
-        </div>
-
-        <!-- Empty History State -->
-        <div
-          v-if="
-            !searchPerformed &&
-            history.length === 0 &&
-            !historyLoading
-          "
-          class="empty-history-notice"
-        >
-          <div class="empty-history-content">
-            <span class="material-icons">history</span>
-            <p>История просмотров пуста</p>
-            <span class="empty-history-hint"
-              >Начните смотреть, чтобы видеть историю
-              здесь</span
-            >
-          </div>
-        </div>
-
-        <!-- Search Results -->
-        <div v-if="searchPerformed" class="search-results-section">
-          <div class="search-results-header">
-            <h2 class="section-title">
-              Результаты поиска: "{{ lastSearchTerm }}"
-            </h2>
-            <button
-              class="back-to-home-btn"
-              @click="resetSearch"
-            >
-              <i class="fas fa-arrow-left"></i> На главную
-            </button>
-          </div>
-          <MovieList
-            :movies-list="movies"
-            :is-history="false"
-            :loading="searchLoading"
-          />
-          <div
-            v-if="
-              movies.length === 0 &&
-              !searchLoading &&
-              !errorMessage
-            "
-            class="no-results"
-          >
-            <span class="material-icons">search_off</span>
-            <p>Ничего не найдено</p>
-          </div>
-          <ErrorMessage
-            v-if="errorMessage"
-            :message="errorMessage"
-            :code="errorCode"
-          />
-        </div>
-
-        <ErrorMessage
-          v-if="!searchPerformed && errorMessage"
-          :message="errorMessage"
-          :code="errorCode"
-        />
+  <!-- Dynamic Background - switches between cinematic glow and movie backdrop -->
+  <div
+    v-else-if="backgroundType === 'dynamic'"
+    class="dynamic-container"
+  >
+    <!-- Cinematic Glow (always present as base layer, fades when backdrop is active) -->
+    <div
+      class="cinematic-layer"
+      :class="{
+        'cinematic-hidden':
+          (isOnMoviePage && hasMoviePoster) ||
+          isOnHomeWithPoster
+      }"
+    >
+      <div class="cinematic-glow-wrap">
+        <div class="cinematic-glow cinematic-glow-1"></div>
+        <div class="cinematic-glow cinematic-glow-2"></div>
+        <div class="cinematic-glow cinematic-glow-3"></div>
       </div>
+      <div class="cinematic-vignette"></div>
     </div>
+
+    <!-- Movie Backdrop (shown when on movie page with poster) -->
+    <div
+      class="backdrop-layer"
+      :class="{
+        'backdrop-active':
+          (isOnMoviePage && hasMoviePoster) ||
+          isOnHomeWithPoster
+      }"
+    >
+      <div
+        v-for="(bg, index) in backgrounds"
+        :key="index"
+        class="background-image"
+        :class="{ active: activeIndex === index }"
+        :style="getBackdropStyle(index)"
+      ></div>
+      <div class="backdrop-vignette"></div>
+    </div>
+  </div>
+
+  <!-- Stars Background -->
+  <div
+    v-else-if="backgroundType === 'stars'"
+    class="background-container"
+  >
+    <div
+      class="background-layer active"
+      :style="{
+        backgroundImage: `url(${starsBackground})`,
+        filter: 'brightness(100%)'
+      }"
+    ></div>
   </div>
 </template>
 
 <script setup>
-import { apiSearch, getMovies } from '@/api/movies'
-import { handleApiError } from '@/constants'
-import { getMyLists, delAllFromList } from '@/api/user'
-import BaseModal from '@/components/BaseModal.vue'
-import DeleteButton from '@/components/buttons/DeleteButton.vue'
-import ErrorMessage from '@/components/ErrorMessage.vue'
-import { MovieList } from '@/components/MovieList/'
-import { useMainStore } from '@/store/main'
-import { useAuthStore } from '@/store/auth'
+import LavaLampBackground from './LavaLampBackground.vue'
+import starsBackground from '@/assets/image-back-stars.png'
 import { useBackgroundStore } from '@/store/background'
-import { useNavbarStore } from '@/store/navbar'
-import { USER_LIST_TYPES_ENUM, TYPES_ENUM } from '@/constants'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 
-import {
-  watchEffect,
-  onMounted,
-  ref,
-  computed,
-  watch,
-} from 'vue'
-import { useRouter } from 'vue-router'
-
-const mainStore = useMainStore()
-const authStore = useAuthStore()
 const backgroundStore = useBackgroundStore()
-const navbarStore = useNavbarStore()
-const router = useRouter()
+const route = useRoute()
 
-// Helper function to normalize movie data
-const normalizeMovie = (movie) => ({
-  ...movie,
-  kp_id: (movie.kp_id ?? movie.id)?.toString(),
-  title:
-    movie.title ||
-    movie.name ||
-    movie.raw_data?.name_ru ||
-    movie.raw_data?.name_en ||
-    movie.raw_data?.name_original ||
-    '',
-  year: movie.year || movie.raw_data?.year || null,
-  poster:
-    movie.poster ||
-    movie.cover ||
-    movie.raw_data?.poster?.url ||
-    movie.raw_data?.poster_url ||
-    null,
-  rating_kp: movie.rating_kp ||
-    (movie.raw_data?.rating !== 'null'
-      ? movie.raw_data?.rating
-      : null),
-  type: movie.type || movie.raw_data?.type || null
-})
+const backgrounds = ref(['', ''])
+const activeIndex = ref(0)
 
-const searchTerm = ref('')
-const lastSearchTerm = ref('')
-const movies = ref([])
-const searchLoading = ref(false)
-const searchPerformed = ref(false)
-const showModal = ref(false)
-const errorMessage = ref('')
-const errorCode = ref(null)
-const history = ref([])
-const historyLoading = ref(false)
-
-// Popular movies for carousel
-const popularMovies = ref([])
-const popularLoading = ref(false)
-const popularError = ref('')
-
-// Featured movie for hero section
-const featuredMovie = computed(() => {
-  if (popularMovies.value.length > 0) {
-    const topMovies = popularMovies.value
-      .filter((m) => m.rating_kp >= 7 && m.backdrop)
-      .slice(0, 5)
-    if (topMovies.length > 0) {
-      return topMovies[
-        Math.floor(Math.random() * topMovies.length)
-      ]
-    }
-    return popularMovies.value[0]
-  }
-  return null
-})
-
-// Update background when featured movie changes
-watch(
-  featuredMovie,
-  (movie) => {
-    if (movie && movie.backdrop) {
-      backgroundStore.updateMainPagePoster(movie.backdrop)
-    }
-  },
-  { immediate: true }
+// Use currentBackground getter for unified source of truth
+const currentBackground = computed(
+  () => backgroundStore.currentBackground
 )
+const backgroundType = computed(
+  () => backgroundStore.backgroundType
+)
+const isBlurActive = computed(() => backgroundStore.isBlurActive)
+const moviePoster = computed(() => backgroundStore.moviePoster)
 
-// Fetch popular movies on mount
-const fetchPopularMovies = async () => {
-  popularLoading.value = true
-  popularError.value = ''
-
-  try {
-    const data = await getMovies({ activeTime: '7d' })
-    popularMovies.value = data.map((movie) => ({
-      ...movie,
-      kp_id: movie.kp_id?.toString() || movie.id?.toString(),
-      rating_kp: movie.rating_kp || movie.raw_data?.rating,
-      type: movie.type || movie.raw_data?.type,
-      backdrop:
-        movie.raw_data?.backdrop?.url ||
-        movie.raw_data?.cover?.url ||
-        movie.raw_data?.screenshots?.[0] ||
-        null
-    }))
-  } catch (error) {
-    const { message } = handleApiError(error)
-    popularError.value = message
-  } finally {
-    popularLoading.value = false
-  }
-}
-
-// Load history
-watchEffect(async () => {
-  if (authStore.token) {
-    historyLoading.value = true
-    try {
-      history.value = await getMyLists(
-        USER_LIST_TYPES_ENUM.HISTORY
-      )
-    } catch (error) {
-      const { message, code } = handleApiError(error)
-      errorMessage.value = message
-      errorCode.value = code
-      if (code === 401) {
-        authStore.logout()
-        await router.push('/login')
-        router.go(0)
-      }
-    } finally {
-      historyLoading.value = false
-    }
-  } else {
-    history.value = mainStore.history
-  }
+// Check if currently on a movie page OR home with main poster
+const isOnMoviePage = computed(() => {
+  return route.path.includes('/movie/')
+})
+// Check if on home page with a main poster set
+const isOnHomeWithPoster = computed(() => {
+  return (
+    route.path === '/' && !!backgroundStore.mainPagePoster
+  )
 })
 
-function handleItemDeleted(deletedItemId) {
-  history.value = history.value.filter(
-    (item) => item.kp_id !== deletedItemId
-  )
-}
+// Check if we have a movie poster to show
+const hasMoviePoster = computed(() => {
+  return !!moviePoster.value && moviePoster.value.length > 0
+})
 
-const resetSearch = () => {
-  searchTerm.value = ''
-  lastSearchTerm.value = ''
-  movies.value = []
-  searchPerformed.value = false
-  errorMessage.value = ''
-  errorCode.value = null
-}
-
-const performSearch = async () => {
-  searchLoading.value = true
-  searchPerformed.value = true
-  movies.value = []
-
-  try {
-    const response = await apiSearch(searchTerm.value)
-    movies.value = (response || []).map(normalizeMovie)
-  } catch (error) {
-    const { message, code } = handleApiError(error)
-    errorMessage.value = message
-    errorCode.value = code
-  } finally {
-    searchLoading.value = false
-  }
-}
-
-const clearAllHistory = async () => {
-  historyLoading.value = true
-  if (authStore.token) {
-    try {
-      await delAllFromList(USER_LIST_TYPES_ENUM.HISTORY)
-      history.value = []
-      historyLoading.value = false
-      showModal.value = false
-    } catch (error) {
-      const { message, code } = handleApiError(error)
-      errorMessage.value = message
-      errorCode.value = code
-      if (code === 401) {
-        authStore.logout()
-        await router.push('/login')
-        router.go(0)
-      }
-      historyLoading.value = false
-      showModal.value = false
-    }
-  } else {
-    mainStore.clearAllHistory()
-    historyLoading.value = false
-    showModal.value = false
+const getBackdropStyle = (index) => {
+  return {
+    backgroundImage: backgrounds.value[index]
+      ? `url(${backgrounds.value[index]})`
+      : 'none',
+    filter: isBlurActive.value ? 'blur(20px)' : 'blur(12px)',
+    brightness: '45%',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center top'
   }
 }
 
 onMounted(() => {
-  fetchPopularMovies()
+  if (currentBackground.value) {
+    backgrounds.value = [
+      currentBackground.value,
+      currentBackground.value
+    ]
+  }
+})
 
-  const hash = window.location.hash
-  if (hash.startsWith('#search=')) {
-    const searchQuery = decodeURIComponent(
-      hash.replace('#search=', '')
-    )
-    searchTerm.value = searchQuery
-    lastSearchTerm.value = searchQuery
-    performSearch()
+// Watch for route changes - delay clearing poster for smooth transition
+watch(
+  () => route.path,
+  (newPath) => {
+    if (!newPath.includes('/movie/')) {
+      // Delay clearing to allow cinematic glow to fade in first
+      setTimeout(() => {
+        if (!route.path.includes('/movie/')) {
+          backgroundStore.clearMoviePoster()
+        }
+      }, 600)
+    }
+  }
+)
+
+// Smooth crossfade when background URL changes (on movie pages)
+watch(currentBackground, (newUrl) => {
+  if (!newUrl) return
+
+  const img = new Image()
+  img.src = newUrl
+
+  img.onload = () => {
+    const inactiveIndex = activeIndex.value ^ 1
+    backgrounds.value[inactiveIndex] = newUrl
+    activeIndex.value = inactiveIndex
+  }
+
+  // eslint-disable-next-line no-console
+  img.onerror = () => {
+    console.error(`Failed to load background image: ${newUrl}`)
   }
 })
 </script>
 
 <style scoped>
-.wrapper {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
-.mainpage {
-  flex: 1;
-  padding-bottom: 40px;
-}
-
-/* Hero Skeleton (CLS fix) */
-.hero-skeleton {
-  position: absolute;
+/* ===== BASE CONTAINER ===== */
+.dynamic-container,
+.background-container {
+  position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    135deg,
-    var(--bg-secondary) 0%,
-    var(--bg-tertiary) 100%
-  );
-}
-.hero-skeleton-content {
-  position: absolute;
-  bottom: 15%;
-  left: 5%;
-  max-width: 550px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-.skeleton-title {
-  width: 350px;
-  height: 48px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 4px;
-  animation: shimmer 1.5s infinite linear;
-  background-position: -200% 0;
-}
-.skeleton-meta {
-  width: 200px;
-  height: 20px;
-  background: rgba(255, 255, 255, 0.06);
-  border-radius: 4px;
-  animation: shimmer 1.5s infinite linear;
-  background-position: -200% 0;
-}
-.skeleton-description {
-  width: 450px;
-  height: 60px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 4px;
-  animation: shimmer 1.5s infinite linear;
-  background-position: -200% 0;
-}
-.skeleton-buttons {
-  display: flex;
-  gap: 12px;
-}
-.skeleton-buttons::before,
-.skeleton-buttons::after {
-  content: '';
-  width: 140px;
-  height: 48px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 4px;
-  animation: shimmer 1.5s infinite linear;
-  background-position: -200% 0;
-}
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-/* Hero Section */
-.hero-section {
-  position: relative;
-  width: 100%;
-  height: 70vh;
-  min-height: 500px;
-  max-height: 800px;
-  margin-bottom: 30px;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
   overflow: hidden;
+  background: #0a0a0a;
 }
 
-.hero-gradient {
+/* ===== CINEMATIC GLOW LAYER ===== */
+.cinematic-layer {
   position: absolute;
-  top: 0;
-  left: 0;
+  inset: 0;
+  transition: opacity 0.6s ease-in-out;
+}
+
+.cinematic-layer.cinematic-hidden {
+  opacity: 0;
+}
+
+.cinematic-glow-wrap {
+  filter: blur(80px);
+  height: 100%;
+  width: 100%;
+}
+
+.cinematic-glow {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.5;
+  background: var(--accent-color, #e50914);
+}
+
+.cinematic-glow-1 {
+  width: 45vw;
+  height: 45vw;
+  bottom: -10vw;
+  left: -5vw;
+  animation: cinematicDrift1 30s ease-in-out infinite;
+}
+
+.cinematic-glow-2 {
+  width: 35vw;
+  height: 35vw;
+  top: -8vw;
+  right: -5vw;
+  opacity: 0.4;
+  background: var(--accent-hover, #b20710);
+  animation: cinematicDrift2 25s ease-in-out infinite;
+}
+
+.cinematic-glow-3 {
+  width: 30vw;
+  height: 30vw;
+  top: 35vh;
+  left: 35vw;
+  opacity: 0.25;
+  background: #6b0f1a;
+  animation: cinematicDrift3 35s ease-in-out infinite;
+}
+
+@keyframes cinematicDrift1 {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(8vw, -5vh);
+  }
+}
+
+@keyframes cinematicDrift2 {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-6vw, 6vh);
+  }
+}
+
+@keyframes cinematicDrift3 {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  33% {
+    transform: translate(10vw, 8vh);
+  }
+  66% {
+    transform: translate(-8vw, 4vh);
+  }
+}
+
+.cinematic-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 85% 85% at 50% 50%,
+    transparent 0%,
+    transparent 40%,
+    rgba(0, 0, 0, 0.3) 70%,
+    rgba(0, 0, 0, 0.7) 100%
+  );
+  pointer-events: none;
+}
+
+/* ===== MOVIE BACKDROP LAYER ===== */
+.backdrop-layer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.6s ease-in-out;
+  pointer-events: none;
+}
+
+.backdrop-layer.backdrop-active {
+  opacity: 1;
+}
+
+.background-image {
+  position: absolute;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
+  opacity: 0;
+  transition: opacity 0.8s ease-in-out, filter 0.6s ease-in-out;
+  background-size: cover;
+  background-position: center top;
+  will-change: opacity, filter;
+}
+
+.background-image.active {
+  opacity: 1;
+}
+
+.backdrop-vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
       to bottom,
-      rgba(20, 20, 20, 0) 0%,
-      rgba(20, 20, 20, 0.4) 50%,
-      rgba(20, 20, 20, 0.9) 80%,
-      var(--bg-primary) 100%
+      rgba(10, 10, 10, 0.5) 0%,
+      rgba(10, 10, 10, 0.75) 70%,
+      rgba(10, 10, 10, 0.98) 100%
     ),
     linear-gradient(
       to right,
-      rgba(20, 20, 20, 0.9) 0%,
-      rgba(20, 20, 20, 0.4) 30%,
-      rgba(20, 20, 20, 0) 60%
+      rgba(10, 10, 10, 0.5) 0%,
+      transparent 30%,
+      transparent 70%,
+      rgba(10, 10, 10, 0.5) 100%
     );
+  pointer-events: none;
 }
 
-.hero-content {
+/* ===== STARS BACKGROUND ===== */
+.background-layer {
   position: absolute;
-  bottom: 15%;
-  left: 5%;
-  max-width: 550px;
-  z-index: 2;
-  animation: fadeInUp 0.8s ease-out;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.hero-title {
-  font-size: 3rem;
-  font-weight: 700;
-  margin: 0 0 16px 0;
-  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
-  line-height: 1.1;
-}
-
-.hero-meta {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 16px;
-  font-size: 1rem;
-  color: var(--text-secondary);
-}
-
-.hero-rating {
-  color: var(--success-color);
-  font-weight: 600;
-}
-
-.hero-description {
-  font-size: 1rem;
-  line-height: 1.5;
-  color: var(--text-secondary);
-  margin-bottom: 24px;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);
-}
-
-.hero-buttons {
-  display: flex;
-  gap: 12px;
-}
-
-.hero-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 28px;
-  border-radius: 4px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: none;
-  text-decoration: none;
-}
-
-.hero-btn-primary {
-  background: #fff;
-  color: #141414;
-}
-
-.hero-btn-primary:hover {
-  background: rgba(255, 255, 255, 0.85);
-}
-
-.hero-btn-secondary {
-  background: rgba(109, 109, 110, 0.7);
-  color: #fff;
-}
-
-.hero-btn-secondary:hover {
-  background: rgba(109, 109, 110, 0.5);
-}
-
-/* Floating Search Button */
-.floating-search-btn {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: rgba(30, 30, 30, 0.9);
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--border-color);
-  color: var(--text-color);
-  font-size: 1.2rem;
-  cursor: pointer;
-  z-index: 100;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.floating-search-btn:hover {
-  background: var(--accent-color);
-  border-color: var(--accent-color);
-  transform: scale(1.1);
-}
-
-/* Movie Row Styles */
-.movie-row {
-  margin-bottom: 40px;
-}
-
-.row-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 4%;
-  margin-bottom: 16px;
-}
-
-.row-title {
-  font-size: 1.4rem;
-  font-weight: 600;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.row-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.row-see-all {
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  font-weight: 500;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: color 0.2s ease;
-}
-
-.row-see-all:hover {
-  color: var(--accent-color);
-}
-
-/* Section Styles */
-.section-title {
-  font-size: 1.4rem;
-  font-weight: 600;
-  margin: 0;
-}
-
-.search-results-section {
-  padding-top: 20px;
-}
-
-.search-results-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 4%;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.back-to-home-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
-  background: rgba(60, 60, 60, 0.8);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  color: var(--text-color);
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.back-to-home-btn:hover {
-  background: var(--accent-color);
-  border-color: var(--accent-color);
-}
-
-/* Empty & Loading States */
-.loading-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 200px;
   width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
 }
 
-.empty-history-notice {
-  display: flex;
-  justify-content: center;
-  padding: 20px 4%;
+.background-layer.active {
+  opacity: 1;
 }
 
-.empty-history-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px;
-  background: rgba(30, 30, 30, 0.4);
-  border-radius: 16px;
-  color: var(--text-muted);
-  gap: 10px;
-  max-width: 300px;
-}
-
-.empty-history-content .material-icons {
-  font-size: 48px;
-  opacity: 0.5;
-}
-
-.empty-history-content p {
-  font-size: 1rem;
-  margin: 0;
-  font-weight: 500;
-}
-
-.empty-history-hint {
-  font-size: 0.85rem;
-  text-align: center;
-  opacity: 0.7;
-}
-
-/* No Results */
-.no-results {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  color: var(--text-muted);
-  gap: 15px;
-}
-
-.no-results .material-icons {
-  font-size: 64px;
-  opacity: 0.5;
-}
-
-.no-results p {
-  font-size: 1.1rem;
-  margin: 0;
-}
-
-/* Skeleton Loading */
-.skeleton-row {
-  height: 270px;
-  background: linear-gradient(
-    90deg,
-    var(--bg-secondary) 0%,
-    var(--bg-tertiary) 50%,
-    var(--bg-secondary) 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite linear;
-  border-radius: 8px;
-  padding: 0 4%;
-}
-
-/* Mobile Responsive */
-@media (max-width: 768px) {
-  .skeleton-title {
-    width: 250px;
-    height: 36px;
-  }
-  .skeleton-description {
-    width: 280px;
-    height: 40px;
-  }
-  .hero-skeleton-content {
-    left: 4%;
-    right: 4%;
-    bottom: 12%;
-  }
-  .hero-section {
-    height: 60vh;
-    min-height: 400px;
+/* ===== REDUCED MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+  .cinematic-glow-1,
+  .cinematic-glow-2,
+  .cinematic-glow-3 {
+    animation: none;
   }
 
-  .hero-content {
-    left: 4%;
-    right: 4%;
-    max-width: none;
-    bottom: 12%;
-  }
-
-  .hero-title {
-    font-size: 1.8rem;
-  }
-
-  .hero-description {
-    font-size: 0.9rem;
-    -webkit-line-clamp: 2;
-  }
-
-  .hero-btn {
-    padding: 10px 20px;
-    font-size: 0.95rem;
-  }
-
-  .row-title {
-    font-size: 1.2rem;
-  }
-
-  .floating-search-btn {
-    top: 15px;
-    right: 15px;
-    width: 44px;
-    height: 44px;
-  }
-}
-
-@media (max-width: 600px) {
-  .hero-buttons {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .hero-btn {
-    justify-content: center;
-  }
-
-  .search-results-header {
-    flex-direction: column;
-    align-items: flex-start;
+  .background-image,
+  .cinematic-layer,
+  .backdrop-layer {
+    transition-duration: 0.1s;
   }
 }
 </style>
