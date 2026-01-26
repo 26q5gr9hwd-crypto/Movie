@@ -12,7 +12,7 @@
       :class="{
         'cinematic-hidden':
           (isOnMoviePage && hasMoviePoster) ||
-          isOnHomeWithPoster,
+          isOnHomeWithPoster
       }"
     >
       <div class="cinematic-glow-wrap">
@@ -29,7 +29,7 @@
       :class="{
         'backdrop-active':
           (isOnMoviePage && hasMoviePoster) ||
-          isOnHomeWithPoster,
+          isOnHomeWithPoster
       }"
     >
       <div
@@ -52,7 +52,7 @@
       class="background-layer active"
       :style="{
         backgroundImage: `url(${starsBackground})`,
-        filter: 'brightness(100%)',
+        filter: 'brightness(100%)'
       }"
     ></div>
   </div>
@@ -105,7 +105,7 @@ const getBackdropStyle = (index) => {
     filter: isBlurActive.value ? 'blur(20px)' : 'blur(12px)',
     brightness: '45%',
     backgroundSize: 'cover',
-    backgroundPosition: 'center top',
+    backgroundPosition: 'center top'
   }
 }
 
@@ -113,7 +113,7 @@ onMounted(() => {
   if (currentBackground.value) {
     backgrounds.value = [
       currentBackground.value,
-      currentBackground.value,
+      currentBackground.value
     ]
   }
 })
@@ -146,6 +146,7 @@ watch(currentBackground, (newUrl) => {
     activeIndex.value = inactiveIndex
   }
 
+  // eslint-disable-next-line no-console
   img.onerror = () => {
     console.error(`Failed to load background image: ${newUrl}`)
   }
