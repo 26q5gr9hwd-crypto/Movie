@@ -22,8 +22,8 @@ import DesktopMenu from './MenuNavigation/DesktopMenu.vue'
 import MobileMenu from './MenuNavigation/MobileMenu.vue'
 import ModalSearch from './ModalSearch.vue'
 import { getBaseURLSync, getBaseURL } from '@/api/axios'
-import { getUser } from '@/api/user'
-import { handleApiError } from '@/constants'
+import { onAuthStateChanged } from 'firebase/auth'
+import { auth } from '@/firebase/firebase'
 
 const store = useMainStore()
 const authStore = useAuthStore()
@@ -69,20 +69,19 @@ const initializeNavLinks = (baseURL) => {
 const baseURL = getBaseURLSync()
 initializeNavLinks(baseURL)
 
-onMounted(async () => {
-  if (authStore.token) {
-    try {
-      let user = await getUser()
-      authStore.setUser(user)
+onMounted(() => {
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      const token = await user.getIdToken()
+      authStore.setToken(token)
+      authStore.setUser({ id: user.uid, username: user.email?.split('@')[0] })
       const updatedBaseURL = await getBaseURL()
       initializeNavLinks(updatedBaseURL)
-    } catch (error) {
-      const { code } = handleApiError(error)
-      if (code === 401) {
-        authStore.logout()
-      }
+    } else {
+      authStore.logout()
+      initializeNavLinks(baseURL)
     }
-  }
+  })
 })
 </script>
 
@@ -110,3 +109,5 @@ onMounted(async () => {
   opacity: 1;
 }
 </style>
+</tr>
+</tr>
