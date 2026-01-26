@@ -225,7 +225,7 @@ import {
   onMounted,
   ref,
   computed,
-  watch,
+  watch
 } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -236,29 +236,31 @@ const navbarStore = useNavbarStore()
 const router = useRouter()
 
 // Helper function to normalize movie data
-const normalizeMovie = (movie) => ({
-  ...movie,
-  kp_id: (movie.kp_id ?? movie.id)?.toString(),
-  title:
-    movie.title ||
-    movie.name ||
-    movie.raw_data?.name_ru ||
-    movie.raw_data?.name_en ||
-    movie.raw_data?.name_original ||
-    '',
-  year: movie.year || movie.raw_data?.year || null,
-  poster:
-    movie.poster ||
-    movie.cover ||
-    movie.raw_data?.poster?.url ||
-    movie.raw_data?.poster_url ||
-    null,
-  rating_kp: movie.rating_kp ||
-    (movie.raw_data?.rating !== 'null'
-      ? movie.raw_data?.rating
-      : null),
-  type: movie.type || movie.raw_data?.type || null
-})
+const normalizeMovie = (movie) => {
+  return {
+    ...movie,
+    kp_id: (movie.kp_id ?? movie.id)?.toString(),
+    title:
+      movie.title ||
+      movie.name ||
+      movie.raw_data?.name_ru ||
+      movie.raw_data?.name_en ||
+      movie.raw_data?.name_original ||
+      '',
+    year: movie.year || movie.raw_data?.year || null,
+    poster:
+      movie.poster ||
+      movie.cover ||
+      movie.raw_data?.poster?.url ||
+      movie.raw_data?.poster_url ||
+      null,
+    rating_kp: movie.rating_kp ||
+      (movie.raw_data?.rating !== 'null'
+        ? movie.raw_data?.rating
+        : null),
+    type: movie.type || movie.raw_data?.type || null
+  }
+}
 
 const searchTerm = ref('')
 const lastSearchTerm = ref('')
@@ -310,17 +312,19 @@ const fetchPopularMovies = async () => {
 
   try {
     const data = await getMovies({ activeTime: '7d' })
-    popularMovies.value = data.map((movie) => ({
-      ...movie,
-      kp_id: movie.kp_id?.toString() || movie.id?.toString(),
-      rating_kp: movie.rating_kp || movie.raw_data?.rating,
-      type: movie.type || movie.raw_data?.type,
-      backdrop:
-        movie.raw_data?.backdrop?.url ||
-        movie.raw_data?.cover?.url ||
-        movie.raw_data?.screenshots?.[0] ||
-        null
-    }))
+    popularMovies.value = data.map((movie) => {
+      return {
+        ...movie,
+        kp_id: movie.kp_id?.toString() || movie.id?.toString(),
+        rating_kp: movie.rating_kp || movie.raw_data?.rating,
+        type: movie.type || movie.raw_data?.type,
+        backdrop:
+          movie.raw_data?.backdrop?.url ||
+          movie.raw_data?.cover?.url ||
+          movie.raw_data?.screenshots?.[0] ||
+          null
+      }
+    })
   } catch (error) {
     const { message } = handleApiError(error)
     popularError.value = message
