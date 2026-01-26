@@ -218,7 +218,6 @@ import { useMainStore } from '@/store/main'
 import { useAuthStore } from '@/store/auth'
 import { useBackgroundStore } from '@/store/background'
 import { useNavbarStore } from '@/store/navbar'
-// eslint-disable-next-line no-unused-vars
 import { USER_LIST_TYPES_ENUM, TYPES_ENUM } from '@/constants'
 
 import {
@@ -258,7 +257,7 @@ const normalizeMovie = (movie) => ({
     (movie.raw_data?.rating !== 'null'
       ? movie.raw_data?.rating
       : null),
-  type: movie.type || movie.raw_data?.type || null,
+  type: movie.type || movie.raw_data?.type || null
 })
 
 const searchTerm = ref('')
@@ -320,7 +319,7 @@ const fetchPopularMovies = async () => {
         movie.raw_data?.backdrop?.url ||
         movie.raw_data?.cover?.url ||
         movie.raw_data?.screenshots?.[0] ||
-        null,
+        null
     }))
   } catch (error) {
     const { message } = handleApiError(error)
