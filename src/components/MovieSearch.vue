@@ -29,14 +29,16 @@
               {{ featuredMovie.year }}
             </span>
             <span v-if="featuredMovie.type" class="hero-type">
-              {{ TYPES_ENUM[featuredMovie.type] || featuredMovie.type }}
+              {{ TYPES_ENUM[featuredMovie.type] ||
+              featuredMovie.type }}
             </span>
           </div>
           <p
             v-if="featuredMovie.raw_data?.description"
             class="hero-description"
           >
-            {{ featuredMovie.raw_data.description.slice(0, 200) }}...
+            {{ featuredMovie.raw_data.description.slice(0, 200)
+            }}...
           </p>
           <div class="hero-buttons">
             <router-link
@@ -103,13 +105,15 @@
         >
           <div class="row-header">
             <h2 class="row-title">
-              <i class="fas fa-play-circle"></i> Продолжить просмотр
+              <i class="fas fa-play-circle"></i> Продолжить
+              просмотр
             </h2>
             <span class="row-actions">
               <DeleteButton @click="showModal = true" />
               <BaseModal
                 :is-open="showModal"
-                message="Вы уверены, что хотите очистить историю?"
+                message="Вы уверены, что хотите очистить
+                историю?"
                 @confirm="clearAllHistory"
                 @close="showModal = false"
               />
@@ -142,7 +146,8 @@
             <span class="material-icons">history</span>
             <p>История просмотров пуста</p>
             <span class="empty-history-hint"
-              >Начните смотреть, чтобы видеть историю здесь</span
+              >Начните смотреть, чтобы видеть историю
+              здесь</span
             >
           </div>
         </div>
@@ -153,7 +158,10 @@
             <h2 class="section-title">
               Результаты поиска: "{{ lastSearchTerm }}"
             </h2>
-            <button class="back-to-home-btn" @click="resetSearch">
+            <button
+              class="back-to-home-btn"
+              @click="resetSearch"
+            >
               <i class="fas fa-arrow-left"></i> На главную
             </button>
           </div>
@@ -163,7 +171,11 @@
             :loading="searchLoading"
           />
           <div
-            v-if="movies.length === 0 && !searchLoading && !errorMessage"
+            v-if="
+              movies.length === 0 &&
+              !searchLoading &&
+              !errorMessage
+            "
             class="no-results"
           >
             <span class="material-icons">search_off</span>
@@ -209,6 +221,31 @@ const authStore = useAuthStore()
 const backgroundStore = useBackgroundStore()
 const navbarStore = useNavbarStore()
 const router = useRouter()
+
+// Helper function to normalize movie data
+const normalizeMovie = (movie) => ({
+  ...movie,
+  kp_id: (movie.kp_id ?? movie.id)?.toString(),
+  title:
+    movie.title ||
+    movie.name ||
+    movie.raw_data?.name_ru ||
+    movie.raw_data?.name_en ||
+    movie.raw_data?.name_original ||
+    '',
+  year: movie.year || movie.raw_data?.year || null,
+  poster:
+    movie.poster ||
+    movie.cover ||
+    movie.raw_data?.poster?.url ||
+    movie.raw_data?.poster_url ||
+    null,
+  rating_kp: movie.rating_kp ||
+    (movie.raw_data?.rating !== 'null'
+      ? movie.raw_data?.rating
+      : null),
+  type: movie.type || movie.raw_data?.type || null
+})
 
 const searchTerm = ref('')
 const lastSearchTerm = ref('')
@@ -324,16 +361,7 @@ const performSearch = async () => {
 
   try {
     const response = await apiSearch(searchTerm.value)
-    movies.value = response.map((movie) => ({
-      ...movie,
-      kp_id: movie.kp_id?.toString() || movie.id?.toString(),
-      rating_kp:
-        movie.rating_kp ||
-        (movie.raw_data?.rating !== 'null'
-          ? movie.raw_data?.rating
-          : null),
-      type: movie.type || movie.raw_data?.type
-    }))
+    movies.value = (response || []).map(normalizeMovie)
   } catch (error) {
     const { message, code } = handleApiError(error)
     errorMessage.value = message
