@@ -1,79 +1,48 @@
-import { getApi } from '@/api/axios'
+import { auth } from '@/firebase/firebase'
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut
+} from 'firebase/auth'
 
-const apiCall = async (callFn) => {
-  const api = await getApi()
-  return await callFn(api)
-}
+// Convert username to fake email (users never see this)
+const usernameToEmail = (username) => `${username.toLowerCase()}@movies.local`
 
-const addToList = async (id, type) => {
-  const { data } = await apiCall((api) => api.put(`/list/${type}/${id}`))
-  return data
-}
-
-const delFromList = async (id, type) => {
-  const { data } = await apiCall((api) => api.delete(`/list/${type}/${id}`))
-  return data
-}
-
-const delAllFromList = async (type) => {
-  const { data } = await apiCall((api) => api.delete(`/list/${type}`))
-  return data
-}
-
-const getMyLists = async (type) => {
-  const { data } = await apiCall((api) => api.get(`/list/${type}`))
-  return data
-}
-
-const getUserLists = async (type, userId) => {
-  const { data } = await apiCall((api) => api.get(`/user-list/${userId}/${type}`))
-  return data
-}
-
-const getListCounters = async (userId) => {
-  const { data } = await apiCall((api) => api.get(`/user-list-counters/${userId}`))
-  return data
-}
-
-const getUser = async () => {
-  const { data } = await apiCall((api) => api.get('/user'))
-  return data
-}
-
-const generateToken = async () => {
-  const { data } = await apiCall((api) => api.get('/auth/telegram-login-token'))
-  return data
-}
-
-const getTGAuthResult = async (token) => {
-  const { data } = await apiCall((api) => api.get(`/auth/check-telegram-auth?token=${token}`))
-  return data
-}
-
-const updateUserName = async (name) => {
-  const { data } = await apiCall((api) => api.put('/user/name', { name }))
-  return data
+const signup = async ({ username, password }) => {
+  const email = usernameToEmail(username)
+  const cred = await createUserWithEmailAndPassword(auth, email, password)
+  const token = await cred.user.getIdToken()
+  return {
+    token,
+    user: {
+      id: cred.user.uid,
+      username: username.trim()
+    }
+  }
 }
 
 const login = async ({ username, password }) => {
-  const { data } = await apiCall((api) => api.post('/auth/login', { username, password }))
-  return data
+  const email = usernameToEmail(username)
+  const cred = await signInWithEmailAndPassword(auth, email, password)
+  const token = await cred.user.getIdToken()
+  return {
+    token,
+    user: {
+      id: cred.user.uid,
+      username: username.trim()
+    }
+  }
 }
-const signup = async ({ username, password }) => {
-  const { data } = await apiCall((api) => api.post('/auth/signup', { username, password }))
-  return data
+
+const logout = async () => {
+  await signOut(auth)
 }
-export {
-  addToList,
-  getMyLists,
-  getUser,
-  delAllFromList,
-  delFromList,
-  generateToken,
-  getTGAuthResult,
-  getUserLists,
-  getListCounters,
-  updateUserName,
-  login,
-  signup
+
+const getUser = async () => {
+  const user = auth.currentUser
+  if (!user) return null
+  return {
+    id: user.uid,
+    // username is not stored automatically; we keep the one in local store
+  }
 }
