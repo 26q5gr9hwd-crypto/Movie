@@ -30,7 +30,7 @@
   <div v-else-if="backgroundType === 'stars'" class="background-container">
     <div
       class="background-layer active"
-      :style="{ backgroundImage: 'url(' + starsBackground + ')', filter: 'brightness(100%)' }"
+      :style="{ backgroundImage: `url(${starsBackground})`, filter: 'brightness(100%)' }"
     ></div>
   </div>
 </template>
@@ -70,8 +70,11 @@ const hasMoviePoster = computed(() => {
 
 const getBackdropStyle = (index) => {
   return {
-    backgroundImage: backgrounds.value[index] ? 'url(' + backgrounds.value[index] + ')' : 'none',
-    filter: 'brightness(45%) ' + (isBlurActive.value ? 'blur(8px)' : 'blur(4px)'),
+    backgroundImage: backgrounds.value[index]
+      ? `url(${backgrounds.value[index]})`
+      : 'none',
+    filter: isBlurActive.value ? 'blur(8px)' : 'blur(4px)',
+    brightness: '45%',
     backgroundSize: 'cover',
     backgroundPosition: 'center top'
   }
@@ -104,10 +107,15 @@ watch(currentBackground, (newUrl) => {
 
   const img = new Image()
   img.src = newUrl
+  
   img.onload = () => {
     const inactiveIndex = activeIndex.value ^ 1
     backgrounds.value[inactiveIndex] = newUrl
     activeIndex.value = inactiveIndex
+  }
+  
+  img.onerror = () => {
+    console.error(`Failed to load background image: ${newUrl}`)
   }
 })
 </script>
