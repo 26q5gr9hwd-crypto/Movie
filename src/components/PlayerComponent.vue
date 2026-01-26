@@ -120,7 +120,7 @@ import {
   onBeforeUnmount,
   onMounted,
   ref,
-  watch,
+  watch
 } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import PlayerModal from '@/components/PlayerModal.vue'
@@ -136,8 +136,8 @@ const props = defineProps({
   kpId: String,
   movieInfo: {
     type: Object,
-    default: () => ({}),
-  },
+    default: () => ({})
+  }
 })
 const emit = defineEmits(['update:selectedPlayer', 'update:movieInfo'])
 
@@ -166,12 +166,12 @@ const theaterModeCloseButtonTimeout = ref(null)
 
 const aspectRatio = computed({
   get: () => playerStore.aspectRatio,
-  set: (value) => playerStore.updateAspectRatio(value),
+  set: (value) => playerStore.updateAspectRatio(value)
 })
 
 const isCentered = computed({
   get: () => playerStore.isCentered,
-  set: (value) => playerStore.updateCentering(value),
+  set: (value) => playerStore.updateCentering(value)
 })
 
 const preferredPlayer = computed(
@@ -200,7 +200,7 @@ const containerStyle = computed(() => {
     maxWidth: `${maxWidth}px`,
     maxHeight: maxPlayerHeight.value,
     margin: '0 auto',
-    overflow: 'hidden',
+    overflow: 'hidden'
   }
 })
 
@@ -209,7 +209,7 @@ const iframeWrapperStyle = computed(() => {
   return {
     position: 'relative',
     width: '100%',
-    paddingTop: `${(h / w) * 100}%`,
+    paddingTop: `${(h / w) * 100}%`
   }
 })
 
@@ -220,7 +220,7 @@ const centerPlayer = () => {
         containerRef.value.scrollIntoView({
           behavior: 'smooth',
           block: 'center',
-          inline: 'center',
+          inline: 'center'
         })
       })
     }, 500)
@@ -241,10 +241,12 @@ const fetchPlayers = async () => {
     }
 
     playersInternal.value = Object.entries(players).map(
-      ([key, value]) => ({
-        key: key.toUpperCase(),
-        ...value,
-      })
+      ([key, value]) => {
+        return {
+          key: key.toUpperCase(),
+          ...value
+        }
+      }
     )
     if (playersInternal.value.length > 0) {
       if (preferredPlayer.value) {
@@ -266,6 +268,7 @@ const fetchPlayers = async () => {
     const { message, code } = handleApiError(error)
     errorMessage.value = message
     errorCode.value = code
+    // eslint-disable-next-line no-console
     console.error('Ошибка при загрузке плееров:', error)
   }
 }
@@ -378,7 +381,7 @@ const getListStatus = (listType) => {
     [USER_LIST_TYPES_ENUM.ABANDONED]:
       props.movieInfo?.lists?.isAbandoned || false,
     [USER_LIST_TYPES_ENUM.WATCHING]:
-      props.movieInfo?.lists?.isWatching || false,
+      props.movieInfo?.lists?.isWatching || false
   }
 
   return statusMap[listType] ?? false
@@ -396,7 +399,7 @@ const toggleList = async (type) => {
   let hasError = false
   try {
     const listNames = {
-      [USER_LIST_TYPES_ENUM.FAVORITE]: 'избранное',
+      [USER_LIST_TYPES_ENUM.FAVORITE]: 'избранное'
     }
 
     if (getListStatus(type)) {
