@@ -19,12 +19,6 @@
         </template>
         <!-- Actual content -->
         <template v-else>
-        <img
-          v-if="featuredMovie.backdrop || featuredMovie.cover"
-          :src="featuredMovie.backdrop || featuredMovie.cover"
-          :alt="featuredMovie.title || featuredMovie.name"
-          class="hero-backdrop"
-        />
         <div class="hero-gradient"></div>
         <div class="hero-content">
           <h1 class="hero-title">
@@ -227,7 +221,13 @@ import { useNavbarStore } from '@/store/navbar'
 // eslint-disable-next-line no-unused-vars
 import { USER_LIST_TYPES_ENUM, TYPES_ENUM } from '@/constants'
 
-import { watchEffect, onMounted, ref, computed, watch } from 'vue'
+import {
+  watchEffect,
+  onMounted,
+  ref,
+  computed,
+  watch,
+} from 'vue'
 import { useRouter } from 'vue-router'
 
 const mainStore = useMainStore()
@@ -258,7 +258,7 @@ const normalizeMovie = (movie) => ({
     (movie.raw_data?.rating !== 'null'
       ? movie.raw_data?.rating
       : null),
-  type: movie.type || movie.raw_data?.type || null
+  type: movie.type || movie.raw_data?.type || null,
 })
 
 const searchTerm = ref('')
@@ -281,10 +281,12 @@ const popularError = ref('')
 const featuredMovie = computed(() => {
   if (popularMovies.value.length > 0) {
     const topMovies = popularMovies.value
-      .filter((m) => m.rating_kp >= 7 && (m.backdrop || m.cover))
+      .filter((m) => m.rating_kp >= 7 && m.backdrop)
       .slice(0, 5)
     if (topMovies.length > 0) {
-      return topMovies[Math.floor(Math.random() * topMovies.length)]
+      return topMovies[
+        Math.floor(Math.random() * topMovies.length)
+      ]
     }
     return popularMovies.value[0]
   }
@@ -295,10 +297,8 @@ const featuredMovie = computed(() => {
 watch(
   featuredMovie,
   (movie) => {
-    if (movie && (movie.backdrop || movie.cover)) {
-      backgroundStore.updateMainPagePoster(
-        movie.backdrop || movie.cover
-      )
+    if (movie && movie.backdrop) {
+      backgroundStore.updateMainPagePoster(movie.backdrop)
     }
   },
   { immediate: true }
@@ -320,7 +320,7 @@ const fetchPopularMovies = async () => {
         movie.raw_data?.backdrop?.url ||
         movie.raw_data?.cover?.url ||
         movie.raw_data?.screenshots?.[0] ||
-        null  // Don't fallback to poster (vertical) for hero
+        null,
     }))
   } catch (error) {
     const { message } = handleApiError(error)
@@ -505,6 +505,7 @@ onMounted(() => {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
+
 /* Hero Section */
 .hero-section {
   position: relative;
@@ -514,16 +515,6 @@ onMounted(() => {
   max-height: 800px;
   margin-bottom: 30px;
   overflow: hidden;
-}
-
-.hero-backdrop {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center top;
 }
 
 .hero-gradient {
