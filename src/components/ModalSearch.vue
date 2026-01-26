@@ -93,7 +93,7 @@
             </div>
             <div class="result-info">
               <div class="result-title">
-                {{ getMovieName(movie) }}
+                {{ movie.title }}
               </div>
               <div class="result-meta">
                 <span
