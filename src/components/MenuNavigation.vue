@@ -109,5 +109,3 @@ onMounted(() => {
   opacity: 1;
 }
 </style>
-</tr>
-</tr>
