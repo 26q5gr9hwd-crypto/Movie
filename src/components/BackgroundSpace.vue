@@ -1,10 +1,20 @@
 <template>
   <LavaLampBackground v-if="backgroundType === 'lava-lamp'" />
-  
+
   <!-- Dynamic Background - switches between cinematic glow and movie backdrop -->
-  <div v-else-if="backgroundType === 'dynamic'" class="dynamic-container">
+  <div
+    v-else-if="backgroundType === 'dynamic'"
+    class="dynamic-container"
+  >
     <!-- Cinematic Glow (always present as base layer, fades when backdrop is active) -->
-    <div class="cinematic-layer" :class="{ 'cinematic-hidden': (isOnMoviePage && hasMoviePoster) || isOnHomeWithPoster }">
+    <div
+      class="cinematic-layer"
+      :class="{
+        'cinematic-hidden':
+          (isOnMoviePage && hasMoviePoster) ||
+          isOnHomeWithPoster,
+      }"
+    >
       <div class="cinematic-glow-wrap">
         <div class="cinematic-glow cinematic-glow-1"></div>
         <div class="cinematic-glow cinematic-glow-2"></div>
@@ -12,9 +22,16 @@
       </div>
       <div class="cinematic-vignette"></div>
     </div>
-    
+
     <!-- Movie Backdrop (shown when on movie page with poster) -->
-    <div class="backdrop-layer" :class="{ 'backdrop-active': (isOnMoviePage && hasMoviePoster) || isOnHomeWithPoster }">
+    <div
+      class="backdrop-layer"
+      :class="{
+        'backdrop-active':
+          (isOnMoviePage && hasMoviePoster) ||
+          isOnHomeWithPoster,
+      }"
+    >
       <div
         v-for="(bg, index) in backgrounds"
         :key="index"
@@ -25,12 +42,18 @@
       <div class="backdrop-vignette"></div>
     </div>
   </div>
-  
+
   <!-- Stars Background -->
-  <div v-else-if="backgroundType === 'stars'" class="background-container">
+  <div
+    v-else-if="backgroundType === 'stars'"
+    class="background-container"
+  >
     <div
       class="background-layer active"
-      :style="{ backgroundImage: `url(${starsBackground})`, filter: 'brightness(100%)' }"
+      :style="{
+        backgroundImage: `url(${starsBackground})`,
+        filter: 'brightness(100%)',
+      }"
     ></div>
   </div>
 </template>
@@ -49,8 +72,12 @@ const backgrounds = ref(['', ''])
 const activeIndex = ref(0)
 
 // Use currentBackground getter for unified source of truth
-const currentBackground = computed(() => backgroundStore.currentBackground)
-const backgroundType = computed(() => backgroundStore.backgroundType)
+const currentBackground = computed(
+  () => backgroundStore.currentBackground
+)
+const backgroundType = computed(
+  () => backgroundStore.backgroundType
+)
 const isBlurActive = computed(() => backgroundStore.isBlurActive)
 const moviePoster = computed(() => backgroundStore.moviePoster)
 
@@ -60,7 +87,9 @@ const isOnMoviePage = computed(() => {
 })
 // Check if on home page with a main poster set
 const isOnHomeWithPoster = computed(() => {
-  return route.path === '/' && !!backgroundStore.mainPagePoster
+  return (
+    route.path === '/' && !!backgroundStore.mainPagePoster
+  )
 })
 
 // Check if we have a movie poster to show
@@ -73,16 +102,19 @@ const getBackdropStyle = (index) => {
     backgroundImage: backgrounds.value[index]
       ? `url(${backgrounds.value[index]})`
       : 'none',
-    filter: isBlurActive.value ? 'blur(8px)' : 'blur(4px)',
+    filter: isBlurActive.value ? 'blur(20px)' : 'blur(12px)',
     brightness: '45%',
     backgroundSize: 'cover',
-    backgroundPosition: 'center top'
+    backgroundPosition: 'center top',
   }
 }
 
 onMounted(() => {
   if (currentBackground.value) {
-    backgrounds.value = [currentBackground.value, currentBackground.value]
+    backgrounds.value = [
+      currentBackground.value,
+      currentBackground.value,
+    ]
   }
 })
 
@@ -107,13 +139,13 @@ watch(currentBackground, (newUrl) => {
 
   const img = new Image()
   img.src = newUrl
-  
+
   img.onload = () => {
     const inactiveIndex = activeIndex.value ^ 1
     backgrounds.value[inactiveIndex] = newUrl
     activeIndex.value = inactiveIndex
   }
-  
+
   img.onerror = () => {
     console.error(`Failed to load background image: ${newUrl}`)
   }
@@ -187,19 +219,36 @@ watch(currentBackground, (newUrl) => {
 }
 
 @keyframes cinematicDrift1 {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(8vw, -5vh); }
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(8vw, -5vh);
+  }
 }
 
 @keyframes cinematicDrift2 {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(-6vw, 6vh); }
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-6vw, 6vh);
+  }
 }
 
 @keyframes cinematicDrift3 {
-  0%, 100% { transform: translate(0, 0); }
-  33% { transform: translate(10vw, 8vh); }
-  66% { transform: translate(-8vw, 4vh); }
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  33% {
+    transform: translate(10vw, 8vh);
+  }
+  66% {
+    transform: translate(-8vw, 4vh);
+  }
 }
 
 .cinematic-vignette {
@@ -246,9 +295,20 @@ watch(currentBackground, (newUrl) => {
 .backdrop-vignette {
   position: absolute;
   inset: 0;
-  background: 
-    linear-gradient(to bottom, rgba(10, 10, 10, 0.3) 0%, rgba(10, 10, 10, 0.6) 70%, rgba(10, 10, 10, 0.95) 100%),
-    linear-gradient(to right, rgba(10, 10, 10, 0.5) 0%, transparent 30%, transparent 70%, rgba(10, 10, 10, 0.5) 100%);
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(10, 10, 10, 0.5) 0%,
+      rgba(10, 10, 10, 0.75) 70%,
+      rgba(10, 10, 10, 0.98) 100%
+    ),
+    linear-gradient(
+      to right,
+      rgba(10, 10, 10, 0.5) 0%,
+      transparent 30%,
+      transparent 70%,
+      rgba(10, 10, 10, 0.5) 100%
+    );
   pointer-events: none;
 }
 
@@ -272,7 +332,7 @@ watch(currentBackground, (newUrl) => {
   .cinematic-glow-3 {
     animation: none;
   }
-  
+
   .background-image,
   .cinematic-layer,
   .backdrop-layer {
