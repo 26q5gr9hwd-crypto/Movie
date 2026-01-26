@@ -1,5 +1,6 @@
 import { initializeApp } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
+import { useApiStore } from '@/store/api'
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -12,3 +13,9 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig)
 export const auth = getAuth(app)
+
+// Used by src/api/axios.js
+export const getCurrentApiUrl = async () => {
+  const apiStore = useApiStore()
+  return apiStore.currentApiUrl || import.meta.env.VITE_APP_API_URL
+}
