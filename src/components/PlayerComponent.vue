@@ -1,11 +1,16 @@
-<template>
-  <ErrorMessage
-    v-if="errorMessage"
-    :message="errorMessage"
-    :code="errorCode"
-  />
+// In template:
+<ErrorMessage
+  v-if="errorMessage && playersInternal.length === 0"
+  :message="errorMessage"
+  :code="errorCode"
+/>
 
-  <template v-else>
+<template v-else>
+  <!-- Show warning banner if there was an error but we still have players -->
+  <div v-if="errorMessage" class="partial-error-banner">
+     errorMessage 
+  </div>
+  <!-- Rest of player UI -->
     <!-- Минималистичный селектор плеера -->
     <div class="player-selector">
       <button class="player-selector-btn" @click="openPlayerModal">
