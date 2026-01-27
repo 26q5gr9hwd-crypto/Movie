@@ -227,6 +227,29 @@ const centerPlayer = () => {
   }
 }
 
+// Helper function to get sspoisk fallback player
+const getSspoiskFallback = () => {
+  const isShiki = props.kpId.startsWith('shiki')
+  const type = isShiki ? 'series' : 'film'
+  const cleanId = isShiki
+    ? props.kpId.replace('shiki', '')
+    : props.kpId
+
+  return {
+    key: 'SSPOISK',
+    translate: 'Альтернативный плеер',
+    iframe: `https://www.sspoisk.ru/${type}/${cleanId}/`
+  }
+}
+
+// Add sspoisk as fallback when main API fails
+const addSspoiskFallback = () => {
+  const fallback = getSspoiskFallback()
+  playersInternal.value = [fallback]
+  selectedPlayerInternal.value = fallback
+  emit('update:selectedPlayer', fallback)
+}
+
 const fetchPlayers = async () => {
   try {
     errorMessage.value = ''
@@ -248,6 +271,18 @@ const fetchPlayers = async () => {
         }
       }
     )
+
+    // Always add sspoisk as last fallback option
+    const sspoiskFallback = getSspoiskFallback()
+    playersInternal.value.push(sspoiskFallback)
+
+    // If no players from API (only sspoisk fallback), select it
+    if (playersInternal.value.length === 1) {
+      selectedPlayerInternal.value = sspoiskFallback
+      emit('update:selectedPlayer', sspoiskFallback)
+      return
+    }
+
     if (playersInternal.value.length > 0) {
       if (preferredPlayer.value) {
         const normalizedPreferred = normalizeKey(
@@ -265,11 +300,13 @@ const fetchPlayers = async () => {
       emit('update:selectedPlayer', selectedPlayerInternal.value)
     }
   } catch (error) {
-    const { message, code } = handleApiError(error)
-    errorMessage.value = message
-    errorCode.value = code
+    // Instead of showing error, use sspoisk fallback
     // eslint-disable-next-line no-console
-    console.error('Ошибка при загрузке плееров:', error)
+    console.error(
+      'Primary API failed, using sspoisk fallback:',
+      error
+    )
+    addSspoiskFallback()
   }
 }
 
@@ -311,7 +348,9 @@ const showCloseButton = () => {
   closeButtonVisible.value = true
 }
 
-const dimmingEnabled = computed(() => mainStore.dimmingEnabled)
+const dimmingEnabled = computed(
+  () => mainStore.dimmingEnabled
+)
 
 const onIframeLoad = () => {
   iframeLoading.value = false
@@ -415,7 +454,9 @@ const toggleList = async (type) => {
     }
   } catch (error) {
     const { message, code } = handleApiError(error)
-    notificationRef.value.showNotification(`${message} ${code}`)
+    notificationRef.value.showNotification(
+      `${message} ${code}`
+    )
     hasError = true
   }
   if (!hasError) {
