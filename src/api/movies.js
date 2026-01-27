@@ -36,39 +36,18 @@ const getKpInfo = async (kpId) => {
   return data
 }
 
-// ===== Public fallback balancers (no token required) =====
-const getFallbackPlayers = (kpId) => ({
-  COLLAPS: {
-    iframe: `https://api.collaps.cc/embed/kp/${kpId}`,
-    key: 'COLLAPS'
-  },
-  VOIDBOOST: {
-    iframe: `https://voidboost.tv/embed/${kpId}`,
-    key: 'VOIDBOOST'
-  },
-  HDVB: {
-    iframe: `https://vid1680495639.vb17120ayeshapc.pw/embed/${kpId}`,
-    key: 'HDVB'
-  }
-})
 const getPlayers = async (kpId) => {
-  try {
-    const { data } = await apiCall((api) =>
-      api.post(
-        '/cache',
-        new URLSearchParams({
-          kinopoisk: kpId,
-          type: 'movie'
-        }),
-        { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
-      )
+  const { data } = await apiCall((api) =>
+    api.post(
+      '/cache',
+      new URLSearchParams({
+        kinopoisk: kpId,
+        type: 'movie'
+      }),
+      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
     )
-    return data
-  } catch (error) {
-    // Fallback to public balancers when primary API fails/blocks
-    console.warn('Primary API failed, using public fallback balancers:', error.message)
-    return getFallbackPlayers(kpId)
-  }
+  )
+  return data
 }
 
 const getShikiPlayers = async (shikiId) => {
