@@ -250,6 +250,43 @@ const addSspoiskFallback = () => {
   emit('update:selectedPlayer', fallback)
 }
 
+/**
+ * Fetch players from Kinobox API as intermediate fallback
+ */
+const fetchKinoboxPlayers = async (kpId) => {
+  try {
+    const cleanId = kpId.startsWith('shiki')
+      ? kpId.replace('shiki', '')
+      : kpId
+
+    const apiURL = new URL('https://api.kinobox.tv/api/players')
+    apiURL.searchParams.set('kinopoisk', cleanId)
+
+    const response = await fetch(apiURL)
+    if (!response.ok) throw new Error('Kinobox API failed')
+
+    const data = await response.json()
+
+    // Handle both possible response structures
+    const players = Array.isArray(data) ? data : data?.data
+
+    if (!Array.isArray(players) || players.length === 0) {
+      return null
+    }
+
+    return players
+      .filter((player) => player?.iframeUrl && player?.type)
+      .map((player) => ({
+        key: player.type.toUpperCase(),
+        translate: player.type,
+        iframe: player.iframeUrl
+      }))
+  } catch (error) {
+    console.error('Kinobox fallback failed:', error)
+    return null
+  }
+}
+
 const fetchPlayers = async () => {
   try {
     errorMessage.value = ''
@@ -264,25 +301,27 @@ const fetchPlayers = async () => {
     }
 
     playersInternal.value = Object.entries(players).map(
-      ([key, value]) => {
-        return {
-          key: key.toUpperCase(),
-          ...value
-        }
-      }
+      ([key, value]) => ({
+        key: key.toUpperCase(),
+        ...value
+      })
     )
+
+    // If no players from primary API, try Kinobox as first fallback
+    if (playersInternal.value.length === 0) {
+      const kinoboxPlayers = await fetchKinoboxPlayers(
+        props.kpId
+      )
+      if (kinoboxPlayers?.length > 0) {
+        playersInternal.value = kinoboxPlayers
+      }
+    }
 
     // Always add sspoisk as last fallback option
     const sspoiskFallback = getSspoiskFallback()
     playersInternal.value.push(sspoiskFallback)
 
-    // If no players from API (only sspoisk fallback), select it
-    if (playersInternal.value.length === 1) {
-      selectedPlayerInternal.value = sspoiskFallback
-      emit('update:selectedPlayer', sspoiskFallback)
-      return
-    }
-
+    // Select player based on preference or default to first
     if (playersInternal.value.length > 0) {
       if (preferredPlayer.value) {
         const normalizedPreferred = normalizeKey(
@@ -300,12 +339,31 @@ const fetchPlayers = async () => {
       emit('update:selectedPlayer', selectedPlayerInternal.value)
     }
   } catch (error) {
-    // Instead of showing error, use sspoisk fallback
-    // eslint-disable-next-line no-console
-    console.error(
-      'Primary API failed, using sspoisk fallback:',
-      error
-    )
+    // Primary API failed, try Kinobox before falling
+    // back to sspoisk
+    console.error('Primary API failed, trying Kinobox:', error)
+    try {
+      const kinoboxPlayers = await fetchKinoboxPlayers(
+        props.kpId
+      )
+      if (kinoboxPlayers?.length > 0) {
+        const sspoiskFallback = getSspoiskFallback()
+        playersInternal.value = [
+          ...kinoboxPlayers,
+          sspoiskFallback
+        ]
+        selectedPlayerInternal.value =
+          playersInternal.value[0]
+        emit('update:selectedPlayer', selectedPlayerInternal.value)
+        return
+      }
+    } catch (kinoboxError) {
+      console.error(
+        'Kinobox fallback also failed:',
+        kinoboxError
+      )
+    }
+    // Final fallback to sspoisk
     addSspoiskFallback()
   }
 }
