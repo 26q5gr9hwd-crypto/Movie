@@ -1,4 +1,4 @@
-// In template:
+<template>
 <ErrorMessage
   v-if="errorMessage && playersInternal.length === 0"
   :message="errorMessage"
