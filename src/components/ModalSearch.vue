@@ -186,6 +186,11 @@ onMounted(async () => {
   await nextTick()
   document.addEventListener('keydown', handleKeyDown)
   searchInput.value?.focus()
+  // Handle ?q= URL parameter
+  if (navbarStore.searchQuery) {
+    searchTerm.value = navbarStore.searchQuery
+    performSearch()
+  }
 })
 
 onUnmounted(() => {
