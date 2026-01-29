@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { nextTick } from 'vue'
 import { routes } from './routes'
 import { useMainStore } from '@/store/main'
+import { useNavbarStore } from '@/store/navbar'  // ADD THIS IMPORT
 import { handleHashNavigation } from '@/helpers/hashHandler'
 import { useScrollTracking } from '@/composables/useScrollTracking'
 
@@ -44,9 +45,11 @@ router.beforeEach((to, _from, next) => {
   // Handle search query param for !bang support
   // URL: https://danflix.ru/?q=searchterm
   if (to.query.q) {
-    const mainStore = useMainStore()
+    const navbarStore = useNavbarStore()  // USE NAVBAR STORE
     nextTick(() => {
-      mainStore.openSearch(String(to.query.q))
+      const query = String(to.query.q)
+      navbarStore.openSearchModal()  // Open the modal
+      navbarStore.setSearchQuery(query)  // Set the query (add this method to navbar store)
     })
   }
 
