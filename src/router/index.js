@@ -41,6 +41,15 @@ router.beforeEach((to, _from, next) => {
 
   startTracking()
 
+  // Handle search query param for !bang support
+  // URL: https://danflix.ru/?q=searchterm
+  if (to.query.q) {
+    const mainStore = useMainStore()
+    nextTick(() => {
+      mainStore.openSearch(String(to.query.q))
+    })
+  }
+
   if (to.hash) {
     handleHashNavigation(to, next)
   } else {
