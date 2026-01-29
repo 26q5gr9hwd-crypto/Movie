@@ -16,7 +16,10 @@ export const useMainStore = defineStore(MAIN_STORE_NAME, {
     submitterUsername: '',
     cardSize: 'medium',
     isStreamerMode: true,
-    rememberScrollPosition: true
+    rememberScrollPosition: true,
+    // Search state for !bang support
+    searchQuery: '',
+    searchOpen: false
   }),
 
   actions: {
@@ -104,6 +107,14 @@ export const useMainStore = defineStore(MAIN_STORE_NAME, {
 
     setRememberScrollPosition(value) {
       this.rememberScrollPosition = value
+    },
+    // Open search modal with optional query (for !bang URL support)
+    openSearch(query = '') {
+      this.searchQuery = query
+      this.searchOpen = true
+    },
+    closeSearch() {
+      this.searchOpen = false
     }
   },
 
