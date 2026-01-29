@@ -214,7 +214,6 @@ import { useNavbarStore } from '@/store/navbar'
 import { USER_LIST_TYPES_ENUM, TYPES_ENUM } from '@/constants'
 
 import { watchEffect, onMounted, ref, computed, watch } from 'vue'
-import { useRouter } from 'vue-router'
 
 const mainStore = useMainStore()
 const authStore = useAuthStore()
