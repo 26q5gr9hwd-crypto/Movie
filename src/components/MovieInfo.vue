@@ -220,7 +220,6 @@ const mainStore = useMainStore()
 const authStore = useAuthStore()
 const backgroundStore = useBackgroundStore()
 const navbarStore = useNavbarStore()
-const router = useRouter()
 
 // Helper function to normalize movie data
 const normalizeMovie = (movie) => ({
