@@ -4,7 +4,8 @@ export const useNavbarStore = defineStore('navbar', {
   state: () => ({
     isNavbarVisible: false,
     isModalSearchVisible: false,
-    headerContent: null
+    headerContent: null,
+    searchQuery: ''  // ← NEW: for ?q= URL param support
   }),
   actions: {
     // Методы для навбара
@@ -27,6 +28,11 @@ export const useNavbarStore = defineStore('navbar', {
     },
     closeSearchModal() {
       this.isModalSearchVisible = false
+      this.searchQuery = ''  // Clear query when modal closes
+    },
+    // NEW: Set search query from URL param
+    setSearchQuery(query) {
+      this.searchQuery = query
     },
     // Метод для обновления содержимого хедера
     setHeaderContent(content) {
