@@ -8,7 +8,7 @@ import { handleHashNavigation } from '@/helpers/hashHandler'
 import { useScrollTracking } from '@/composables/useScrollTracking'
 
 const base = import.meta.env.VITE_BASE_URL || '/'
-console.log(base: ${base})
+console.log('base:', base)
 const { userHasScrolled, startTracking } = useScrollTracking()
 const router = createRouter({
   history: createWebHistory(base),
@@ -40,7 +40,6 @@ const router = createRouter({
 router.beforeEach((to, _from, next) => {
   const authStore = useAuthStore()
 
-  // Auth guard - redirect to login if route requires auth and user is not authenticated
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     next({ name: 'login', query: { redirect: to.fullPath } })
     return
@@ -51,7 +50,6 @@ router.beforeEach((to, _from, next) => {
 
   startTracking()
 
-  // Handle search query param for !bang support
   if (to.query.q) {
     const navbarStore = useNavbarStore()
     nextTick(() => {
