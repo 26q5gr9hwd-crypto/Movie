@@ -57,7 +57,7 @@ export const routes = [
     }
   },
   {
-    path: '/:pathMatch(.*)*',
+    path: '/:pathMatch(.)',
     component: () => import('@/components/NotFound.vue'),
     name: 'NotFound',
     meta: {
@@ -77,7 +77,8 @@ export const routes = [
     name: 'user',
     component: () => import('@/components/User.vue'),
     meta: {
-      title: 'DanFlix - Профиль'
+      title: 'DanFlix - Профиль',
+      requiresAuth: true
     }
   },
   {
@@ -85,23 +86,8 @@ export const routes = [
     name: 'lists',
     component: () => import('@/components/UserLists.vue'),
     meta: {
-      title: 'DanFlix - Списки'
-    }
-  },
-  {
-    path: '/auth-success',
-    name: 'auth-success',
-    component: () => import('@/components/AuthSuccess.vue'),
-    meta: {
-      title: 'DanFlix - Логин'
-    }
-  },
-  {
-    path: '/links',
-    name: 'links',
-    component: () => import('@/components/Links.vue'),
-    meta: {
-      title: 'DanFlix - Полезные ссылки'
+      title: 'DanFlix - Списки',
+      requiresAuth: true
     }
   }
 ]
