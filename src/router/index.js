@@ -18,13 +18,13 @@ const router = createRouter({
 
     return new Promise((resolve) => {
       nextTick(() => {
-        if (to.name === 'movie-info') {
+        if (to['name'] === 'movie-info') {
           return resolve({ top: 0, behavior: 'smooth' })
         } else if (
           savedPosition &&
           mainStore.rememberScrollPosition &&
           !userHasScrolled &&
-          (to.name === 'top-movies' || to.name === 'lists')
+          (to['name'] === 'top-movies' || to['name'] === 'lists')
         ) {
           setTimeout(() => {
             return resolve(savedPosition)
@@ -52,7 +52,6 @@ router.beforeEach((to, _from, next) => {
   startTracking()
 
   // Handle search query param for !bang support
-  // URL: https://danflix.ru/?q=searchterm
   if (to.query.q) {
     const navbarStore = useNavbarStore()
     nextTick(() => {
