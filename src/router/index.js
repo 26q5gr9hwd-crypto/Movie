@@ -2,12 +2,13 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { nextTick } from 'vue'
 import { routes } from './routes'
 import { useMainStore } from '@/store/main'
-import { useNavbarStore } from '@/store/navbar'  // ADD THIS IMPORT
+import { useNavbarStore } from '@/store/navbar'
+import { useAuthStore } from '@/store/auth'
 import { handleHashNavigation } from '@/helpers/hashHandler'
 import { useScrollTracking } from '@/composables/useScrollTracking'
 
 const base = import.meta.env.VITE_BASE_URL || '/'
-console.log(`base: ${base}`)
+console.log(base: ${base})
 const { userHasScrolled, startTracking } = useScrollTracking()
 const router = createRouter({
   history: createWebHistory(base),
@@ -37,6 +38,14 @@ const router = createRouter({
 })
 
 router.beforeEach((to, _from, next) => {
+  const authStore = useAuthStore()
+
+  // Auth guard - redirect to login if route requires auth and user is not authenticated
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    next({ name: 'login', query: { redirect: to.fullPath } })
+    return
+  }
+
   const title = to.meta.title || 'DanFlix'
   document.title = title
 
@@ -45,11 +54,11 @@ router.beforeEach((to, _from, next) => {
   // Handle search query param for !bang support
   // URL: https://danflix.ru/?q=searchterm
   if (to.query.q) {
-    const navbarStore = useNavbarStore()  // USE NAVBAR STORE
+    const navbarStore = useNavbarStore()
     nextTick(() => {
       const query = String(to.query.q)
-      navbarStore.openSearchModal()  // Open the modal
-      navbarStore.setSearchQuery(query)  // Set the query (add this method to navbar store)
+      navbarStore.openSearchModal()
+      navbarStore.setSearchQuery(query)
     })
   }
 
