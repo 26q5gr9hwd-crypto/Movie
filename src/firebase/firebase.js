@@ -10,7 +10,7 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 }
 
-const app = initializeApp(firebaseConfig)
+export const auth = getAuth(initializeApp(firebaseConfig))
 
 // Firebase Auth REMOVED - new auth will use simple localStorage
 // export const auth = getAuth(app)
