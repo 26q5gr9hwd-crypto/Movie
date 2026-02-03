@@ -1,5 +1,4 @@
 import { initializeApp } from 'firebase/app'
-import { getAuth } from 'firebase/auth'
 import { useApiStore } from '@/store/api'
 
 const firebaseConfig = {
@@ -12,23 +11,28 @@ const firebaseConfig = {
 }
 
 const app = initializeApp(firebaseConfig)
-export const auth = getAuth(app)
+
+// Firebase Auth REMOVED - new auth will use simple localStorage
+// export const auth = getAuth(app)
 
 // Used by src/api/axios.js
 export const getCurrentApiUrl = async () => {
   const apiStore = useApiStore()
   return apiStore.currentApiUrl || import.meta.env.VITE_APP_API_URL
 }
+
 // ================= Remote Config (lightweight stub) =================
 // index.html expects these exports. This keeps the build working even if you
 // don't actually use Firebase Remote Config yet.
 let __remoteConfigCache = {
   load_script: 'false'
 }
+
 export const initRemoteConfig = async () => {
   // If you later want real Firebase Remote Config, we can replace this stub.
   return true
 }
+
 export const getConfigValue = (key) => {
   return __remoteConfigCache?.[key]
 }
