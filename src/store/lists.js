@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { loadLists, saveLists, clearLists } from '@/utils/listStorage'
-import { useAuthStore } from '@/store/auth/auth'
+
+// AUTH REMOVED - Lists functionality disabled until Phase 3 rebuild
+// This store will be rebuilt with new simple auth system
 
 export const useListsStore = defineStore('lists', {
   state: () => ({
@@ -28,71 +30,25 @@ export const useListsStore = defineStore('lists', {
   },
 
   actions: {
+    // Stub methods - will be reimplemented with new auth in Phase 3
     initializeLists() {
-      const authStore = useAuthStore()
-      const userId = authStore.user?.uid
-      if (userId) {
-        const lists = loadLists(userId)
-        this.watchLater = lists.watchLater || []
-        this.favorites = lists.favorites || []
-        this.initialized = true
-      }
+      // Disabled - requires auth
+      this.initialized = false
     },
 
     toggleWatchLater(movieId) {
-      const authStore = useAuthStore()
-      const userId = authStore.user?.uid
-      if (!userId) return false
-
-      const isInList = this.watchLater.some(item => item.movieId === movieId)
-
-      if (isInList) {
-        this.watchLater = this.watchLater.filter(item => item.movieId !== movieId)
-      } else {
-        this.watchLater.push({
-          movieId,
-          addedAt: new Date().toISOString()
-        })
-      }
-
-      saveLists(userId, {
-        watchLater: this.watchLater,
-        favorites: this.favorites
-      })
-
-      return !isInList
+      // Disabled - requires auth
+      console.warn('Watch Later disabled - auth system being rebuilt')
+      return false
     },
 
     toggleFavorites(movieId) {
-      const authStore = useAuthStore()
-      const userId = authStore.user?.uid
-      if (!userId) return false
-
-      const isInList = this.favorites.some(item => item.movieId === movieId)
-
-      if (isInList) {
-        this.favorites = this.favorites.filter(item => item.movieId !== movieId)
-      } else {
-        this.favorites.push({
-          movieId,
-          addedAt: new Date().toISOString()
-        })
-      }
-
-      saveLists(userId, {
-        watchLater: this.watchLater,
-        favorites: this.favorites
-      })
-
-      return !isInList
+      // Disabled - requires auth
+      console.warn('Favorites disabled - auth system being rebuilt')
+      return false
     },
 
-    clearListsOnLogout() {
-      const authStore = useAuthStore()
-      const userId = authStore.user?.uid
-      if (userId) {
-        clearLists(userId)
-      }
+    clearAllLists() {
       this.watchLater = []
       this.favorites = []
       this.initialized = false
