@@ -39,7 +39,6 @@ const navLinks = ref([])
     { to: '/settings', exact: true, icon: 'fas fa-cog', text: 'Настройки' },
     { to: '/contact', exact: true, icon: 'fas fa-envelope', text: 'Контакты' }
   ]
-}
 
 onMounted(async () => {
 })
