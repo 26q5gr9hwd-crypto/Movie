@@ -20,7 +20,6 @@ import { computed, ref, onMounted } from 'vue'
 import DesktopMenu from './MenuNavigation/DesktopMenu.vue'
 import MobileMenu from './MenuNavigation/MobileMenu.vue'
 import ModalSearch from './ModalSearch.vue'
-import { getBaseURLSync, getBaseURL } from '@/api/axios'
 
 // Auth imports REMOVED
 // import { useAuthStore } from '@/store/auth'
@@ -32,7 +31,6 @@ const navbarStore = useNavbarStore()
 const isMobile = computed(() => store.isMobile)
 const navLinks = ref([])
 
-const initializeNavLinks = (baseURL) => {
   // Auth-dependent menu items removed (profile, lists, notifications)
   // Will be re-added when new auth system is built in Phase 3
   navLinks.value = [
@@ -44,8 +42,6 @@ const initializeNavLinks = (baseURL) => {
 }
 
 onMounted(async () => {
-  const baseURL = await getBaseURL()
-  initializeNavLinks(baseURL)
 })
 </script>
 
