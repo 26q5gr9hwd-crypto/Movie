@@ -1,6 +1,5 @@
 import axios from 'axios'
 import { getCurrentApiUrl } from '@/firebase/firebase'
-import { useAuthStore } from '@/store/auth'
 import { useApiStore } from '@/store/api'
 
 let apiInstance = null
@@ -16,17 +15,15 @@ export const getApi = async () => {
   }
 
   apiInstancePromise = (async () => {
-    const authStore = useAuthStore()
-
     const apiUrl = await getCurrentApiUrl()
 
     apiInstance = axios.create({
       baseURL: apiUrl,
       headers: { 'Content-Type': 'application/json' }
     })
-    if (authStore.token) {
-      apiInstance.defaults.headers.common['Authorization'] = `Bearer ${authStore.token}`
-    }
+
+    // Auth header logic removed - will be re-added with new auth system
+
     apiInstance.interceptors.request.use(
       (config) => {
         return config
