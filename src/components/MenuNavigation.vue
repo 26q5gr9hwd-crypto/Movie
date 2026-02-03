@@ -16,7 +16,7 @@
 <script setup>
 import { useMainStore } from '@/store/main'
 import { useNavbarStore } from '@/store/navbar'
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref } from 'vue'
 import DesktopMenu from './MenuNavigation/DesktopMenu.vue'
 import MobileMenu from './MenuNavigation/MobileMenu.vue'
 import ModalSearch from './ModalSearch.vue'
@@ -40,8 +40,6 @@ const navLinks = ref([])
     { to: '/contact', exact: true, icon: 'fas fa-envelope', text: 'Контакты' }
   ]
 
-onMounted(async () => {
-})
 </script>
 
 <style scoped>
