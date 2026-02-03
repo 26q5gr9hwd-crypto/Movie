@@ -46,7 +46,7 @@ export const useAuthStore = defineStore('auth', {
       }
       
       this.user = { username: username }
-      this.token = simpleHash(username + String(Date'now'))
+      this.token = simpleHash(username + String(Date.now()))
       return true
     },
     
@@ -66,7 +66,7 @@ export const useAuthStore = defineStore('auth', {
       saveUsers(users)
       
       this.user = { username: username }
-      this.token = simpleHash(username + String(Date'now'))
+      this.token = simpleHash(username + String(Date.now()))
       return true
     },
     
