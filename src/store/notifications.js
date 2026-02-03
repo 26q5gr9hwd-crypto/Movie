@@ -16,7 +16,6 @@ export const useNotificationsStore = defineStore('notifications', {
   actions: {
     async fetchNotifications() {
       // Disabled - requires backend API
-      console.warn('Notifications disabled - requires backend API')
       this.notifications = []
       this.unreadCount = 0
     },
@@ -26,11 +25,11 @@ export const useNotificationsStore = defineStore('notifications', {
       this.unreadCount = 0
     },
 
-    async markAsRead(notificationIds = null) {
+    async markAsRead(_notificationIds = null) {
       // Disabled - requires backend API
     },
 
-    async deleteNotification(notificationId) {
+    async deleteNotification(_notificationId) {
       // Disabled - requires backend API
     }
   }
