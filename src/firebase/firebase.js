@@ -1,4 +1,5 @@
 import { initializeApp } from 'firebase/app'
+import { getAuth } from 'firebase/app'
 import { useApiStore } from '@/store/api'
 
 const firebaseConfig = {
