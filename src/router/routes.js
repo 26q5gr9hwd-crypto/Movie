@@ -48,11 +48,54 @@ export const routes = [
     }
   },
   {
+    path: '/notifications',
+    name: 'notifications',
+    component: () => import('@/components/NotificationsPage.vue'),
+    meta: {
+      title: 'DanFlix - Уведомления',
+      requiresAuth: true
+    }
+  },
+  {
     path: '/:pathMatch(.)',
     component: () => import('@/components/NotFound.vue'),
     name: 'NotFound',
     meta: {
       title: '404 - Страница не найдена'
+    }
+  },
+  {
+    path: '/login',
+    name: 'login',
+    component: () => import('@/components/Login.vue'),
+    meta: {
+      title: 'DanFlix - Логин'
+    }
+  },
+  {
+    path: '/signup',
+    name: 'signup',
+    component: () => import('@/components/Signup.vue'),
+    meta: {
+      title: 'DanFlix - Регистрация'
+    }
+  },
+  {
+    path: '/user',
+    name: 'user',
+    component: () => import('@/components/User.vue'),
+    meta: {
+      title: 'DanFlix - Профиль',
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/lists/:user_id?',
+    name: 'lists',
+    component: () => import('@/components/UserLists.vue'),
+    meta: {
+      title: 'DanFlix - Списки',
+      requiresAuth: true
     }
   }
 ]
