@@ -6,6 +6,12 @@ export const getMyLists = async (listType) => {
   return data
 }
 
+export const delFromList = async (kpId, listType) => {
+  const api = await getApi()
+  const { data } = await api.delete('/user/lists/' + listType + '/' + kpId)
+  return data
+}
+
 export const delAllFromList = async (listType) => {
   const api = await getApi()
   const { data } = await api.delete('/user/lists/' + listType)
