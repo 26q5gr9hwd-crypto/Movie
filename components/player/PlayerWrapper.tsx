@@ -1,70 +1,42 @@
 'use client';
-import { useState, useCallback } from 'react';
-import { KinoboxPlayer, type KinoboxPlayerData } from './KinoboxPlayer';
-import { SSPoiskPlayer } from './SSPoiskPlayer';
+import { useState, useEffect, useCallback } from 'react';
+import KinoboxPlayer from './KinoboxPlayer';
+import SSPoiskPlayer from './SSPoiskPlayer';
 
-interface Props {
-  movieId: string;
-  mediaType?: 'film' | 'series';
-}
+interface Props { movieId: string; type?: 'film' | 'series'; }
 
-interface PlayerOption {
-  key: string;
-  name: string;
-  source: 'kinobox' | 'sspoisk';
-  iframeUrl?: string;
-}
+export default function PlayerWrapper({ movieId, type = 'film' }: Props) {
+  const [player, setPlayer] = useState<'kinobox'|'sspoisk'|'failed'>('kinobox');
+  const [loaded, setLoaded] = useState(false);
 
-export function PlayerWrapper({ movieId, mediaType = 'film' }: Props) {
-  const [failed, setFailed] = useState(false);
-  const [players, setPlayers] = useState<PlayerOption[]>([]);
-  const [sel, setSel] = useState<PlayerOption | null>(null);
-  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (player !== 'kinobox' || loaded) return;
+    const t = setTimeout(() => setPlayer('sspoisk'), 5000);
+    return () => clearTimeout(t);
+  }, [player, movieId, loaded]);
 
-  const onLoaded = useCallback((list: KinoboxPlayerData[]) => {
-    const opts: PlayerOption[] = [
-      ...list.map(p => ({ key: p.key, name: p.name, source: 'kinobox' as const, iframeUrl: p.iframeUrl })),
-      { key: 'SSPOISK', name: 'SSPoisk', source: 'sspoisk' as const },
-    ];
-    setPlayers(opts);
-    setSel(opts[0]);
-  }, []);
+  const onKbErr = useCallback(() => setPlayer('sspoisk'), []);
+  const onKbLoad = useCallback(() => setLoaded(true), []);
+  const onSsErr = useCallback(() => setPlayer('failed'), []);
 
-  const onErr = useCallback(() => {
-    setFailed(true);
-    const fb: PlayerOption = { key: 'SSPOISK', name: 'SSPoisk', source: 'sspoisk' };
-    setPlayers([fb]);
-    setSel(fb);
-  }, []);
+  if (player === 'failed') return (
+    <div className="flex flex-col items-center justify-center w-full aspect-video bg-black/30 rounded-xl border border-white/10">
+      <p className="text-white/50 text-sm mb-3">Player unavailable</p>
+      <button onClick={() => { setPlayer('kinobox'); setLoaded(false); }}
+        className="px-4 py-2 text-xs text-white/70 bg-white/10 rounded-lg hover:bg-white/20 transition-colors">
+        Try again</button>
+    </div>);
 
-  return (
-    <div className="space-y-3">
-      {players.length > 1 && (
-        <div className="flex justify-center relative">
-          <button onClick={() => setOpen(!open)}
-            className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white/70 text-sm hover:bg-white/10 transition-all">
-            &#9654;
-            {sel?.name || 'Player'}
-            &#9660;
-          </button>
-          {open && (
-            <div className="absolute top-full mt-1 bg-zinc-900 border border-white/10 rounded-lg p-1 min-w-[200px] shadow-xl z-20">
-              {players.map(p => (
-                <button key={p.key} onClick={() => { setSel(p); setOpen(false); }}
-                  className={'w-full text-left px-3 py-2 rounded text-sm transition-colors ' + (sel?.key === p.key ? 'bg-red-500/20 text-red-400' : 'text-white/70 hover:bg-white/5')}>
-                  {p.name}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-      {sel?.source === 'sspoisk' || failed ? (
-        <SSPoiskPlayer movieId={movieId} type={mediaType} />
-      ) : (
-        <KinoboxPlayer movieId={movieId} onPlayersLoaded={onLoaded} onError={onErr}
-          selectedPlayer={sel?.iframeUrl ? { key: sel.key, name: sel.name, iframeUrl: sel.iframeUrl } : undefined} />
-      )}
+  return (<div className="w-full">
+    <div className="flex items-center gap-2 mb-3">
+      <button onClick={() => { setPlayer('kinobox'); setLoaded(false); }}
+        className={'px-3 py-1.5 rounded-lg text-xs font-medium transition-all ' + (player === 'kinobox' ? 'bg-red-600 text-white' : 'bg-white/10 text-white/50 hover:bg-white/20')}>
+        Kinobox</button>
+      <button onClick={() => setPlayer('sspoisk')}
+        className={'px-3 py-1.5 rounded-lg text-xs font-medium transition-all ' + (player === 'sspoisk' ? 'bg-red-600 text-white' : 'bg-white/10 text-white/50 hover:bg-white/20')}>
+        SSPoisk</button>
     </div>
-  );
+    {player === 'kinobox' && <KinoboxPlayer movieId={movieId} onError={onKbErr} onLoad={onKbLoad} />}
+    {player === 'sspoisk' && <SSPoiskPlayer movieId={movieId} type={type} onError={onSsErr} />}
+  </div>);
 }
