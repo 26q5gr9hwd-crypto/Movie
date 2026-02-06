@@ -2,27 +2,41 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from './auth/AuthContext';
-import { isFavorite, addFavorite, removeFavorite, FavoriteMovie } from '@/lib/favorites';
+import { addFavorite, removeFavorite, isFavorite, FavoriteMovie } from '@/lib/favorites';
 
-export default function FavoriteButton({ movie }: { movie: FavoriteMovie }) {
+interface Props {
+  movie: FavoriteMovie;
+  size?: number;
+}
+
+export default function FavoriteButton({ movie, size = 24 }: Props) {
   const { user, setShowAuthModal } = useAuth();
-  const [fav, setFav] = useState(false);
+  const [faved, setFaved] = useState(false);
 
   useEffect(() => {
-    if (user) setFav(isFavorite(user, movie.id));
+    if (user) setFaved(isFavorite(user, movie.id));
+    else setFaved(false);
   }, [user, movie.id]);
 
-  const toggle = () => {
+  const toggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (!user) { setShowAuthModal(true); return; }
-    if (fav) { removeFavorite(user, movie.id); setFav(false); }
-    else { addFavorite(user, movie); setFav(true); }
+    if (faved) { removeFavorite(user, movie.id); setFaved(false); }
+    else { addFavorite(user, movie); setFaved(true); }
   };
 
-  const tapAnim = { scale: 1.3 };
-
   return (
-    <motion.button whileTap={tapAnim} onClick={toggle} className="text-2xl">
-      {fav ? u2665 : u2661}
+    <motion.button
+      onClick={toggle}
+      whileTap={{ scale: 0.8 }}
+      whileHover={{ scale: 1.2 }}
+      className="p1"
+      aria-label={faved ? 'Remove from favorites' : 'Add to favorites'}
+    >
+      <svg width={size} height={size} viewBox="0 0 24 24" fill={faved ? '#e50914' : 'none'} stroke={faved ? '#e50914' : 'white'} strokeWidth="2">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+      </svg>
     </motion.button>
   );
 }
