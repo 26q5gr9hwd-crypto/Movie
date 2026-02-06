@@ -39,6 +39,7 @@ export default [
       }
     },
     rules: {
+      'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
       // Кавычки
       quotes: ['error', 'single', { avoidEscape: true }], // Одинарные кавычки, кроме случаев, когда нужны двойные
