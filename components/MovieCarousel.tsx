@@ -5,7 +5,7 @@ import MovieCard from "./MovieCard";
 
 export default function MovieCarousel({ title, movies }: { title: string; movies: Movie[] }) {
   const ref = useRef<HTMLDivElement>(null);
-  const scroll = (d: number) => ref.current?.scrollBy({ left: d  ref.current.clientWidth  0.75, behavior: "smooth" });
+  const scroll = (d: number) => ref.current?.scrollBy({ left: d * ref.current.clientWidth * 0.75, behavior: "smooth" });
   const noScroll = { scrollbarWidth: "none" as const };
   return (
     <section className="relative py-6 px-4 md:px-12">
