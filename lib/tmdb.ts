@@ -6,7 +6,7 @@ async function tmdbFetch<T>(path: string, params?: Record<string, string>): Prom
   url.searchParams.set('api_key', KEY || '');
   if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
   const res = await fetch(url.toString(), { next: { revalidate: 3600 } });
-  if (!res.ok) throw new Error(TMDB error: ${res.status});
+  if (!res.ok) throw new Error(`TMDB error: ${res.status}`);
   return res.json();
 }
 export const getTrending = async () => (await tmdbFetch<TMDBResponse>('/trending/movie/week')).results;
