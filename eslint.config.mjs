@@ -7,12 +7,10 @@ export default [
   ...vuePlugin.configs['flat/recommended'],
   prettierConfig,
   {
-    // Настройка окружения
     languageOptions: {
       ecmaVersion: 2021,
       sourceType: 'module',
       globals: {
-        // Глобальные переменные для браузера
         window: 'readonly',
         document: 'readonly',
         console: 'readonly',
@@ -25,8 +23,8 @@ export default [
         alert: 'readonly',
         confirm: 'readonly',
         navigator: 'readonly',
-        process: 'readonly', // Для переменных, связанных с Node.js
-        URLSearchParams: 'readonly', // Для работы с URLSearchParams
+        process: 'readonly',
+        URLSearchParams: 'readonly',
         URL: 'readonly',
         Image: 'readonly',
         AbortController: 'readonly',
@@ -39,15 +37,9 @@ export default [
       }
     },
     rules: {
-      'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      'no-unused-vars': ['error', { argsIgnorePattern: '^', varsIgnorePattern: '^' }],
       'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
-      // Кавычки
-      quotes: ['error', 'single', { avoidEscape: true }], // Одинарные кавычки, кроме случаев, когда нужны двойные
-      // Точки с запятой
-      semi: ['error', 'never'], // Без точек с запятой
-      // Trailing commas
-      'comma-dangle': ['error', 'never'], // Без trailing commas
-      // Vue-specific rules
+      // Formatting rules (quotes, semi, comma-dangle) removed — eslint-config-prettier handles them
       'vue/html-self-closing': [
         'error',
         {
@@ -61,7 +53,7 @@ export default [
         }
       ],
       'vue/require-default-prop': 'off',
-      'vue/multi-word-component-names': 'off' // Отключаем правило для однословных компонентов
+      'vue/multi-word-component-names': 'off'
     }
   }
 ]
