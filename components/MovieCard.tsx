@@ -5,6 +5,9 @@ import Link from 'next/link';
 import { Movie } from '@/types/movie';
 import { getImageUrl } from '@/lib/tmdb';
 
+const hoverScale = { scale: 1.05 };
+const dur = { duration: 0.2 };
+
 export default function MovieCard({ movie }: { movie: Movie }) {
   const img = getImageUrl(movie.poster_path);
   if (!img) return null;
@@ -12,8 +15,8 @@ export default function MovieCard({ movie }: { movie: Movie }) {
     <Link href={'/movie/' + movie.id}>
       <motion.div
         className="relative flex-shrink-0 w-[180px] rounded-lg overflow-hidden cursor-pointer group"
-        whileHover= scale: 1.05 
-        transition= duration: 0.2 
+        whileHover={hoverScale}
+        transition={dur}
       >
         <div className="aspect-[2/3] relative">
           <Image src={img} alt={movie.title} fill className="object-cover" sizes="180px" />
