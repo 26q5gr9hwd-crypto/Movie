@@ -1,35 +1,33 @@
-import Image from 'next/image';
-import Link from 'next/link';
-import { getMovieDetails, imgUrl } from '@/lib/tmdb';
-export default async function MoviePage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const movie = await getMovieDetails(Number(id));
+import { getMovieDetails, IMG, BACKDROP, POSTER } from "@/lib/tmdb";
+import Image from "next/image";
+import Link from "next/link";
+
+export default async function MoviePage({params}:{params:Promise<{id:string}>}) {
+  const {id} = await params;
+  const m = await getMovieDetails(Number(id));
+  const bg = m.backdrop_path?${IMG}${BACKDROP}${m.backdrop_path}:"";
+  const poster = m.poster_path?${IMG}${POSTER}${m.poster_path}:"";
   return (
-    <main className='min-h-screen bg-danflix-black'>
-      <div className='relative h-[50vh] min-h-[400px] w-full overflow-hidden'>
-        <Image src={imgUrl(movie.backdrop_path, 'original')} alt={movie.title} fill priority className='object-cover' />
-        <div className='absolute inset-0 bg-gradient-to-t from-danflix-black via-danflix-black/60 to-transparent' />
+    <main className="min-h-screen">
+      <div className="relative h-[50vh]">
+        {bg&&<Image src={bg} alt="" fill className="object-cover" sizes="100vw"/>}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/60 to-transparent"/>
+        <Link href="/" className="absolute top-6 left-6 z-20 text-white/70 hover:text-white">Back</Link>
       </div>
-      <div className='relative z-10 -mt-32 mx-auto max-w-6xl px-4 md:px-8'>
-        <div className='flex flex-col md:flex-row gap-8'>
-          <div className='flex-shrink-0 w-[250px] mx-auto md:mx-0'>
-            <Image src={imgUrl(movie.poster_path)} alt={movie.title} width={250} height={375} className='rounded-lg shadow-2xl' />
+      <div className="relative z-10 -mt-32 px-4 md:px-12 max-w-6xl mx-auto flex flex-col md:flex-row gap-8">
+        {poster&&<Image src={poster} alt={m.title} width={260} height={390} className="rounded-lg shadow-2xl flex-shrink-0 mx-auto md:mx-0"/>}
+        <div className="flex-1">
+          <h1 className="font-heading text-4xl md:text-6xl text-white tracking-wider uppercase">{m.title}</h1>
+          {m.tagline&&<p className="text-danflix-gold italic mt-2">{m.tagline}</p>}
+          <div className="flex flex-wrap gap-2 mt-3 text-sm text-gray-400">
+            u2605 {m.vote_average.toFixed(1)}
+            {m.release_date?.slice(0,4)}
+            {m.runtime>0&&{Math.floor(m.runtime/60)}h {m.runtime%60}m}
+            {m.genres?.map(g=>{g.name})}
           </div>
-          <div className='flex-1'>
-            <h1 className='font-heading text-4xl md:text-5xl font-bold text-white mb-2'>{movie.title}</h1>
-            {movie.tagline && <p className='text-danflix-gold italic mb-4'>{movie.tagline}</p>}
-            <div className='flex flex-wrap items-center gap-3 mb-4 text-sm text-gray-400'>
-              {movie.vote_average.toFixed(1)}
-              {movie.release_date?.slice(0, 4)}
-              {movie.runtime && {Math.floor(movie.runtime / 60)}h {movie.runtime % 60}m}
-            </div>
-            <div className='flex flex-wrap gap-2 mb-4'>{movie.genres?.map(g => {g.name})}</div>
-            <p className='text-gray-300 text-lg leading-relaxed mb-8'>{movie.overview}</p>
-            <div className='rounded-xl bg-white/5 p-8 mb-8 text-center text-gray-400'>Player will be available here</div>
-            {movie.credits?.cast?.length > 0 && <div><h2 className='font-heading text-2xl font-bold text-white mb-4'>Cast</h2><div className='flex gap-4 overflow-x-auto pb-4 scrollbar-hide'>{movie.credits.cast.slice(0, 10).map(p => <div key={p.id} className='flex-shrink-0 w-24 text-center'><Image src={imgUrl(p.profile_path, 'w185')} alt={p.name} width={96} height={144} className='rounded-lg object-cover mb-1' /><p className='text-xs text-white line-clamp-1'>{p.name}</p><p className='text-xs text-gray-500 line-clamp-1'>{p.character}</p></div>)}</div></div>}
-          </div>
+          <p className="text-gray-300 mt-4 leading-relaxed">{m.overview}</p>
+          <div id="player-mount" className="mt-6 aspect-video bg-danflix-dark rounded-lg border border-white/5"/>
         </div>
-        <div className='mt-8 pb-12'><Link href='/' className='text-danflix-red hover:text-red-400 transition-colors'>Back to Home</Link></div>
       </div>
     </main>
   );
