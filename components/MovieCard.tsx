@@ -6,7 +6,7 @@ import { Movie } from "@/types/movie";
 import { IMG, POSTER } from "@/lib/tmdb";
 
 export default function MovieCard({ movie, index = 0 }: { movie: Movie; index?: number }) {
-  const src = movie.poster_path ? ${IMG}${POSTER}${movie.poster_path} : "";
+const src = movie.poster_path ? ${IMG}${POSTER}${movie.poster_path} : "";
   if (!src) return null;
   const initAnim = { opacity: 0, y: 20 };
   const showAnim = { opacity: 1, y: 0 };
