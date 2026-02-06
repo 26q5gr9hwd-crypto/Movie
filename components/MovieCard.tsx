@@ -1,33 +1,31 @@
-'use client';
-import { motion } from 'framer-motion';
-import Image from 'next/image';
-import Link from 'next/link';
-import { Movie } from '@/types/movie';
-import { getImageUrl } from '@/lib/tmdb';
+"use client";
+import { motion } from "framer-motion";
+import Image from "next/image";
+import Link from "next/link";
+import { Movie } from "@/types/movie";
+import { IMG, POSTER } from "@/lib/tmdb";
 
-const hoverScale = { scale: 1.05 };
-const dur = { duration: 0.2 };
-
-export default function MovieCard({ movie }: { movie: Movie }) {
-  const img = getImageUrl(movie.poster_path);
-  if (!img) return null;
+export default function MovieCard({ movie, index = 0 }: { movie: Movie; index?: number }) {
+  const src = movie.poster_path ? ${IMG}${POSTER}${movie.poster_path} : "";
+  if (!src) return null;
   return (
-    <Link href={'/movie/' + movie.id}>
-      <motion.div
-        className="relative flex-shrink-0 w-[180px] rounded-lg overflow-hidden cursor-pointer group"
-        whileHover={hoverScale}
-        transition={dur}
-      >
-        <div className="aspect-[2/3] relative">
-          <Image src={img} alt={movie.title} fill className="object-cover" sizes="180px" />
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3">
-          <div>
-            <p className="font-heading text-sm text-white leading-tight">{movie.title}</p>
-            <p className="text-xs text-danflix-gold mt-1">{movie.vote_average.toFixed(1)} ★</p>
+    <motion.div
+      initial= opacity: 0, y: 20 
+      whileInView= opacity: 1, y: 0 
+      transition= delay: index * 0.05, duration: 0.4 
+      viewport= once: true 
+    >
+      <Link href={/movie/${movie.id}} className="group block w-[160px] sm:w-[200px] flex-shrink-0">
+        <motion.div whileHover= scale: 1.05  className="relative aspect-[2/3] overflow-hidden rounded-lg">
+          <Image src={src} alt={movie.title} fill sizes="200px" className="object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-4 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all">
+            <p className="text-sm font-medium truncate">{movie.title}</p>
+            ★ {movie.vote_average.toFixed(1)}
           </div>
-        </div>
-      </motion.div>
-    </Link>
+          <div className="absolute inset-0 rounded-lg ring-1 ring-white/0 group-hover:ring-danflix-gold/40 group-hover:shadow-[0_0_15px_rgba(196,167,71,0.15)] transition-all" />
+        </motion.div>
+      </Link>
+    </motion.div>
   );
 }
