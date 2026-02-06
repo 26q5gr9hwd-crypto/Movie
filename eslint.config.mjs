@@ -37,13 +37,10 @@ export default [
       }
     },
     rules: {
-      'no-unused-vars': [
-        'error',
-        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }
-      ],
+      'no-unused-vars': ['error', { argsIgnorePattern: '^', varsIgnorePattern: '^' }],
       'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
-      quotes: ['warn', 'single', { avoidEscape: true }],
-      semi: ['warn', 'never'],
+      quotes: 'off',
+      semi: 'off',
       'comma-dangle': ['error', 'never'],
       'vue/html-self-closing': [
         'error',
