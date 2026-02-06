@@ -105,7 +105,6 @@
 </template>
 
 <script setup>
-import { getPlayers, getShikiPlayers } from '@/api/movies'
 import { handleApiError } from '@/constants'
 import { addToList, delFromList } from '@/api/user'
 import ErrorMessage from '@/components/ErrorMessage.vue'
@@ -292,78 +291,28 @@ const fetchPlayers = async () => {
     errorMessage.value = ''
     errorCode.value = null
 
-    let players
-    if (props.kpId.startsWith('shiki')) {
-      const cleanShikiId = props.kpId.replace('shiki', '')
-      players = await getShikiPlayers(cleanShikiId)
-    } else {
-      players = await getPlayers(props.kpId)
+    const kinoboxPlayers = await fetchKinoboxPlayers(props.kpId)
+    if (kinoboxPlayers?.length > 0) {
+      playersInternal.value = kinoboxPlayers
     }
 
-    playersInternal.value = Object.entries(players).map(
-      ([key, value]) => ({
-        key: key.toUpperCase(),
-        ...value
-      })
-    )
-
-    // If no players from primary API, try Kinobox as first fallback
-    if (playersInternal.value.length === 0) {
-      const kinoboxPlayers = await fetchKinoboxPlayers(
-        props.kpId
-      )
-      if (kinoboxPlayers?.length > 0) {
-        playersInternal.value = kinoboxPlayers
-      }
-    }
-
-    // Always add sspoisk as last fallback option
     const sspoiskFallback = getSspoiskFallback()
     playersInternal.value.push(sspoiskFallback)
 
-    // Select player based on preference or default to first
     if (playersInternal.value.length > 0) {
       if (preferredPlayer.value) {
-        const normalizedPreferred = normalizeKey(
-          preferredPlayer.value
-        )
+        const normalizedPreferred = normalizeKey(preferredPlayer.value)
         const preferred = playersInternal.value.find(
-          (player) =>
-            normalizeKey(player.key) === normalizedPreferred
+          (player) => normalizeKey(player.key) === normalizedPreferred
         )
-        selectedPlayerInternal.value =
-          preferred || playersInternal.value[0]
+        selectedPlayerInternal.value = preferred || playersInternal.value[0]
       } else {
         selectedPlayerInternal.value = playersInternal.value[0]
       }
       emit('update:selectedPlayer', selectedPlayerInternal.value)
     }
   } catch (error) {
-    // Primary API failed, try Kinobox before falling
-    // back to sspoisk
-    console.error('Primary API failed, trying Kinobox:', error)
-    try {
-      const kinoboxPlayers = await fetchKinoboxPlayers(
-        props.kpId
-      )
-      if (kinoboxPlayers?.length > 0) {
-        const sspoiskFallback = getSspoiskFallback()
-        playersInternal.value = [
-          ...kinoboxPlayers,
-          sspoiskFallback
-        ]
-        selectedPlayerInternal.value =
-          playersInternal.value[0]
-        emit('update:selectedPlayer', selectedPlayerInternal.value)
-        return
-      }
-    } catch (kinoboxError) {
-      console.error(
-        'Kinobox fallback also failed:',
-        kinoboxError
-      )
-    }
-    // Final fallback to sspoisk
+    console.error('Kinobox failed, falling back to SSPoisk:', error)
     addSspoiskFallback()
   }
 }
