@@ -39,7 +39,9 @@ export default [
     rules: {
       'no-unused-vars': ['error', { argsIgnorePattern: '^', varsIgnorePattern: '^' }],
       'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
-      // Formatting rules (quotes, semi, comma-dangle) removed — eslint-config-prettier handles them
+      quotes: ['warn', 'single', { avoidEscape: true }],
+      semi: ['warn', 'never'],
+      'comma-dangle': ['error', 'never'],
       'vue/html-self-closing': [
         'error',
         {
