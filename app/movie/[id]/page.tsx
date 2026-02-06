@@ -20,11 +20,11 @@ export default async function MoviePage({ params }: { params: Promise<{ id: stri
           <h1 className="font-heading text-5xl text-white mb-2">{m.title}</h1>
           {m.tagline && <p className="text-danflix-gold italic mb-4">{m.tagline}</p>}
           <div className="flex gap-4 text-gray-400 text-sm mb-4">
-            {m.release_date ? m.release_date.slice(0, 4) : ''}
-            {m.runtime} min
-            {m.vote_average.toFixed(1)} ★
+            <p>{m.release_date ? m.release_date.slice(0, 4) : ''}</p>
+            <p>{m.runtime} min</p>
+            <p className="text-danflix-gold">{m.vote_average.toFixed(1)} ★</p>
           </div>
-          <div className="flex gap-2 mb-6 flex-wrap">{m.genres.map(g => {g.name})}</div>
+          <div className="flex gap-2 mb-6 flex-wrap">{m.genres.map(g => <p key={g.id} className="px-3 py-1 bg-white/10 rounded-full text-sm text-gray-300">{g.name}</p>)}</div>
           <p className="text-gray-300 leading-relaxed mb-8 max-w-2xl">{m.overview}</p>
           <h2 className="font-heading text-2xl text-white mb-4">Cast</h2>
           <div className="flex gap-3 overflow-x-auto pb-4" style={noScroll}>
