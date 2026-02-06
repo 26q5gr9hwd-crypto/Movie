@@ -1,18 +1,22 @@
-import { MovieDetails, TMDBResponse } from '@/types/movie';
-const KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY;
-const BASE = 'https://api.themoviedb.org/3';
-async function tmdbFetch<T>(path: string, params?: Record<string, string>): Promise<T> {
-  const url = new URL(${BASE}${path});
-  url.searchParams.set('api_key', KEY || '');
-  if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-  const res = await fetch(url.toString(), { next: { revalidate: 3600 } });
+import { Movie, MovieDetails, TMDBResponse } from "@/types/movie";
+
+const BASE_URL = "https:" + "//api.themoviedb.org/3";
+const API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY || "";
+
+async function fetchTMDB<T>(endpoint: string, params: Record<string, string> = {}): Promise<T> {
+  const sp = new URLSearchParams({ api_key: API_KEY, ...params });
+  const res = await fetch(${BASE_URL}${endpoint}?${sp}, { next: { revalidate: 3600 } });
   if (!res.ok) throw new Error(TMDB error: ${res.status});
   return res.json();
 }
-export const getTrending = async () => (await tmdbFetch<TMDBResponse>('/trending/movie/week')).results;
-export const getPopular = async () => (await tmdbFetch<TMDBResponse>('/movie/popular')).results;
-export const getTopRated = async () => (await tmdbFetch<TMDBResponse>('/movie/top_rated')).results;
-export const getUpcoming = async () => (await tmdbFetch<TMDBResponse>('/movie/upcoming')).results;
-export const searchMovies = async (q: string) => (await tmdbFetch<TMDBResponse>('/search/movie', { query: q })).results;
-export const getMovieDetails = (id: number) => tmdbFetch<MovieDetails>(/movie/${id}, { append_to_response: 'credits,videos' });
-export const imgUrl = (path: string | null, size = 'w500') => path ? https://image.tmdb.org/t/p/${size}${path} : '/no-poster.svg';
+
+export const getTrending = () => fetchTMDB<TMDBResponse>("/trending/movie/week").then(d => d.results);
+export const getPopular = () => fetchTMDB<TMDBResponse>("/movie/popular").then(d => d.results);
+export const getTopRated = () => fetchTMDB<TMDBResponse>("/movie/top_rated").then(d => d.results);
+export const getUpcoming = () => fetchTMDB<TMDBResponse>("/movie/upcoming").then(d => d.results);
+export const searchMovies = (q: string) => fetchTMDB<TMDBResponse>("/search/movie", { query: q }).then(d => d.results);
+export const getMovieDetails = (id: number) => fetchTMDB<MovieDetails>(/movie/${id}, { append_to_response: "credits,videos" });
+
+export const IMG = "https:" + "//image.tmdb.org/t/p/";
+export const POSTER = "w500";
+export const BACKDROP = "original";
