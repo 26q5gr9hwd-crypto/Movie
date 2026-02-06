@@ -6,7 +6,7 @@ import { Movie } from "@/types/movie";
 import { IMG, BACKDROP } from "@/lib/tmdb";
 
 export default function HeroBanner({ movie }: { movie: Movie }) {
-  const bg = movie.backdrop_path ? ${IMG}${BACKDROP}${movie.backdrop_path} : "";
+  const bg = movie.backdrop_path ? `${IMG}${BACKDROP}${movie.backdrop_path}` : "";
   const fadeIn = { opacity: 0, y: 30 };
   const visible = { opacity: 1, y: 0 };
   const dur = { duration: 0.8 };
@@ -23,8 +23,8 @@ export default function HeroBanner({ movie }: { movie: Movie }) {
         </div>
         <p className="text-gray-300 text-sm md:text-base mt-4 line-clamp-3">{movie.overview}</p>
         <div className="flex gap-3 mt-6">
-          <Link href={/movie/${movie.id}} className="bg-danflix-red hover:bg-red-700 text-white px-6 py-3 rounded font-heading text-lg tracking-wider uppercase transition-colors">Watch Now</Link>
-          <Link href={/movie/${movie.id}} className="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded font-heading text-lg tracking-wider uppercase transition-colors border border-white/10">More Info</Link>
+          <Link href={`/movie/${movie.id}`} className="bg-danflix-red hover:bg-red-700 text-white px-6 py-3 rounded font-heading text-lg tracking-wider uppercase transition-colors">Watch Now</Link>
+          <Link href={`/movie/${movie.id}`} className="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded font-heading text-lg tracking-wider uppercase transition-colors border border-white/10">More Info</Link>
         </div>
       </motion.div>
     </section>

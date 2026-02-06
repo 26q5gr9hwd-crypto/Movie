@@ -6,7 +6,7 @@ import { Movie } from "@/types/movie";
 import { IMG, POSTER } from "@/lib/tmdb";
 
 export default function MovieCard({ movie, index = 0 }: { movie: Movie; index?: number }) {
-const src = movie.poster_path ? ${IMG}${POSTER}${movie.poster_path} : "";
+const src = movie.poster_path ? `${IMG}${POSTER}${movie.poster_path}` : "";
   if (!src) return null;
   const initAnim = { opacity: 0, y: 20 };
   const showAnim = { opacity: 1, y: 0 };
@@ -15,7 +15,7 @@ const src = movie.poster_path ? ${IMG}${POSTER}${movie.poster_path} : "";
   const hover = { scale: 1.05 };
   return (
     <motion.div initial={initAnim} whileInView={showAnim} transition={trans} viewport={vp}>
-      <Link href={/movie/${movie.id}} className="group block w-[160px] sm:w-[200px] flex-shrink-0">
+      <Link href={`/movie/${movie.id}`} className="group block w-[160px] sm:w-[200px] flex-shrink-0">
         <motion.div whileHover={hover} className="relative aspect-[2/3] overflow-hidden rounded-lg">
           <Image src={src} alt={movie.title} fill sizes="200px" className="object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
