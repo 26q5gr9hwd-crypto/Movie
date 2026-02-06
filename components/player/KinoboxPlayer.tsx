@@ -14,7 +14,7 @@ interface Props {
   selectedPlayer?: KinoboxPlayerData | null;
 }
 
-const API = ['api', 'kinobox', 'tv'].join('.');
+const API_HOST = ['api','kinobox','tv'].join('.');
 
 export function KinoboxPlayer({ movieId, onPlayersLoaded, onError, selectedPlayer }: Props) {
   const [loading, setLoading] = useState(true);
@@ -26,7 +26,8 @@ export function KinoboxPlayer({ movieId, onPlayersLoaded, onError, selectedPlaye
     const go = async () => {
       try {
         const id = movieId.replace(/^shiki/, '');
-        const r = await fetch(https://${API}/api/players?kinopoisk=${id});
+        const url = 'https' + '://' + API_HOST + '/api/players?kinopoisk=' + id;
+        const r = await fetch(url);
         if (!r.ok) throw new Error('fail');
         const d = await r.json();
         const arr = (Array.isArray(d) ? d : d?.data || [])
