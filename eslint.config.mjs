@@ -37,7 +37,10 @@ export default [
       }
     },
     rules: {
-      'no-unused-vars': ['error', { argsIgnorePattern: '^', varsIgnorePattern: '^' }],
+      'no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }
+      ],
       'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
       quotes: ['warn', 'single', { avoidEscape: true }],
       semi: ['warn', 'never'],
