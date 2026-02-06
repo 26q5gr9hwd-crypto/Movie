@@ -1,70 +1,47 @@
 'use client';
 import { useState, useEffect } from 'react';
 
-export interface KinoboxPlayerData {
-  key: string;
-  name: string;
-  iframeUrl: string;
-}
+interface Props { movieId: string; onError?: () => void; onLoad?: () => void; }
+interface Src { key: string; name: string; url: string; }
 
-interface Props {
-  movieId: string;
-  onPlayersLoaded?: (players: KinoboxPlayerData[]) => void;
-  onError?: () => void;
-  selectedPlayer?: KinoboxPlayerData | null;
-}
-
-const API_HOST = ['api','kinobox','tv'].join('.');
-
-export function KinoboxPlayer({ movieId, onPlayersLoaded, onError, selectedPlayer }: Props) {
+export default function KinoboxPlayer({ movieId, onError, onLoad }: Props) {
   const [loading, setLoading] = useState(true);
-  const [iframeLoading, setIframeLoading] = useState(true);
-  const [players, setPlayers] = useState<KinoboxPlayerData[]>([]);
-  const [error, setError] = useState(false);
+  const [srcs, setSrcs] = useState<Src[]>([]);
+  const [cur, setCur] = useState<Src | null>(null);
 
   useEffect(() => {
-    const go = async () => {
-      try {
-        const id = movieId.replace(/^shiki/, '');
-        const url = 'https' + '://' + API_HOST + '/api/players?kinopoisk=' + id;
-        const r = await fetch(url);
-        if (!r.ok) throw new Error('fail');
-        const d = await r.json();
+    const id = movieId.replace(/^shiki/, '');
+    const h = ['api','kinobox','tv'].join('.');
+    fetch('https://' + h + '/api/players?kinopoisk=' + id)
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(d => {
         const arr = (Array.isArray(d) ? d : d?.data || [])
           .filter((p: any) => p?.iframeUrl && p?.type)
-          .map((p: any) => ({ key: p.type.toUpperCase(), name: p.type, iframeUrl: p.iframeUrl }));
-        if (!arr.length) throw new Error('empty');
-        setPlayers(arr);
-        onPlayersLoaded?.(arr);
-      } catch {
-        setError(true);
-        onError?.();
-      } finally {
-        setLoading(false);
-      }
-    };
-    go();
-  }, [movieId]);
+          .map((p: any) => ({ key: p.type, name: p.type, url: p.iframeUrl }));
+        if (!arr.length) throw 0;
+        setSrcs(arr); setCur(arr[0]);
+      })
+      .catch(() => onError?.());
+  }, [movieId, onError]);
 
-  const active = selectedPlayer || players[0];
-
-  if (loading) return (
-    <div className="flex items-center justify-center h-[400px] bg-black/50 rounded-xl">
-      <div className="w-10 h-10 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
+  if (!cur) return loading ? (
+    <div className="flex items-center justify-center w-full aspect-video bg-black/50 rounded-xl">
+      <div className="w-8 h-8 border-2 border-red-500/80 border-t-transparent rounded-full animate-spin" />
     </div>
-  );
+  ) : null;
 
-  if (error || !active) return null;
-
-  return (
-    <div className="relative w-full aspect-video bg-black rounded-xl overflow-hidden">
-      {iframeLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-10">
-          <div className="w-10 h-10 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
-        </div>
-      )}
-      <iframe src={active.iframeUrl} className="w-full h-full border-0" allowFullScreen
-        onLoad={() => setIframeLoading(false)} />
+  return (<div className="w-full">
+    {srcs.length > 1 && <div className="flex gap-2 mb-3 flex-wrap">{srcs.map(s => (
+      <button key={s.key} onClick={() => { setCur(s); setLoading(true); }}
+        className={'px-3 py-1.5 rounded-lg text-sm font-medium transition-all ' + (cur.key === s.key ? 'bg-red-600 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20')}>
+        {s.name}</button>))}</div>}
+    <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-black">
+      <iframe src={cur.url} className="absolute inset-0 w-full h-full border-0"
+        allowFullScreen allow="autoplay; fullscreen"
+        onLoad={() => { setLoading(false); onLoad?.(); }}
+        onError={() => onError?.()} />
+      {loading && <div className="absolute inset-0 flex items-center justify-center bg-black/80">
+        <div className="w-8 h-8 border-2 border-red-500/80 border-t-transparent rounded-full animate-spin" /></div>}
     </div>
-  );
+  </div>);
 }
