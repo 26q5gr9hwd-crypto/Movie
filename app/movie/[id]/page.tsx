@@ -5,8 +5,8 @@ import Link from "next/link";
 export default async function MoviePage({params}:{params:Promise<{id:string}>}) {
   const {id} = await params;
   const m = await getMovieDetails(Number(id));
-  const bg = m.backdrop_path?`${IMG}${BACKDROP}${m.backdrop_path}`:"";
-  const poster = m.poster_path?`${IMG}${POSTER}${m.poster_path}`:"";
+  const bg = m.backdrop_path ? `${IMG}${BACKDROP}${m.backdrop_path}` : "";
+const poster = m.poster_path ? `${IMG}${POSTER}${m.poster_path}` : "";
   return (
     <main className="min-h-screen">
       <div className="relative h-[50vh]">
