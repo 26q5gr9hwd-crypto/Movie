@@ -15,7 +15,7 @@ const src = movie.poster_path ? `${IMG}${POSTER}${movie.poster_path}` : "";
   const hover = { scale: 1.05 };
   return (
     <motion.div initial={initAnim} whileInView={showAnim} transition={trans} viewport={vp}>
-      <Link href={`/movie/${movie.id}`}
+      <Link href={`/movie/${movie.id}`}>
       <motion.div whileHover={hover} className="relative aspect-[2/3] overflow-hidden rounded-lg">
           <Image src={src} alt={movie.title} fill sizes="200px" className="object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
