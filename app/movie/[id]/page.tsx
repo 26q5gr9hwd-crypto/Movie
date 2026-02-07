@@ -22,7 +22,7 @@ const poster = m.poster_path ? `${IMG}${POSTER}${m.poster_path}` : "";
           <div className="flex flex-wrap gap-2 mt-3 text-sm text-gray-400">
             ★ {m.vote_average.toFixed(1)}
             {m.release_date?.slice(0,4)}
-            {m.runtime>0&&{Math.floor(m.runtime/60)}h {m.runtime%60}m}
+            {m.runtime>0&&<span>{Math.floor(m.runtime/60)}h {m.runtime%60}m</span>}
             {m.genres?.map((g,i)=>{g.name})}
           </div>
           <p className="text-gray-300 mt-4 leading-relaxed">{m.overview}</p>

@@ -19,7 +19,7 @@ export default function HeroBanner({ movie }: { movie: Movie }) {
         <h1 className="font-heading text-5xl md:text-7xl lg:text-8xl text-white tracking-wider uppercase leading-none">{movie.title}</h1>
         <div className="flex items-center gap-3 mt-3">
           ★ {movie.vote_average.toFixed(1)}
-          {movie.release_date && {new Date(movie.release_date).getFullYear()}}
+          {movie.release_date && <span>{new Date(movie.release_date).getFullYear()}</span>}
         </div>
         <p className="text-gray-300 text-sm md:text-base mt-4 line-clamp-3">{movie.overview}</p>
         <div className="flex gap-3 mt-6">
