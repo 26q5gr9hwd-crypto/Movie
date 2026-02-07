@@ -5,9 +5,9 @@ import { useState, useEffect } from 'react';
 import MovieCard from '@/components/MovieCard';
 
 export default function FavoritesPage() {
-  const { user, setShowAuthModal } = useAuth();
+  const { user } = useAuth();
   const [favs, setFavs] = useState<FavoriteMovie[]>([]);
-  useEffect(() => { if (user) setFavs(getFavorites(user)); else setShowAuthModal(true); }, [user, setShowAuthModal]);
+  useEffect(() => { if (user) setFavs(getFavorites(user)); }, [user]);
   if (!user) return (
     <main className="min-h-screen bg-danflix-black pt-24 px-4 flex items-center justify-center">
       <p className="text-gray-500 font-heading text-2xl tracking-wider">Sign in to see your favorites</p>
