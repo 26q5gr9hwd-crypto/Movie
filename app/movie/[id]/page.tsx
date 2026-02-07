@@ -20,10 +20,10 @@ const poster = m.poster_path ? `${IMG}${POSTER}${m.poster_path}` : "";
           <h1 className="font-heading text-4xl md:text-6xl text-white tracking-wider uppercase">{m.title}</h1>
           {m.tagline&&<p className="text-danflix-gold italic mt-2">{m.tagline}</p>}
           <div className="flex flex-wrap gap-2 mt-3 text-sm text-gray-400">
-            u2605 {m.vote_average.toFixed(1)}
+            ★ {m.vote_average.toFixed(1)}
             {m.release_date?.slice(0,4)}
             {m.runtime>0&&{Math.floor(m.runtime/60)}h {m.runtime%60}m}
-            {m.genres?.map(g=>{g.name})}
+            {m.genres?.map((g,i)=>{g.name})}
           </div>
           <p className="text-gray-300 mt-4 leading-relaxed">{m.overview}</p>
           <div id="player-mount" className="mt-6 aspect-video bg-danflix-dark rounded-lg border border-white/5"/>
