@@ -23,7 +23,7 @@ const poster = m.poster_path ? `${IMG}${POSTER}${m.poster_path}` : "";
             ★ {m.vote_average.toFixed(1)}
             {m.release_date?.slice(0,4)}
             {m.runtime>0&&<span>{Math.floor(m.runtime/60)}h {m.runtime%60}m</span>}
-            {m.genres?.map((g,i)=>{g.name})}
+            {m.genres?.map((g,i) => g.name).join(', ')}
           </div>
           <p className="text-gray-300 mt-4 leading-relaxed">{m.overview}</p>
           <div id="player-mount" className="mt-6 aspect-video bg-danflix-dark rounded-lg border border-white/5"/>
